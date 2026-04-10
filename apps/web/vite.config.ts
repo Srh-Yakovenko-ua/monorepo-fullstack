@@ -29,15 +29,33 @@ export default defineConfig(({ command, mode }) => {
           assetFileNames: "assets/[name]-[hash][extname]",
           chunkFileNames: "assets/[name]-[hash].js",
           entryFileNames: "assets/[name]-[hash].js",
-          experimentalMinChunkSize: 10_000,
-          manualChunks: {
-            "chart-vendor": ["recharts"],
-            "date-vendor": ["date-fns", "react-day-picker"],
-            "form-vendor": ["react-hook-form", "@hookform/resolvers", "zod"],
-            "query-vendor": ["@tanstack/react-query", "@tanstack/react-query-persist-client"],
-            "react-vendor": ["react", "react-dom", "react-router"],
-            "table-vendor": ["@tanstack/react-table", "@tanstack/react-virtual"],
-            "ui-vendor": ["radix-ui", "lucide-react", "sonner", "cmdk", "vaul"],
+          manualChunks(id) {
+            if (id.includes("recharts")) return "chart-vendor";
+            if (id.includes("date-fns") || id.includes("react-day-picker")) return "date-vendor";
+            if (
+              id.includes("react-hook-form") ||
+              id.includes("@hookform/resolvers") ||
+              id.includes("zod")
+            )
+              return "form-vendor";
+            if (
+              id.includes("@tanstack/react-query-persist-client") ||
+              id.includes("@tanstack/react-query")
+            )
+              return "query-vendor";
+            if (id.includes("/react-dom") || id.includes("/react-router") || id.includes("/react/"))
+              return "react-vendor";
+            if (id.includes("@tanstack/react-table") || id.includes("@tanstack/react-virtual"))
+              return "table-vendor";
+            if (
+              id.includes("radix-ui") ||
+              id.includes("lucide-react") ||
+              id.includes("sonner") ||
+              id.includes("cmdk") ||
+              id.includes("vaul")
+            )
+              return "ui-vendor";
+            return undefined;
           },
         },
       },

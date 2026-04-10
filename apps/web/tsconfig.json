@@ -9,7 +9,6 @@
     "allowImportingTsExtensions": false,
     "noEmit": true,
     "types": ["vite/client", "node"],
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }

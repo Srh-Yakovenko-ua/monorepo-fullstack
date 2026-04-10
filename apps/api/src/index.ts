@@ -1,5 +1,3 @@
-import "express-async-errors";
-
 import { createApp } from "./app.js";
 import { env } from "./config/env.js";
 import { connectMongo, disconnectMongo } from "./db/mongo.js";
