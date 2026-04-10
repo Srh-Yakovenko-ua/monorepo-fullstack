@@ -1,0 +1,73 @@
+{
+  "name": "monorepo-fullstack",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "pnpm@10.28.1",
+  "engines": {
+    "node": ">=20.12.0"
+  },
+  "scripts": {
+    "dev": "pnpm kill-ports && turbo run dev",
+    "dev:web": "pnpm kill-ports:web && turbo run dev --filter=@app/web",
+    "dev:api": "pnpm kill-ports:api && turbo run dev --filter=@app/api",
+    "kill-ports": "pnpm kill-ports:api && pnpm kill-ports:web",
+    "kill-ports:api": "lsof -ti:4000 | xargs kill -9 2>/dev/null || true",
+    "kill-ports:web": "lsof -ti:5173 | xargs kill -9 2>/dev/null || true",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "turbo run test",
+    "knip": "knip",
+    "knip:fix": "knip --fix",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css,html}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@eslint/js": "^10.0.1",
+    "@vitest/eslint-plugin": "^1.6.15",
+    "eslint": "^10.2.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-better-tailwindcss": "^4.4.0",
+    "eslint-plugin-import-x": "^4.16.2",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-perfectionist": "^5.8.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "eslint-plugin-testing-library": "^7.16.2",
+    "globals": "^17.4.0",
+    "husky": "^9.1.7",
+    "knip": "^5.88.1",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.2",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "^8.58.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "oxc-parser",
+      "oxc-resolver",
+      "@parcel/watcher",
+      "unrs-resolver",
+      "@swc/core"
+    ]
+  }
+}

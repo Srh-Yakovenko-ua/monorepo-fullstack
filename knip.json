@@ -1,0 +1,40 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignoreExportsUsedInFile": true,
+  "ignoreBinaries": ["lsof"],
+  "workspaces": {
+    ".": {},
+    "apps/web": {
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignore": ["src/components/ui/**", "src/test-utils.tsx"],
+      "ignoreDependencies": [
+        "@hookform/devtools",
+        "@hookform/resolvers",
+        "@tanstack/query-sync-storage-persister",
+        "@tanstack/react-query-persist-client",
+        "@tanstack/react-table",
+        "@tanstack/react-virtual",
+        "cmdk",
+        "date-fns",
+        "input-otp",
+        "nanoid",
+        "react-day-picker",
+        "react-hook-form",
+        "recharts",
+        "superjson",
+        "ts-pattern",
+        "type-fest",
+        "vaul",
+        "zustand",
+        "@testing-library/user-event"
+      ]
+    },
+    "apps/api": {
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["pino-pretty"]
+    },
+    "packages/shared": {
+      "project": ["src/**/*.ts"]
+    }
+  }
+}

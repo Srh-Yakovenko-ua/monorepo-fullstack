@@ -1,0 +1,82 @@
+import { AlertCircle, ArrowLeft } from "lucide-react";
+import { isRouteErrorResponse, Link, useRouteError } from "react-router";
+
+import { Button } from "@/components/ui/button";
+
+export function AppErrorBoundary() {
+  const error = useRouteError();
+
+  const isRouteError = isRouteErrorResponse(error);
+  const status = isRouteError ? error.status : 500;
+  const statusText = isRouteError ? error.statusText : "Internal error";
+  const message =
+    isRouteError && error.data
+      ? typeof error.data === "string"
+        ? error.data
+        : JSON.stringify(error.data)
+      : error instanceof Error
+        ? error.message
+        : "Something went wrong while rendering the page.";
+
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(ellipse 70% 50% at 15% 0%, oklch(0.62 0.22 25 / 0.18), transparent 60%),
+            radial-gradient(ellipse 60% 60% at 100% 100%, oklch(0.28 0.1 280 / 0.2), transparent 65%)
+          `,
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage: "radial-gradient(circle, currentColor 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+      />
+
+      <main className="relative flex min-h-screen flex-col px-8 py-10 md:px-16 md:py-14 lg:px-24 lg:py-16 2xl:px-32 2xl:py-20">
+        <header className="flex items-center gap-3 font-mono text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
+          <AlertCircle className="size-3.5 text-error" />
+          <span>monorepo / runtime error</span>
+        </header>
+
+        <section className="mt-20 flex-1 md:mt-28 lg:mt-32">
+          <p className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground uppercase">
+            Error · {status}
+          </p>
+
+          <h1 className="mt-6 font-display text-[clamp(3.75rem,9vw,15rem)] leading-[0.86] font-semibold tracking-[-0.035em]">
+            {statusText}
+            <span className="text-error">.</span>
+          </h1>
+
+          <p className="mt-10 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg lg:text-xl">
+            {message}
+          </p>
+        </section>
+
+        <footer className="mt-16 flex flex-col items-start justify-between gap-6 border-t border-border pt-8 md:flex-row md:items-center">
+          <Button
+            asChild
+            className="h-12 px-6 font-mono text-[11px] tracking-[0.22em] uppercase"
+            variant="outline"
+          >
+            <Link to="/">
+              <ArrowLeft className="mr-2 size-4" />
+              Back home
+            </Link>
+          </Button>
+
+          <p className="font-mono text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
+            Express + MongoDB · phase 1
+          </p>
+        </footer>
+      </main>
+    </div>
+  );
+}

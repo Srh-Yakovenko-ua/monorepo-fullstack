@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+
+# Vite
+apps/web/.vite/
+
+# Playwright MCP — auto-generated snapshots/console logs from browser sessions
+.playwright-mcp/
+
+# Turborepo cache
+.turbo/
