@@ -43,6 +43,7 @@ export default defineConfig(({ command, mode }) => {
               id.includes("@tanstack/react-query")
             )
               return "query-vendor";
+            if (id.includes("@floating-ui")) return "ui-vendor";
             if (id.includes("/react-dom") || id.includes("/react-router") || id.includes("/react/"))
               return "react-vendor";
             if (id.includes("@tanstack/react-table") || id.includes("@tanstack/react-virtual"))
@@ -83,7 +84,6 @@ export default defineConfig(({ command, mode }) => {
         "react-dom/client",
         "react-router",
         "@tanstack/react-query",
-        "@tanstack/react-query-devtools",
         "lucide-react",
         "sonner",
         "react-hook-form",

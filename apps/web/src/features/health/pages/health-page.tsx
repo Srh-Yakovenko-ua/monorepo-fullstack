@@ -7,8 +7,12 @@ import { useHealth } from "@/features/health/hooks/use-health";
 import { formatUptime } from "@/features/health/lib/format";
 import { ModalId, modalObserver } from "@/features/modals";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { env } from "@/lib/env";
 import { formatTimestamp } from "@/lib/format";
+import { createLogger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
+
+const logger = createLogger("health-page");
 
 export function HealthPage() {
   usePageTitle("Health");
@@ -16,17 +20,7 @@ export function HealthPage() {
 
   const visualStatus: StatusDotState = isError ? "down" : (data?.status ?? "loading");
 
-  const headline = isError
-    ? "Unreachable"
-    : isLoading && !data
-      ? "Connecting"
-      : visualStatus === "ok"
-        ? "Operational"
-        : visualStatus === "degraded"
-          ? "Degraded"
-          : visualStatus === "down"
-            ? "Down"
-            : "Connecting";
+  const headline = deriveHeadline(isError, isLoading, !!data, visualStatus);
 
   const description = isError
     ? `The API at localhost:4000 did not respond. ${error.message}.`
@@ -81,7 +75,7 @@ export function HealthPage() {
           >
             <Metric label="Uptime" value={formatUptime(data.uptimeSeconds)} />
             <Metric label="Last heartbeat" value={formatTimestamp(data.timestamp)} />
-            <Metric label="Environment" value="DEVELOPMENT" />
+            <Metric label="Environment" value={env.MODE.toUpperCase()} />
           </div>
         ) : isLoading ? (
           <div className="grid grid-cols-1 gap-px md:grid-cols-3">
@@ -110,7 +104,7 @@ export function HealthPage() {
                 confirmLabel: "Delete",
                 description: "This action cannot be undone.",
                 onConfirm: () => {
-                  console.info("[demo] confirmed");
+                  logger.info("confirmed");
                 },
                 title: "Delete this item?",
                 tone: "destructive",
@@ -128,6 +122,20 @@ export function HealthPage() {
       </footer>
     </main>
   );
+}
+
+function deriveHeadline(
+  isError: boolean,
+  isLoading: boolean,
+  hasData: boolean,
+  visualStatus: StatusDotState,
+): string {
+  if (isError) return "Unreachable";
+  if (isLoading && !hasData) return "Connecting";
+  if (visualStatus === "ok") return "Operational";
+  if (visualStatus === "degraded") return "Degraded";
+  if (visualStatus === "down") return "Down";
+  return "Connecting";
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
