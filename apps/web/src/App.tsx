@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
 import { PageLoading } from "@/components/page-loading";
+import { ModalsRoot } from "@/features/modals";
 import { AppErrorBoundary } from "@/routes/error-boundary";
 import { AppShell } from "@/routes/layouts/app-shell";
 
@@ -32,5 +33,10 @@ const router = createBrowserRouter([
 ]);
 
 export function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <ModalsRoot />
+    </>
+  );
 }
