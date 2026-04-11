@@ -30,3 +30,6 @@ apps/web/.vite/
 
 # Turborepo cache
 .turbo/
+
+# Agent screenshot artifacts in repo root (anchored — src/ and public/ PNGs safe)
+/*.png
