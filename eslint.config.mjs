@@ -106,6 +106,13 @@ export default tseslint.config(
   },
 
   {
+    files: ["apps/web/.storybook/**/*.{ts,tsx}", "apps/web/src/**/*.stories.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
+
+  {
     files: ["**/*.{test,spec}.{ts,tsx}"],
     plugins: {
       "testing-library": testingLibrary,
