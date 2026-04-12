@@ -39,3 +39,4 @@ storybook-static/
 
 # Agent screenshot artifacts in repo root (anchored — src/ and public/ PNGs safe)
 /*.png
+.vercel

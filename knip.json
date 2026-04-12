@@ -32,7 +32,6 @@
       ]
     },
     "apps/api": {
-      "entry": ["src/serverless.ts!"],
       "project": ["src/**/*.ts"],
       "ignoreDependencies": ["pino-pretty"]
     },
