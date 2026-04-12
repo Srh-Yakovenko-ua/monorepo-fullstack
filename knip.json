@@ -3,7 +3,9 @@
   "ignoreExportsUsedInFile": true,
   "ignoreBinaries": ["lsof"],
   "workspaces": {
-    ".": {},
+    ".": {
+      "ignore": ["api/**"]
+    },
     "apps/web": {
       "project": ["src/**/*.{ts,tsx}"],
       "ignore": ["src/components/ui/**", "src/test-utils.tsx"],
@@ -30,6 +32,7 @@
       ]
     },
     "apps/api": {
+      "entry": ["src/serverless.ts!"],
       "project": ["src/**/*.ts"],
       "ignoreDependencies": ["pino-pretty"]
     },

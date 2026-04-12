@@ -19,7 +19,14 @@ const tailwindEntryPoint = path.resolve(__dirname, "apps/web/src/index.css");
 
 export default tseslint.config(
   {
-    ignores: ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.vite/**", "pnpm-lock.yaml"],
+    ignores: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.vite/**",
+      "pnpm-lock.yaml",
+      "api/**",
+    ],
   },
 
   js.configs.recommended,

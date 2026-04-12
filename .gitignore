@@ -28,6 +28,12 @@ apps/web/.vite/
 # Playwright MCP — auto-generated snapshots/console logs from browser sessions
 .playwright-mcp/
 
+# Vercel
+.vercel/
+
+# Storybook
+storybook-static/
+
 # Turborepo cache
 .turbo/
 

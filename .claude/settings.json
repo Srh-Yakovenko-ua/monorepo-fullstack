@@ -1,9 +1,4 @@
 {
-  "enabledPlugins": {
-    "frontend-design@claude-plugins-official": true,
-    "chrome-devtools-mcp@claude-plugins-official": true,
-    "playwright@claude-plugins-official": true
-  },
   "permissions": {
     "allow": [
       "Bash(ls:*)",
@@ -92,12 +87,14 @@
       "Bash(git branch -D:*)",
       "Bash(mongosh:*)",
       "Bash(mongo --eval:*)",
-      "Bash(curl:* | sh)",
-      "Bash(curl:* | bash)",
-      "Bash(wget:* | sh)",
-      "Bash(wget:* | bash)",
       "Bash(pnpm publish:*)",
       "Bash(npm publish:*)"
     ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "vercel@claude-plugins-official": true
   }
 }
