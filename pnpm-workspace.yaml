@@ -7,8 +7,7 @@ catalog:
   "@commitlint/cli": ^20.5.0
   "@commitlint/config-conventional": ^20.5.0
   "@eslint/js": ^10.0.1
-  "@fontsource-variable/fraunces": ^5.2.9
-  "@fontsource-variable/geist": ^5.2.8
+  "@fontsource-variable/bricolage-grotesque": ^5.2.10
   "@fontsource-variable/geist-mono": ^5.2.7
   "@hookform/devtools": ^4.4.0
   "@hookform/resolvers": ^5.2.2
@@ -60,7 +59,6 @@ catalog:
   happy-dom: ^20.8.9
   helmet: ^8.1.0
   husky: ^9.1.7
-  i18next: ^26.0.6
   input-otp: ^1.4.2
   knip: ^6.3.1
   lint-staged: ^16.4.0
@@ -79,7 +77,6 @@ catalog:
   react-day-picker: ^9.14.0
   react-dom: ^19.2.5
   react-hook-form: ^7.72.1
-  react-i18next: ^17.0.4
   react-router: ^7.14.0
   react-scan: ^0.5.3
   recharts: 3.8.1
