@@ -8,7 +8,12 @@ import { NotFoundError } from "./lib/errors.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { requestId } from "./middleware/request-id.js";
 import { requestLogger } from "./middleware/request-logger.js";
+import { blogsRouter } from "./routes/blogs.routes.js";
+import { docsRouter } from "./routes/docs.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
+import { postsRouter } from "./routes/posts.routes.js";
+import { testingRouter } from "./routes/testing.routes.js";
+import { videosRouter } from "./routes/videos.routes.js";
 
 export function createApp(): express.Express {
   const app = express();
@@ -23,6 +28,14 @@ export function createApp(): express.Express {
   app.use(express.json({ limit: "1mb" }));
 
   app.use("/api/health", healthRouter);
+  app.use("/api/blogs", blogsRouter);
+  app.use("/api/posts", postsRouter);
+  app.use("/api/videos", videosRouter);
+
+  if (env.nodeEnv !== "production") {
+    app.use("/api/testing", testingRouter);
+    app.use("/api/docs", docsRouter);
+  }
 
   app.use((req, _res, next) => {
     next(new NotFoundError(`Not found: ${req.method} ${req.path}`));

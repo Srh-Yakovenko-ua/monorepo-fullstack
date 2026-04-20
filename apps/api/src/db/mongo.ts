@@ -8,10 +8,14 @@ const log = createLogger("mongo");
 export async function connectMongo(): Promise<void> {
   mongoose.set("strictQuery", true);
   await mongoose.connect(env.mongoUri);
-  log.info({ uri: env.mongoUri }, "connected");
+  log.info({ uri: redactMongoUri(env.mongoUri) }, "connected");
 }
 
 export async function disconnectMongo(): Promise<void> {
   await mongoose.disconnect();
   log.info("disconnected");
+}
+
+function redactMongoUri(uri: string): string {
+  return uri.replace(/\/\/[^@]+@/, "//***@");
 }

@@ -1,8 +1,10 @@
+import { HTTP_STATUS, type HttpStatus } from "./http-status.js";
+
 export class HttpError extends Error {
   readonly code?: string;
-  readonly status: number;
+  readonly status: HttpStatus;
 
-  constructor(status: number, message: string, code?: string) {
+  constructor(status: HttpStatus, message: string, code?: string) {
     super(message);
     this.name = "HttpError";
     this.status = status;
@@ -12,14 +14,14 @@ export class HttpError extends Error {
 
 export class NotFoundError extends HttpError {
   constructor(message = "Not found", code?: string) {
-    super(404, message, code);
+    super(HTTP_STATUS.NOT_FOUND, message, code);
     this.name = "NotFoundError";
   }
 }
 
 export class ValidationError extends HttpError {
   constructor(message: string, code?: string) {
-    super(422, message, code);
+    super(HTTP_STATUS.UNPROCESSABLE_ENTITY, message, code);
     this.name = "ValidationError";
   }
 }

@@ -65,6 +65,7 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
+      "mongodb-memory-server",
       "oxc-parser",
       "oxc-resolver",
       "@parcel/watcher",

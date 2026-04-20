@@ -20,7 +20,7 @@ All concrete claims use `path:line` references so the reader can click straight 
 
 ## Active
 
-- (none yet — first feature doc lands with the first real feature)
+- [blogs-posts-videos](./blogs-posts-videos.md) — CRUD для блогов, постов и видео с MongoDB, 55 интеграционных тестов (active)
 
 ## Planned
 
