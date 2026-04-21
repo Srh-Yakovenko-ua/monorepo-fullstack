@@ -143,5 +143,10 @@ export const BlogsQuerySchema = z.object({
   sortDirection: z.enum(["asc", "desc"]).default("desc"),
 });
 
+export type BlogLookupItem = {
+  id: string;
+  name: string;
+};
 export type BlogsQuery = z.infer<typeof BlogsQuerySchema>;
+
 export type PaginationQuery = z.infer<typeof PaginationQuerySchema>;

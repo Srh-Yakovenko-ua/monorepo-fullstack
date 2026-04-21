@@ -1,5 +1,6 @@
 import type {
   BlogInput,
+  BlogLookupItem,
   BlogScopedPostInput,
   BlogsQuery,
   BlogViewModel,
@@ -9,6 +10,7 @@ import type {
 } from "@app/shared";
 
 import type { BlogDoc } from "../db/models/blog.model.js";
+import type { BlogLookupDoc } from "../db/repositories/blogs.repository.js";
 
 import * as blogsRepository from "../db/repositories/blogs.repository.js";
 import * as postsRepository from "../db/repositories/posts.repository.js";
@@ -67,6 +69,16 @@ export async function getBlogById(id: string): Promise<BlogViewModel> {
   return toBlogView(blog);
 }
 
+export async function getBlogLookup(query: BlogsQuery): Promise<Paginator<BlogLookupItem>> {
+  const { items, totalCount } = await blogsRepository.findLookupPage(query);
+  return buildPaginator({
+    items: items.map(toBlogLookupItem),
+    pageNumber: query.pageNumber,
+    pageSize: query.pageSize,
+    totalCount,
+  });
+}
+
 export async function getPostsByBlogId(
   blogId: string,
   query: PaginationQuery,
@@ -81,6 +93,13 @@ export async function getPostsByBlogId(
     pageSize: query.pageSize,
     totalCount,
   });
+}
+
+export function toBlogLookupItem(doc: BlogLookupDoc): BlogLookupItem {
+  return {
+    id: doc._id.toHexString(),
+    name: doc.name,
+  };
 }
 
 export function toBlogView(doc: BlogDoc): BlogViewModel {

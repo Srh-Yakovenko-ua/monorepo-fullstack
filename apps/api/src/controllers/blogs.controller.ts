@@ -35,6 +35,12 @@ export async function getBlog(req: Request<IdParams>, res: Response<BlogViewMode
   res.status(HTTP_STATUS.OK).json(blog);
 }
 
+export async function listBlogLookup(req: Request, res: Response): Promise<void> {
+  const query = validatedQuery(req, BlogsQuerySchema);
+  const page = await blogsService.getBlogLookup(query);
+  res.status(HTTP_STATUS.OK).json(page);
+}
+
 export async function listBlogs(req: Request, res: Response): Promise<void> {
   const query = validatedQuery(req, BlogsQuerySchema);
   const page = await blogsService.getAllBlogs(query);

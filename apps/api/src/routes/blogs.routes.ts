@@ -12,6 +12,7 @@ import {
   createPostForBlog,
   deleteBlog,
   getBlog,
+  listBlogLookup,
   listBlogs,
   listPostsForBlog,
   updateBlog,
@@ -21,6 +22,7 @@ import { validateBody, validateQuery } from "../middleware/validate.js";
 
 const router: Router = Router();
 
+router.get("/lookup", validateQuery(BlogsQuerySchema), listBlogLookup);
 router.get("/", validateQuery(BlogsQuerySchema), listBlogs);
 router.post("/", validateBody(BlogInputSchema), createBlog);
 router.get("/:id", getBlog);
@@ -109,6 +111,11 @@ const postsPaginationQueryParams = [
   },
 ];
 
+const blogLookupItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
 registerPaths({
   "/api/blogs": {
     get: {
@@ -144,6 +151,24 @@ registerPaths({
         },
       },
       summary: "Create a blog",
+      tags: ["Blogs"],
+    },
+  },
+  "/api/blogs/lookup": {
+    get: {
+      operationId: "listBlogLookup",
+      parameters: paginationQueryParams,
+      responses: {
+        "200": {
+          content: { "application/json": { schema: paginatorSchema(blogLookupItemSchema) } },
+          description: "Paginated lightweight list of blogs (id + name) for dropdowns",
+        },
+        "400": {
+          content: { "application/json": { schema: apiErrorResultSchema } },
+          description: "Invalid query params",
+        },
+      },
+      summary: "Lookup blogs — id + name only",
       tags: ["Blogs"],
     },
   },
