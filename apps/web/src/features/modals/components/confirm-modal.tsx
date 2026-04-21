@@ -36,13 +36,12 @@ export function ConfirmModal({ isOpen, props }: Props) {
     modalObserver.removeModal(ModalId.Confirm);
   };
 
+  function handleOpenChange(open: boolean) {
+    if (!open) handleCancel();
+  }
+
   return (
-    <Dialog
-      onOpenChange={(open) => {
-        if (!open) handleCancel();
-      }}
-      open={isOpen}
-    >
+    <Dialog onOpenChange={handleOpenChange} open={isOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{props.title}</DialogTitle>

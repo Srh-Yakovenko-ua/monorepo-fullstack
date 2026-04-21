@@ -11,13 +11,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -94,7 +88,11 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
 
         <div className="h-px w-full bg-border/60" />
 
-        <form className="flex flex-col gap-5 px-7 py-6" onSubmit={form.handleSubmit(onSubmit)}>
+        <form
+          className="flex flex-col gap-5 px-7 py-6"
+          id="blog-form"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="blog-name">{t("blogs.form.nameLabel")}</Label>
@@ -146,20 +144,16 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
             />
             <FieldError error={form.formState.errors.websiteUrl} id="blog-websiteUrl-error" />
           </div>
-
-          <div className="h-px w-full bg-border/60" />
-
-          <DialogFooter className="-mb-1">
-            <Button
-              className="transition-all duration-150 hover:shadow-[var(--shadow-glow-brand)]"
-              disabled={isPending}
-              type="submit"
-            >
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {mode === "create" ? t("common.create") : t("common.save")}
-            </Button>
-          </DialogFooter>
         </form>
+
+        <div className="h-px w-full bg-border/60" />
+
+        <div className="flex justify-end px-7 py-4">
+          <Button disabled={isPending} form="blog-form" type="submit">
+            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+            {mode === "create" ? t("common.create") : t("common.save")}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

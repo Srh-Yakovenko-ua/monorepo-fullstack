@@ -8,7 +8,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -87,26 +86,14 @@ export function PostViewDialog({
 
         <div className="h-px w-full bg-border/60" />
 
-        <DialogFooter className="gap-2 px-7 py-5 sm:gap-2">
-          <Button
-            className="cursor-pointer transition-all duration-150 hover:ring-4 hover:ring-primary/15"
-            onClick={onEdit}
-            size="sm"
-            type="button"
-            variant="outline"
-          >
+        <div className="flex justify-end gap-2 px-7 py-4">
+          <Button onClick={onEdit} size="sm" type="button" variant="outline">
             {t("posts.detail.edit")}
           </Button>
-          <Button
-            className="cursor-pointer"
-            onClick={onDelete}
-            size="sm"
-            type="button"
-            variant="destructive"
-          >
+          <Button onClick={onDelete} size="sm" type="button" variant="destructive">
             {t("posts.detail.delete")}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

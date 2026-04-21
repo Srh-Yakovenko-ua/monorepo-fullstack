@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
+import { ListPageSkeleton } from "@/components/list-page-skeleton";
 import { PageLoading } from "@/components/page-loading";
 import { ModalsRoot } from "@/features/modals";
 import { AppErrorBoundary } from "@/routes/error-boundary";
@@ -12,24 +13,26 @@ const BlogsPage = lazy(() => import("@/features/blogs").then((m) => ({ default: 
 
 const PostsPage = lazy(() => import("@/features/posts").then((m) => ({ default: m.PostsPage })));
 
+const VideosPage = lazy(() => import("@/features/videos").then((m) => ({ default: m.VideosPage })));
+
 const NotFoundPage = lazy(() =>
   import("@/routes/not-found-page").then((m) => ({ default: m.NotFoundPage })),
 );
 
-function lazyRoute(Component: React.LazyExoticComponent<React.ComponentType>) {
-  return (
-    <Suspense fallback={<PageLoading />}>
-      <Component />
-    </Suspense>
-  );
+function lazyRoute(
+  Component: React.LazyExoticComponent<React.ComponentType>,
+  fallback: React.ReactNode = <PageLoading />,
+) {
+  return <Suspense fallback={fallback}>{<Component />}</Suspense>;
 }
 
 const router = createBrowserRouter([
   {
     children: [
       { element: lazyRoute(HealthPage), index: true },
-      { element: lazyRoute(BlogsPage), path: "blogs" },
-      { element: lazyRoute(PostsPage), path: "posts" },
+      { element: lazyRoute(BlogsPage, <ListPageSkeleton />), path: "blogs" },
+      { element: lazyRoute(PostsPage, <ListPageSkeleton />), path: "posts" },
+      { element: lazyRoute(VideosPage, <ListPageSkeleton />), path: "videos" },
       { element: lazyRoute(NotFoundPage), path: "*" },
     ],
     element: <AppShell />,

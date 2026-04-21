@@ -19,14 +19,14 @@ const MIN_LEVEL: LogLevel = __DEV__ ? "debug" : "warn";
 
 export function createLogger(scope: string) {
   return {
-    debug: (...args: unknown[]) => emit("debug", scope, args),
-    error: (...args: unknown[]) => emit("error", scope, args),
-    info: (...args: unknown[]) => emit("info", scope, args),
-    warn: (...args: unknown[]) => emit("warn", scope, args),
+    debug: (...args: unknown[]) => emit({ args, level: "debug", scope }),
+    error: (...args: unknown[]) => emit({ args, level: "error", scope }),
+    info: (...args: unknown[]) => emit({ args, level: "info", scope }),
+    warn: (...args: unknown[]) => emit({ args, level: "warn", scope }),
   };
 }
 
-function emit(level: LogLevel, scope: string, args: unknown[]): void {
+function emit({ args, level, scope }: { args: unknown[]; level: LogLevel; scope: string }): void {
   if (!shouldLog(level)) return;
   const tag = `%c[${scope}]`;
 

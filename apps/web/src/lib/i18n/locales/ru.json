@@ -14,7 +14,8 @@
   "nav": {
     "health": "Health",
     "blogs": "Блоги",
-    "posts": "Посты"
+    "posts": "Посты",
+    "videos": "Видео"
   },
   "appShell": {
     "label": "Blogger",
@@ -24,7 +25,8 @@
   "breadcrumbs": {
     "blogs": "Блоги",
     "posts": "Посты",
-    "health": "Health"
+    "health": "Health",
+    "videos": "Видео"
   },
   "actions": {
     "open": "Открыть",
@@ -76,7 +78,18 @@
       "createButton": "Создать блог",
       "empty": "Пока нет блогов",
       "emptyDescription": "Создайте свой первый блог, чтобы начать публиковать посты.",
-      "error": "Не удалось загрузить блоги"
+      "noResults": "Ничего не найдено по запросу «{{term}}»",
+      "error": "Не удалось загрузить блоги",
+      "searchPlaceholder": "Поиск по названию",
+      "loadMoreFailed": "Не удалось загрузить ещё",
+      "retry": "Повторить",
+      "sort": {
+        "label": "Сортировка",
+        "newest": "Новые",
+        "oldest": "Старые",
+        "aToZ": "А → Я",
+        "zToA": "Я → А"
+      }
     },
     "detail": {
       "eyebrow": "Blog",
@@ -110,7 +123,8 @@
       "deleted": "Блог удалён",
       "createError": "Не удалось создать",
       "updateError": "Не удалось обновить",
-      "deleteError": "Не удалось удалить"
+      "deleteError": "Не удалось удалить",
+      "deleteFailed": "Не удалось удалить блог"
     }
   },
   "posts": {
@@ -119,7 +133,14 @@
       "createButton": "Создать пост",
       "empty": "Пока нет постов",
       "emptyDescription": "Выберите блог и напишите первый пост.",
-      "error": "Не удалось загрузить посты"
+      "error": "Не удалось загрузить посты",
+      "loadMoreFailed": "Не удалось загрузить ещё",
+      "retry": "Повторить",
+      "sort": {
+        "label": "Сортировка",
+        "newest": "Новые",
+        "oldest": "Старые"
+      }
     },
     "detail": {
       "edit": "Редактировать",
@@ -144,7 +165,12 @@
       "contentCounter": "{{current}}/1000",
       "blogIdLabel": "Блог",
       "blogIdPlaceholderEmpty": "Сначала создайте блог",
-      "blogIdPlaceholder": "Выберите блог"
+      "blogIdPlaceholder": "Выберите блог",
+      "blogSearchPlaceholder": "Поиск блогов...",
+      "blogNoResults": "Блоги не найдены",
+      "blogLoadError": "Не удалось загрузить блоги",
+      "blogRetry": "Повторить",
+      "blogEmpty": "Блогов пока нет — создайте первый"
     },
     "toasts": {
       "created": "Пост создан",
@@ -152,7 +178,56 @@
       "deleted": "Пост удалён",
       "createError": "Не удалось создать",
       "updateError": "Не удалось обновить",
-      "deleteError": "Не удалось удалить"
+      "deleteError": "Не удалось удалить",
+      "deleteFailed": "Не удалось удалить пост"
+    }
+  },
+  "videos": {
+    "list": {
+      "title": "Видео",
+      "createButton": "Добавить видео",
+      "empty": "Пока нет видео",
+      "emptyDescription": "Добавьте первое видео в библиотеку.",
+      "error": "Не удалось загрузить видео"
+    },
+    "detail": {
+      "eyebrow": "Видео",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "downloadable": "Доступно для скачивания",
+      "createdAt": "Создано",
+      "publicationDate": "Дата публикации",
+      "deleteModal": {
+        "title": "Удалить видео?",
+        "description": "Это действие необратимо. Видео будет удалено навсегда.",
+        "confirmLabel": "Удалить"
+      }
+    },
+    "form": {
+      "createTitle": "Добавить видео",
+      "editTitle": "Редактировать видео",
+      "titleLabel": "Название",
+      "titlePlaceholder": "Название видео",
+      "titleCounter": "{{current}}/40",
+      "authorLabel": "Автор",
+      "authorPlaceholder": "Имя автора",
+      "authorCounter": "{{current}}/20",
+      "resolutionsLabel": "Доступные разрешения",
+      "resolutionsSelected": "Выбрано: {{count}}",
+      "canBeDownloadedLabel": "Разрешить скачивание",
+      "canBeDownloadedOn": "Пользователи могут скачивать это видео",
+      "canBeDownloadedOff": "Скачивание отключено",
+      "minAgeRestrictionLabel": "Возрастное ограничение",
+      "minAgeRestrictionPlaceholder": "1–18",
+      "minAgeRestrictionEnable": "Добавить ограничение",
+      "minAgeRestrictionDisable": "Убрать ограничение",
+      "publicationDateLabel": "Дата публикации"
+    },
+    "toasts": {
+      "created": "Видео добавлено",
+      "updated": "Видео обновлено",
+      "deleted": "Видео удалено",
+      "deleteFailed": "Не удалось удалить видео"
     }
   },
   "localePicker": {

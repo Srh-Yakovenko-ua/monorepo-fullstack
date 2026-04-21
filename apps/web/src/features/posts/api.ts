@@ -1,9 +1,17 @@
-import type { PostInput, PostViewModel } from "@app/shared";
+import type { Paginator, PostInput, PostSortField, PostViewModel } from "@app/shared";
 
 import { request } from "@/lib/http-client";
 
+export type PostsListQuery = {
+  pageNumber: number;
+  pageSize: number;
+  sortBy: PostSortField;
+  sortDirection: "asc" | "desc";
+};
+
 export const postsKeys = {
   all: ["posts"] as const,
+  list: (query: Omit<PostsListQuery, "pageNumber">) => [...postsKeys.lists(), query] as const,
   lists: () => [...postsKeys.all, "list"] as const,
 };
 
@@ -13,7 +21,14 @@ export const postsApi = {
       body: JSON.stringify(input),
       method: "POST",
     }),
-  list: () => request<PostViewModel[]>("/api/posts"),
+  list: (query: PostsListQuery) => {
+    const url = new URL("/api/posts", window.location.origin);
+    url.searchParams.set("pageNumber", String(query.pageNumber));
+    url.searchParams.set("pageSize", String(query.pageSize));
+    url.searchParams.set("sortBy", query.sortBy);
+    url.searchParams.set("sortDirection", query.sortDirection);
+    return request<Paginator<PostViewModel>>(url.pathname + url.search);
+  },
   remove: (id: string) => request<void>(`/api/posts/${id}`, { method: "DELETE" }),
   update: (id: string, input: PostInput) =>
     request<void>(`/api/posts/${id}`, {

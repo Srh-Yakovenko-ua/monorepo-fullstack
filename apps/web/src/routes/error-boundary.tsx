@@ -20,6 +20,10 @@ export function AppErrorBoundary() {
 
   const stack = error instanceof Error ? error.stack : undefined;
 
+  function handleReload() {
+    window.location.reload();
+  }
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <div
@@ -90,7 +94,7 @@ export function AppErrorBoundary() {
 
             <Button
               className="h-12 cursor-pointer px-6 font-mono text-[11px] tracking-[0.22em] uppercase transition-all duration-150 hover:shadow-[var(--shadow-glow-brand)]"
-              onClick={() => window.location.reload()}
+              onClick={handleReload}
               variant="default"
             >
               <RefreshCw className="mr-2 size-4" />

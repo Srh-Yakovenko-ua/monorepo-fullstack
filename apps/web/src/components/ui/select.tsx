@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, XIcon } from "lucide-react";
 import { Select as SelectPrimitive } from "radix-ui";
 import * as React from "react";
 
@@ -147,14 +147,24 @@ function SelectTrigger({
   className,
   size = "default",
   children,
+  isClearable,
+  onClear,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
+  isClearable?: boolean;
+  onClear?: () => void;
   size?: "default" | "sm";
 }) {
+  function handleClearPointerDown(event: React.PointerEvent<HTMLSpanElement>) {
+    event.stopPropagation();
+    event.preventDefault();
+    onClear?.();
+  }
+
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        "flex w-fit cursor-pointer items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "group/select-trigger flex w-fit cursor-pointer items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:shrink-0",
         className,
       )}
       data-size={size}
@@ -162,8 +172,23 @@ function SelectTrigger({
       {...props}
     >
       {children}
+      {isClearable && onClear && (
+        <span
+          aria-label="Clear"
+          className="ml-1 hidden size-4 cursor-pointer items-center justify-center rounded-sm text-muted-foreground transition-colors group-not-data-placeholder/select-trigger:inline-flex hover:bg-muted hover:text-foreground"
+          onPointerDown={handleClearPointerDown}
+          role="button"
+        >
+          <XIcon className="size-3.5" />
+        </span>
+      )}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
+        <ChevronDownIcon
+          className={cn(
+            "pointer-events-none size-4 text-muted-foreground",
+            isClearable && "group-not-data-placeholder/select-trigger:hidden",
+          )}
+        />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );

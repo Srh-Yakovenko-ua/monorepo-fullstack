@@ -26,6 +26,22 @@ export function HealthPage() {
 
   const headline = deriveHeadline(isError, isLoading, !!data, visualStatus, t);
 
+  function handlePingAgain() {
+    void refetch();
+  }
+
+  function handleOpenConfirmModal() {
+    modalObserver.addModal(ModalId.Confirm, {
+      confirmLabel: t("health.modal.confirmLabel"),
+      description: t("health.modal.description"),
+      onConfirm: () => {
+        logger.info("confirmed");
+      },
+      title: t("health.modal.title"),
+      tone: "destructive",
+    });
+  }
+
   const description = isError
     ? t("health.description.error", { message: error.message })
     : visualStatus === "ok"
@@ -98,7 +114,7 @@ export function HealthPage() {
           <Button
             className="h-11 px-5 font-mono text-[10px] tracking-[0.22em] uppercase transition-all duration-150 hover:ring-4 hover:ring-primary/15"
             disabled={isFetching}
-            onClick={() => void refetch()}
+            onClick={handlePingAgain}
             variant="outline"
           >
             <RotateCw className={cn("mr-2 size-3.5", isFetching && "animate-spin")} />
@@ -106,17 +122,7 @@ export function HealthPage() {
           </Button>
           <Button
             className="h-11 px-5 font-mono text-[10px] tracking-[0.22em] uppercase transition-all duration-150 hover:ring-4 hover:ring-primary/15"
-            onClick={() =>
-              modalObserver.addModal(ModalId.Confirm, {
-                confirmLabel: t("health.modal.confirmLabel"),
-                description: t("health.modal.description"),
-                onConfirm: () => {
-                  logger.info("confirmed");
-                },
-                title: t("health.modal.title"),
-                tone: "destructive",
-              })
-            }
+            onClick={handleOpenConfirmModal}
             variant="outline"
           >
             {t("health.actions.openConfirmModal")}

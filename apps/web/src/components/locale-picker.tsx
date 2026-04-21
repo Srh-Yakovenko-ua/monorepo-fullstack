@@ -27,6 +27,12 @@ export function LocalePicker() {
   const { locale, setLocale } = useLocale();
   const { t } = useTranslation();
 
+  function handleLocaleSelect(e: Event) {
+    const target = e.currentTarget as HTMLElement;
+    const loc = target.dataset.locale as Locale | undefined;
+    if (loc) setLocale(loc);
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -42,8 +48,9 @@ export function LocalePicker() {
         {LOCALES.map((loc) => (
           <DropdownMenuItem
             className="cursor-pointer font-mono text-[11px] tracking-[0.12em]"
+            data-locale={loc}
             key={loc}
-            onSelect={() => setLocale(loc)}
+            onSelect={handleLocaleSelect}
           >
             <span
               className={cn(

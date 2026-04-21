@@ -6,30 +6,17 @@ import { PostInputSchema } from "@app/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useBlogs } from "@/features/blogs/hooks/use-blogs";
+import { BlogCombobox } from "@/features/blogs";
 import { useCreatePost, useUpdatePost } from "@/features/posts/hooks/use-post-mutations";
 import { ApiError } from "@/lib/http-client";
 
@@ -48,7 +35,6 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
   const { t } = useTranslation();
   const createPost = useCreatePost();
   const updatePost = useUpdatePost(post?.id ?? "");
-  const { data: blogs } = useBlogs();
 
   const form = useForm<PostFormValues>({
     defaultValues: post
@@ -81,7 +67,6 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
   }, [open, post, form]);
 
   const isPending = createPost.isPending || updatePost.isPending;
-  const noBlogs = !blogs || blogs.length === 0;
 
   async function onSubmit(values: PostFormValues) {
     try {
@@ -120,7 +105,11 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
 
         <div className="h-px w-full bg-border/60" />
 
-        <form className="flex flex-col gap-5 px-7 py-6" onSubmit={form.handleSubmit(onSubmit)}>
+        <form
+          className="flex flex-col gap-5 px-7 py-6"
+          id="post-form"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="post-title">{t("posts.form.titleLabel")}</Label>
@@ -183,49 +172,32 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="post-blogId">{t("posts.form.blogIdLabel")}</Label>
-            <Select
-              defaultValue={post?.blogId}
-              disabled={noBlogs}
-              onValueChange={(value) => form.setValue("blogId", value, { shouldValidate: true })}
-            >
-              <SelectTrigger
-                aria-describedby={form.formState.errors.blogId ? "post-blogId-error" : undefined}
-                aria-invalid={!!form.formState.errors.blogId}
-                className="w-full"
-                id="post-blogId"
-              >
-                <SelectValue
-                  placeholder={
-                    noBlogs
-                      ? t("posts.form.blogIdPlaceholderEmpty")
-                      : t("posts.form.blogIdPlaceholder")
-                  }
+            <Controller
+              control={form.control}
+              name="blogId"
+              render={({ field }) => (
+                <BlogCombobox
+                  aria-describedby={form.formState.errors.blogId ? "post-blogId-error" : undefined}
+                  aria-invalid={!!form.formState.errors.blogId}
+                  id="post-blogId"
+                  initialLabel={post?.blogName}
+                  onValueChange={field.onChange}
+                  value={field.value}
                 />
-              </SelectTrigger>
-              <SelectContent>
-                {blogs?.map((blog) => (
-                  <SelectItem key={blog.id} value={blog.id}>
-                    {blog.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              )}
+            />
             <FieldError error={form.formState.errors.blogId} id="post-blogId-error" />
           </div>
-
-          <div className="h-px w-full bg-border/60" />
-
-          <DialogFooter className="-mb-1">
-            <Button
-              className="transition-all duration-150 hover:shadow-[var(--shadow-glow-brand)]"
-              disabled={isPending || noBlogs}
-              type="submit"
-            >
-              {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {mode === "create" ? t("common.create") : t("common.save")}
-            </Button>
-          </DialogFooter>
         </form>
+
+        <div className="h-px w-full bg-border/60" />
+
+        <div className="flex justify-end px-7 py-4">
+          <Button disabled={isPending} form="post-form" type="submit">
+            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+            {mode === "create" ? t("common.create") : t("common.save")}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -14,7 +14,8 @@
   "nav": {
     "health": "Health",
     "blogs": "Блоги",
-    "posts": "Пости"
+    "posts": "Пости",
+    "videos": "Відео"
   },
   "appShell": {
     "label": "Blogger",
@@ -24,7 +25,8 @@
   "breadcrumbs": {
     "blogs": "Блоги",
     "posts": "Пости",
-    "health": "Health"
+    "health": "Health",
+    "videos": "Відео"
   },
   "actions": {
     "open": "Відкрити",
@@ -76,7 +78,18 @@
       "createButton": "Створити блог",
       "empty": "Поки немає блогів",
       "emptyDescription": "Створіть перший блог, щоб почати публікувати пости.",
-      "error": "Не вдалося завантажити блоги"
+      "noResults": "Нічого не знайдено за запитом «{{term}}»",
+      "error": "Не вдалося завантажити блоги",
+      "searchPlaceholder": "Пошук за назвою",
+      "loadMoreFailed": "Не вдалося завантажити ще",
+      "retry": "Повторити",
+      "sort": {
+        "label": "Сортування",
+        "newest": "Нові",
+        "oldest": "Старі",
+        "aToZ": "А → Я",
+        "zToA": "Я → А"
+      }
     },
     "detail": {
       "eyebrow": "Blog",
@@ -110,7 +123,8 @@
       "deleted": "Блог видалено",
       "createError": "Не вдалося створити",
       "updateError": "Не вдалося оновити",
-      "deleteError": "Не вдалося видалити"
+      "deleteError": "Не вдалося видалити",
+      "deleteFailed": "Не вдалося видалити блог"
     }
   },
   "posts": {
@@ -119,7 +133,14 @@
       "createButton": "Створити пост",
       "empty": "Поки немає постів",
       "emptyDescription": "Оберіть блог та напишіть перший пост.",
-      "error": "Не вдалося завантажити пости"
+      "error": "Не вдалося завантажити пости",
+      "loadMoreFailed": "Не вдалося завантажити ще",
+      "retry": "Повторити",
+      "sort": {
+        "label": "Сортування",
+        "newest": "Нові",
+        "oldest": "Старі"
+      }
     },
     "detail": {
       "edit": "Редагувати",
@@ -144,7 +165,12 @@
       "contentCounter": "{{current}}/1000",
       "blogIdLabel": "Блог",
       "blogIdPlaceholderEmpty": "Спочатку створіть блог",
-      "blogIdPlaceholder": "Оберіть блог"
+      "blogIdPlaceholder": "Оберіть блог",
+      "blogSearchPlaceholder": "Пошук блогів...",
+      "blogNoResults": "Блоги не знайдено",
+      "blogLoadError": "Не вдалося завантажити блоги",
+      "blogRetry": "Повторити",
+      "blogEmpty": "Блогів поки немає — створіть перший"
     },
     "toasts": {
       "created": "Пост створено",
@@ -152,7 +178,56 @@
       "deleted": "Пост видалено",
       "createError": "Не вдалося створити",
       "updateError": "Не вдалося оновити",
-      "deleteError": "Не вдалося видалити"
+      "deleteError": "Не вдалося видалити",
+      "deleteFailed": "Не вдалося видалити пост"
+    }
+  },
+  "videos": {
+    "list": {
+      "title": "Відео",
+      "createButton": "Додати відео",
+      "empty": "Поки немає відео",
+      "emptyDescription": "Додайте перше відео до бібліотеки.",
+      "error": "Не вдалося завантажити відео"
+    },
+    "detail": {
+      "eyebrow": "Відео",
+      "edit": "Редагувати",
+      "delete": "Видалити",
+      "downloadable": "Доступне для завантаження",
+      "createdAt": "Створено",
+      "publicationDate": "Дата публікації",
+      "deleteModal": {
+        "title": "Видалити відео?",
+        "description": "Цю дію неможливо скасувати. Відео буде видалено назавжди.",
+        "confirmLabel": "Видалити"
+      }
+    },
+    "form": {
+      "createTitle": "Додати відео",
+      "editTitle": "Редагувати відео",
+      "titleLabel": "Назва",
+      "titlePlaceholder": "Назва відео",
+      "titleCounter": "{{current}}/40",
+      "authorLabel": "Автор",
+      "authorPlaceholder": "Ім'я автора",
+      "authorCounter": "{{current}}/20",
+      "resolutionsLabel": "Доступні роздільності",
+      "resolutionsSelected": "Обрано: {{count}}",
+      "canBeDownloadedLabel": "Дозволити завантаження",
+      "canBeDownloadedOn": "Користувачі можуть завантажувати це відео",
+      "canBeDownloadedOff": "Завантаження вимкнено",
+      "minAgeRestrictionLabel": "Вікове обмеження",
+      "minAgeRestrictionPlaceholder": "1–18",
+      "minAgeRestrictionEnable": "Додати обмеження",
+      "minAgeRestrictionDisable": "Прибрати обмеження",
+      "publicationDateLabel": "Дата публікації"
+    },
+    "toasts": {
+      "created": "Відео додано",
+      "updated": "Відео оновлено",
+      "deleted": "Відео видалено",
+      "deleteFailed": "Не вдалося видалити відео"
     }
   },
   "localePicker": {

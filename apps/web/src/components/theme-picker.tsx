@@ -20,6 +20,12 @@ export function ThemePicker() {
   const { resolvedTheme, setTheme, theme } = useTheme();
   const TriggerIcon = resolvedTheme === "dark" ? Moon : Sun;
 
+  function handleThemeSelect(e: Event) {
+    const target = e.currentTarget as HTMLElement;
+    const value = target.dataset.theme as Theme | undefined;
+    if (value) setTheme(value);
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -36,8 +42,9 @@ export function ThemePicker() {
         {OPTIONS.map(({ Icon, label, value }) => (
           <DropdownMenuItem
             className="cursor-pointer font-mono text-[11px] tracking-[0.18em] uppercase"
+            data-theme={value}
             key={value}
-            onSelect={() => setTheme(value)}
+            onSelect={handleThemeSelect}
           >
             <Icon
               className={cn(

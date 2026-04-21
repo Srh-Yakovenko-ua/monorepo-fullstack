@@ -14,7 +14,8 @@
   "nav": {
     "health": "Health",
     "blogs": "Blogs",
-    "posts": "Posts"
+    "posts": "Posts",
+    "videos": "Videos"
   },
   "appShell": {
     "label": "Blogger",
@@ -24,7 +25,8 @@
   "breadcrumbs": {
     "blogs": "Blogs",
     "posts": "Posts",
-    "health": "Health"
+    "health": "Health",
+    "videos": "Videos"
   },
   "actions": {
     "open": "Open",
@@ -76,7 +78,18 @@
       "createButton": "Create blog",
       "empty": "No blogs yet",
       "emptyDescription": "Create your first blog to start publishing posts.",
-      "error": "Failed to load blogs"
+      "noResults": "No results for \"{{term}}\"",
+      "error": "Failed to load blogs",
+      "searchPlaceholder": "Search by name",
+      "loadMoreFailed": "Failed to load more",
+      "retry": "Retry",
+      "sort": {
+        "label": "Sort",
+        "newest": "Newest",
+        "oldest": "Oldest",
+        "aToZ": "A → Z",
+        "zToA": "Z → A"
+      }
     },
     "detail": {
       "eyebrow": "Blog",
@@ -110,7 +123,8 @@
       "deleted": "Blog deleted",
       "createError": "Failed to create",
       "updateError": "Failed to update",
-      "deleteError": "Failed to delete"
+      "deleteError": "Failed to delete",
+      "deleteFailed": "Failed to delete blog"
     }
   },
   "posts": {
@@ -119,7 +133,14 @@
       "createButton": "Create post",
       "empty": "No posts yet",
       "emptyDescription": "Select a blog and write your first post.",
-      "error": "Failed to load posts"
+      "error": "Failed to load posts",
+      "loadMoreFailed": "Failed to load more",
+      "retry": "Retry",
+      "sort": {
+        "label": "Sort",
+        "newest": "Newest",
+        "oldest": "Oldest"
+      }
     },
     "detail": {
       "edit": "Edit",
@@ -144,7 +165,12 @@
       "contentCounter": "{{current}}/1000",
       "blogIdLabel": "Blog",
       "blogIdPlaceholderEmpty": "Create a blog first",
-      "blogIdPlaceholder": "Select a blog"
+      "blogIdPlaceholder": "Select a blog",
+      "blogSearchPlaceholder": "Search blogs...",
+      "blogNoResults": "No blogs match",
+      "blogLoadError": "Failed to load blogs",
+      "blogRetry": "Retry",
+      "blogEmpty": "No blogs yet — create one first"
     },
     "toasts": {
       "created": "Post created",
@@ -152,7 +178,56 @@
       "deleted": "Post deleted",
       "createError": "Failed to create",
       "updateError": "Failed to update",
-      "deleteError": "Failed to delete"
+      "deleteError": "Failed to delete",
+      "deleteFailed": "Failed to delete post"
+    }
+  },
+  "videos": {
+    "list": {
+      "title": "Videos",
+      "createButton": "Create video",
+      "empty": "No videos yet",
+      "emptyDescription": "Add your first video to the library.",
+      "error": "Failed to load videos"
+    },
+    "detail": {
+      "eyebrow": "Video",
+      "edit": "Edit",
+      "delete": "Delete",
+      "downloadable": "Downloadable",
+      "createdAt": "Created",
+      "publicationDate": "Publication date",
+      "deleteModal": {
+        "title": "Delete video?",
+        "description": "This action cannot be undone. The video will be permanently deleted.",
+        "confirmLabel": "Delete"
+      }
+    },
+    "form": {
+      "createTitle": "Create video",
+      "editTitle": "Edit video",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Video title",
+      "titleCounter": "{{current}}/40",
+      "authorLabel": "Author",
+      "authorPlaceholder": "Author name",
+      "authorCounter": "{{current}}/20",
+      "resolutionsLabel": "Available resolutions",
+      "resolutionsSelected": "{{count}} selected",
+      "canBeDownloadedLabel": "Downloadable",
+      "canBeDownloadedOn": "Users can download this video",
+      "canBeDownloadedOff": "Download is disabled",
+      "minAgeRestrictionLabel": "Age restriction",
+      "minAgeRestrictionPlaceholder": "1–18",
+      "minAgeRestrictionEnable": "Enable restriction",
+      "minAgeRestrictionDisable": "Remove restriction",
+      "publicationDateLabel": "Publication date"
+    },
+    "toasts": {
+      "created": "Video created",
+      "updated": "Video updated",
+      "deleted": "Video deleted",
+      "deleteFailed": "Failed to delete video"
     }
   },
   "localePicker": {

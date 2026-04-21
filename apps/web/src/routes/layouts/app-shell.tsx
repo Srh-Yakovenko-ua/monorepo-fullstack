@@ -1,4 +1,5 @@
-import { Activity, BookOpen, FileText, Layers } from "lucide-react";
+import { Activity, BookOpen, FileText, Layers, Video } from "lucide-react";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation } from "react-router";
 
@@ -33,14 +34,17 @@ const NAV_ITEMS = [
   { icon: Activity, key: "health" as const, to: "/" },
   { icon: BookOpen, key: "blogs" as const, to: "/blogs" },
   { icon: FileText, key: "posts" as const, to: "/posts" },
+  { icon: Video, key: "videos" as const, to: "/videos" },
 ] as const;
 
 export function AppShell() {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <ContentArea />
-    </SidebarProvider>
+    <NuqsAdapter>
+      <SidebarProvider>
+        <AppSidebar />
+        <ContentArea />
+      </SidebarProvider>
+    </NuqsAdapter>
   );
 }
 
@@ -72,7 +76,7 @@ function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               {NAV_ITEMS.map(({ icon: Icon, key, to }) => (
                 <SidebarMenuItem key={key}>
                   <NavLink end={to === "/"} to={to}>
@@ -185,7 +189,9 @@ function PageBreadcrumbs() {
       ? t("breadcrumbs.blogs")
       : first === "posts"
         ? t("breadcrumbs.posts")
-        : t("breadcrumbs.health");
+        : first === "videos"
+          ? t("breadcrumbs.videos")
+          : t("breadcrumbs.health");
 
   const sectionTo = `/${first}`;
 

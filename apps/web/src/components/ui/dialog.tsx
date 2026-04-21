@@ -37,7 +37,7 @@ function DialogContent({
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close asChild data-slot="dialog-close">
-            <Button className="absolute top-2 right-2" size="icon-sm" variant="ghost">
+            <Button className="absolute top-2 right-2 z-20" size="icon-sm" variant="ghost">
               <XIcon />
               <span className="sr-only">Close</span>
             </Button>
@@ -104,7 +104,7 @@ function DialogOverlay({
   return (
     <DialogPrimitive.Overlay
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:duration-300 data-open:ease-out data-open:fade-in-0 data-closed:animate-out data-closed:duration-200 data-closed:ease-in data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-black/20 data-open:animate-in data-open:duration-300 data-open:ease-out data-open:fade-in-0 data-closed:animate-out data-closed:duration-200 data-closed:ease-in data-closed:fade-out-0",
         className,
       )}
       data-slot="dialog-overlay"

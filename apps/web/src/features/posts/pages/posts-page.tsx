@@ -1,7 +1,8 @@
-import type { PostViewModel } from "@app/shared";
+import type { PostSortField, PostViewModel } from "@app/shared";
 
 import { BookOpen, FileText, MoreHorizontal, Plus } from "lucide-react";
-import { useState } from "react";
+import { parseAsStringLiteral, useQueryStates } from "nuqs";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -14,28 +15,94 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModalId, modalObserver } from "@/features/modals";
 import { PostFormDialog } from "@/features/posts/components/post-form-dialog";
 import { PostViewDialog } from "@/features/posts/components/post-view-dialog";
 import { useDeletePost } from "@/features/posts/hooks/use-post-mutations";
-import { usePosts } from "@/features/posts/hooks/use-posts";
+import { useInfinitePosts } from "@/features/posts/hooks/use-posts";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { gradientFromString } from "@/lib/gradient-from-string";
 import { cn } from "@/lib/utils";
 
-const MAX_PREVIEW = 15;
+const SORT_VALUES = ["newest", "oldest"] as const;
+type SortValue = (typeof SORT_VALUES)[number];
+
+const DEFAULT_SORT: SortValue = "newest";
+
+type SortOption = {
+  sortBy: PostSortField;
+  sortDirection: "asc" | "desc";
+  value: SortValue;
+};
+
+const SORT_OPTIONS = [
+  { sortBy: "createdAt", sortDirection: "desc", value: "newest" },
+  { sortBy: "createdAt", sortDirection: "asc", value: "oldest" },
+] satisfies readonly [SortOption, ...SortOption[]];
 
 export function PostsPage() {
   const { t } = useTranslation();
   usePageTitle(t("posts.list.title"));
-  const { data, error, isError, isLoading } = usePosts();
-  const deletePost = useDeletePost();
+
+  const [filters, setFilters] = useQueryStates({
+    sort: parseAsStringLiteral(SORT_VALUES).withDefault(DEFAULT_SORT),
+  });
+  const { sort: sortValue } = filters;
   const [createOpen, setCreateOpen] = useState(false);
   const [editPost, setEditPost] = useState<null | PostViewModel>(null);
   const [viewPost, setViewPost] = useState<null | PostViewModel>(null);
 
-  const posts = data ? [...data].slice(-MAX_PREVIEW).reverse() : [];
+  const deletePost = useDeletePost();
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const selectedSort = SORT_OPTIONS.find((option) => option.value === sortValue) ?? SORT_OPTIONS[0];
+
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    isLoading,
+  } = useInfinitePosts({
+    sortBy: selectedSort.sortBy,
+    sortDirection: selectedSort.sortDirection,
+  });
+
+  const posts =
+    data?.pages.flatMap((page) => page.items.map((post, postIndex) => ({ post, postIndex }))) ?? [];
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (intersectionEntries) => {
+        if (
+          intersectionEntries[0]?.isIntersecting &&
+          hasNextPage &&
+          !isFetchingNextPage &&
+          !isFetchNextPageError
+        ) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
 
   function openEdit(post: PostViewModel) {
     setViewPost(null);
@@ -48,48 +115,83 @@ export function PostsPage() {
       confirmLabel: t("posts.detail.deleteModal.confirmLabel"),
       description: t("posts.detail.deleteModal.description"),
       onConfirm: async () => {
-        await deletePost.mutateAsync(post.id);
-        toast.success(t("posts.toasts.deleted"));
+        try {
+          await deletePost.mutateAsync(post.id);
+          toast.success(t("posts.toasts.deleted"));
+        } catch {
+          toast.error(t("posts.toasts.deleteFailed"));
+        }
       },
       title: t("posts.detail.deleteModal.title"),
       tone: "destructive",
     });
   }
 
+  function handleOpenCreate() {
+    setCreateOpen(true);
+  }
+
+  function handleSortChange(value: string) {
+    const nextSort = SORT_VALUES.find((availableSort) => availableSort === value);
+    if (nextSort) void setFilters({ sort: nextSort });
+  }
+
+  function handleSortClear() {
+    void setFilters({ sort: DEFAULT_SORT });
+  }
+
+  function handleEditFormOpenChange(open: boolean) {
+    if (!open) setEditPost(null);
+  }
+
+  function handleViewOpenChange(open: boolean) {
+    if (!open) setViewPost(null);
+  }
+
+  function handleViewDelete() {
+    if (viewPost) openDeleteConfirm(viewPost);
+  }
+
+  function handleViewEdit() {
+    if (viewPost) openEdit(viewPost);
+  }
+
+  function handleRetryLoadMore() {
+    void fetchNextPage();
+  }
+
   return (
     <main className="relative flex flex-1 flex-col px-5 pb-10 md:px-8 md:pb-14 lg:px-12 lg:pb-16">
-      <section className="relative">
-        <div className="flex items-center justify-between gap-4">
-          <h1
-            className={cn(
-              "animate-in fill-mode-both fade-in slide-in-from-bottom-3",
-              "font-display leading-[0.88] font-normal",
-              "text-[clamp(2.5rem,5vw,4.5rem)]",
-              "delay-100 duration-700",
-            )}
-            style={{ letterSpacing: "-0.03em" }}
+      <div className="flex flex-wrap items-center gap-2 pt-5">
+        <Select onValueChange={handleSortChange} value={sortValue}>
+          <SelectTrigger
+            className="h-8 w-[130px] text-sm"
+            isClearable={sortValue !== DEFAULT_SORT}
+            onClear={handleSortClear}
           >
-            {t("posts.list.title")}
-          </h1>
-          <Button
-            className="shrink-0 gap-1.5 transition-all duration-150 hover:shadow-[var(--shadow-glow-brand)] hover:ring-4 hover:ring-primary/15"
-            onClick={() => setCreateOpen(true)}
-            size="sm"
-          >
-            <Plus className="size-3.5" />
-            {t("posts.list.createButton")}
-          </Button>
-        </div>
-        <div className="mt-3 h-px w-full bg-border/60" />
-      </section>
+            <SelectValue placeholder={t("posts.list.sort.label")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">{t("posts.list.sort.newest")}</SelectItem>
+            <SelectItem value="oldest">{t("posts.list.sort.oldest")}</SelectItem>
+          </SelectContent>
+        </Select>
 
-      <section className="mt-8">
+        <div className="flex-1" />
+
+        <Button className="shrink-0 gap-1.5" onClick={handleOpenCreate} size="sm">
+          <Plus className="size-3.5" />
+          {t("posts.list.createButton")}
+        </Button>
+      </div>
+
+      <section className="mt-5">
         {isLoading && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 4 }).map((_, skeletonIndex) => (
               <div
                 className="flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm"
-                key={i}
+                key={`skeleton-loading-${skeletonIndex}`}
               >
                 <Skeleton className="h-36 rounded-none" />
                 <div className="flex flex-col gap-2 p-5">
@@ -132,7 +234,7 @@ export function PostsPage() {
             </p>
             <Button
               className="mt-6 gap-1.5 transition-all duration-150 hover:ring-4 hover:ring-primary/15"
-              onClick={() => setCreateOpen(true)}
+              onClick={handleOpenCreate}
               size="sm"
               variant="outline"
             >
@@ -144,9 +246,9 @@ export function PostsPage() {
 
         {!isLoading && !isError && posts.length > 0 && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {posts.map((post, i) => (
+            {posts.map(({ post, postIndex }) => (
               <PostCard
-                index={i}
+                index={Math.min(postIndex, 6)}
                 key={post.id}
                 onDelete={openDeleteConfirm}
                 onEdit={setEditPost}
@@ -156,16 +258,45 @@ export function PostsPage() {
             ))}
           </div>
         )}
+
+        {isFetchingNextPage && (
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 2 }).map((_, skeletonIndex) => (
+              <div
+                className="flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm"
+                key={`skeleton-paging-${skeletonIndex}`}
+              >
+                <Skeleton className="h-36 rounded-none" />
+                <div className="flex flex-col gap-2 p-5">
+                  <Skeleton className="h-4 w-3/4 rounded-sm" />
+                  <Skeleton className="h-3 w-full rounded-sm" />
+                  <Skeleton className="h-3 w-2/3 rounded-sm" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {isFetchNextPageError && (
+          <div className="mt-4 flex items-center justify-center gap-3 rounded-2xl border border-destructive/20 bg-destructive/5 px-6 py-4 text-sm text-destructive">
+            <span>{t("posts.list.loadMoreFailed")}</span>
+            <Button onClick={handleRetryLoadMore} size="sm" variant="outline">
+              {t("posts.list.retry")}
+            </Button>
+          </div>
+        )}
+
+        <div className="h-4" ref={sentinelRef} />
       </section>
 
-      <PostFormDialog mode="create" onOpenChange={setCreateOpen} open={createOpen} />
+      {createOpen && (
+        <PostFormDialog mode="create" onOpenChange={setCreateOpen} open={createOpen} />
+      )}
 
       {editPost && (
         <PostFormDialog
           mode="edit"
-          onOpenChange={(open) => {
-            if (!open) setEditPost(null);
-          }}
+          onOpenChange={handleEditFormOpenChange}
           open={!!editPost}
           post={editPost}
         />
@@ -173,11 +304,9 @@ export function PostsPage() {
 
       {viewPost && (
         <PostViewDialog
-          onDelete={() => openDeleteConfirm(viewPost)}
-          onEdit={() => openEdit(viewPost)}
-          onOpenChange={(open) => {
-            if (!open) setViewPost(null);
-          }}
+          onDelete={handleViewDelete}
+          onEdit={handleViewEdit}
+          onOpenChange={handleViewOpenChange}
           open={!!viewPost}
           post={viewPost}
         />
@@ -201,6 +330,18 @@ function PostCard({
 }) {
   const { t } = useTranslation();
 
+  function handleView() {
+    onView(post);
+  }
+
+  function handleEdit() {
+    onEdit(post);
+  }
+
+  function handleDelete() {
+    onDelete(post);
+  }
+
   return (
     <article
       className={cn(
@@ -216,7 +357,7 @@ function PostCard({
       <button
         aria-label={t("actions.open")}
         className="relative block h-36 shrink-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
-        onClick={() => onView(post)}
+        onClick={handleView}
         type="button"
       >
         <div className="absolute inset-0" style={{ background: gradientFromString(post.blogId) }} />
@@ -231,19 +372,16 @@ function PostCard({
           </CardActionButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[10rem]">
-          <DropdownMenuItem className="cursor-pointer" onSelect={() => onView(post)}>
+          <DropdownMenuItem className="cursor-pointer" onSelect={handleView}>
             <FileText className="mr-2 size-3.5 text-muted-foreground" />
             {t("actions.open")}
           </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer" onSelect={() => onEdit(post)}>
+          <DropdownMenuItem className="cursor-pointer" onSelect={handleEdit}>
             <span className="mr-2 size-3.5 text-muted-foreground">✎</span>
             {t("actions.edit")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="cursor-pointer text-destructive"
-            onSelect={() => onDelete(post)}
-          >
+          <DropdownMenuItem className="cursor-pointer text-destructive" onSelect={handleDelete}>
             {t("actions.delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -254,7 +392,7 @@ function PostCard({
           <h2 className="line-clamp-1 text-base leading-snug font-semibold">
             <button
               className="cursor-pointer rounded-sm text-foreground transition-colors duration-150 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
-              onClick={() => onView(post)}
+              onClick={handleView}
               type="button"
             >
               {post.title}
