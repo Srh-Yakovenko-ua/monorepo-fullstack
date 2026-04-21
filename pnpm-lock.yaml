@@ -15,9 +15,6 @@ catalogs:
     '@commitlint/config-conventional':
       specifier: ^20.5.0
       version: 20.5.0
-    '@date-fns/tz':
-      specifier: ^1.4.1
-      version: 1.4.1
     '@eslint/js':
       specifier: ^10.0.1
       version: 10.0.1
@@ -413,9 +410,6 @@ importers:
       '@app/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@date-fns/tz':
-        specifier: 'catalog:'
-        version: 1.4.1
       compression:
         specifier: 'catalog:'
         version: 1.8.1
