@@ -1,27 +1,46 @@
-import type { BlogViewModel } from "@app/shared";
+import type { BlogsQuery } from "@app/shared";
+
+import type { BlogDoc } from "../models/blog.model.js";
 
 import { BlogModel } from "../models/blog.model.js";
+
+export type BlogCreateInput = Pick<BlogDoc, "description" | "name" | "websiteUrl">;
+export type BlogUpdateInput = Pick<BlogDoc, "description" | "name" | "websiteUrl">;
 
 export async function clearAll(): Promise<void> {
   await BlogModel.deleteMany({});
 }
 
-export async function create(
-  input: Omit<BlogViewModel, "createdAt" | "id" | "isMembership">,
-): Promise<BlogViewModel> {
+export async function create(input: BlogCreateInput): Promise<BlogDoc> {
   const doc = await BlogModel.create(input);
-  return toViewModel(doc);
+  return doc.toObject();
 }
 
-export async function findAll(): Promise<BlogViewModel[]> {
-  const docs = await BlogModel.find({}).lean();
-  return docs.map(toViewModel);
+export async function findById(id: string): Promise<BlogDoc | null> {
+  return BlogModel.findById(id).lean();
 }
 
-export async function findById(id: string): Promise<BlogViewModel | undefined> {
-  const doc = await BlogModel.findById(id).lean();
-  if (!doc) return undefined;
-  return toViewModel(doc);
+export async function findPage(
+  query: BlogsQuery,
+): Promise<{ items: BlogDoc[]; totalCount: number }> {
+  const filter =
+    query.searchNameTerm && query.searchNameTerm.length > 0
+      ? { name: { $options: "i", $regex: query.searchNameTerm } }
+      : {};
+
+  const skip = (query.pageNumber - 1) * query.pageSize;
+  const sortOrder = query.sortDirection === "asc" ? 1 : -1;
+
+  const [items, totalCount] = await Promise.all([
+    BlogModel.find(filter)
+      .sort({ [query.sortBy]: sortOrder })
+      .skip(skip)
+      .limit(query.pageSize)
+      .lean(),
+    BlogModel.countDocuments(filter),
+  ]);
+
+  return { items, totalCount };
 }
 
 export async function remove(id: string): Promise<boolean> {
@@ -29,29 +48,6 @@ export async function remove(id: string): Promise<boolean> {
   return result !== null;
 }
 
-export async function update(
-  id: string,
-  patch: Pick<BlogViewModel, "description" | "name" | "websiteUrl">,
-): Promise<BlogViewModel | undefined> {
-  const doc = await BlogModel.findByIdAndUpdate(id, patch, { returnDocument: "after" });
-  if (!doc) return undefined;
-  return toViewModel(doc);
-}
-
-function toViewModel(doc: {
-  _id: { toHexString(): string };
-  createdAt: Date;
-  description: string;
-  isMembership: boolean;
-  name: string;
-  websiteUrl: string;
-}): BlogViewModel {
-  return {
-    createdAt: doc.createdAt.toISOString(),
-    description: doc.description,
-    id: doc._id.toHexString(),
-    isMembership: doc.isMembership,
-    name: doc.name,
-    websiteUrl: doc.websiteUrl,
-  };
+export async function update(id: string, patch: BlogUpdateInput): Promise<BlogDoc | null> {
+  return BlogModel.findByIdAndUpdate(id, patch, { returnDocument: "after" }).lean();
 }

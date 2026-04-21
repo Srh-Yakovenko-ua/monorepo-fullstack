@@ -2,7 +2,7 @@ import type { VideoResolution } from "@app/shared";
 
 import { model, Schema } from "mongoose";
 
-interface VideoDoc {
+export interface VideoDoc {
   _id: number;
   author: string;
   availableResolutions: VideoResolution[];

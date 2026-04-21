@@ -101,6 +101,17 @@ export const PostInputSchema = z.object({
 
 export type PostInput = z.infer<typeof PostInputSchema>;
 
+export const BlogScopedPostInputSchema = PostInputSchema.omit({ blogId: true });
+export type BlogScopedPostInput = z.infer<typeof BlogScopedPostInputSchema>;
+
+export type Paginator<T> = {
+  items: T[];
+  page: number;
+  pagesCount: number;
+  pageSize: number;
+  totalCount: number;
+};
+
 export type PostViewModel = {
   blogId: string;
   blogName: string;
@@ -110,3 +121,27 @@ export type PostViewModel = {
   shortDescription: string;
   title: string;
 };
+
+export const BLOG_SORT_FIELDS = ["createdAt", "name"] as const;
+export const POST_SORT_FIELDS = ["createdAt", "title", "blogName"] as const;
+
+export type BlogSortField = (typeof BLOG_SORT_FIELDS)[number];
+export type PostSortField = (typeof POST_SORT_FIELDS)[number];
+
+export const PaginationQuerySchema = z.object({
+  pageNumber: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).default(10),
+  sortBy: z.enum(POST_SORT_FIELDS).default("createdAt"),
+  sortDirection: z.enum(["asc", "desc"]).default("desc"),
+});
+
+export const BlogsQuerySchema = z.object({
+  pageNumber: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).default(10),
+  searchNameTerm: z.string().optional(),
+  sortBy: z.enum(BLOG_SORT_FIELDS).default("createdAt"),
+  sortDirection: z.enum(["asc", "desc"]).default("desc"),
+});
+
+export type BlogsQuery = z.infer<typeof BlogsQuerySchema>;
+export type PaginationQuery = z.infer<typeof PaginationQuerySchema>;

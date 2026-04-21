@@ -1,27 +1,46 @@
-import type { PostViewModel } from "@app/shared";
+import type { PaginationQuery } from "@app/shared";
+
+import type { PostDoc } from "../models/post.model.js";
 
 import { PostModel } from "../models/post.model.js";
+
+export type PostCreateInput = Pick<
+  PostDoc,
+  "blogId" | "blogName" | "content" | "shortDescription" | "title"
+>;
+export type PostFindPageQuery = PaginationQuery & { blogId?: string };
+export type PostUpdateInput = PostCreateInput;
 
 export async function clearAll(): Promise<void> {
   await PostModel.deleteMany({});
 }
 
-export async function create(
-  input: Omit<PostViewModel, "createdAt" | "id">,
-): Promise<PostViewModel> {
+export async function create(input: PostCreateInput): Promise<PostDoc> {
   const doc = await PostModel.create(input);
-  return toViewModel(doc);
+  return doc.toObject();
 }
 
-export async function findAll(): Promise<PostViewModel[]> {
-  const docs = await PostModel.find({}).lean();
-  return docs.map(toViewModel);
+export async function findById(id: string): Promise<null | PostDoc> {
+  return PostModel.findById(id).lean();
 }
 
-export async function findById(id: string): Promise<PostViewModel | undefined> {
-  const doc = await PostModel.findById(id).lean();
-  if (!doc) return undefined;
-  return toViewModel(doc);
+export async function findPage(
+  query: PostFindPageQuery,
+): Promise<{ items: PostDoc[]; totalCount: number }> {
+  const filter = query.blogId ? { blogId: query.blogId } : {};
+  const skip = (query.pageNumber - 1) * query.pageSize;
+  const sortOrder = query.sortDirection === "asc" ? 1 : -1;
+
+  const [items, totalCount] = await Promise.all([
+    PostModel.find(filter)
+      .sort({ [query.sortBy]: sortOrder })
+      .skip(skip)
+      .limit(query.pageSize)
+      .lean(),
+    PostModel.countDocuments(filter),
+  ]);
+
+  return { items, totalCount };
 }
 
 export async function remove(id: string): Promise<boolean> {
@@ -29,31 +48,6 @@ export async function remove(id: string): Promise<boolean> {
   return result !== null;
 }
 
-export async function update(
-  id: string,
-  patch: Pick<PostViewModel, "blogId" | "blogName" | "content" | "shortDescription" | "title">,
-): Promise<PostViewModel | undefined> {
-  const doc = await PostModel.findByIdAndUpdate(id, patch, { returnDocument: "after" });
-  if (!doc) return undefined;
-  return toViewModel(doc);
-}
-
-function toViewModel(doc: {
-  _id: { toHexString(): string };
-  blogId: string;
-  blogName: string;
-  content: string;
-  createdAt: Date;
-  shortDescription: string;
-  title: string;
-}): PostViewModel {
-  return {
-    blogId: doc.blogId,
-    blogName: doc.blogName,
-    content: doc.content,
-    createdAt: doc.createdAt.toISOString(),
-    id: doc._id.toHexString(),
-    shortDescription: doc.shortDescription,
-    title: doc.title,
-  };
+export async function update(id: string, patch: PostUpdateInput): Promise<null | PostDoc> {
+  return PostModel.findByIdAndUpdate(id, patch, { returnDocument: "after" }).lean();
 }

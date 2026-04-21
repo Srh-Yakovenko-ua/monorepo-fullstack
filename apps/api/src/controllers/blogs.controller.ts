@@ -1,26 +1,28 @@
-import type { ApiErrorResult, BlogViewModel } from "@app/shared";
+import type { BlogInput, BlogScopedPostInput, BlogViewModel, PostViewModel } from "@app/shared";
 import type { Request, Response } from "express";
 
-import { BlogInputSchema } from "@app/shared";
+import { BlogsQuerySchema, PaginationQuerySchema } from "@app/shared";
 
 import { HTTP_STATUS } from "../lib/http-status.js";
-import { mapZodError } from "../lib/zod-error.js";
+import { validatedQuery } from "../middleware/validate.js";
 import * as blogsService from "../services/blogs.service.js";
 
-type BlogListRes = Response<BlogViewModel[]>;
-type BlogRes = Response<ApiErrorResult | BlogViewModel>;
-type BlogWriteReq = Request<unknown, ApiErrorResult | BlogViewModel, unknown>;
+type BlogBodyReq = Request<unknown, unknown, BlogInput>;
+type BlogScopedPostReq = Request<IdParams, unknown, BlogScopedPostInput>;
+type BlogUpdateReq = Request<IdParams, unknown, BlogInput>;
 type IdParams = { id: string };
-type UpdateReq = Request<IdParams, ApiErrorResult | void, unknown>;
 
-export async function createBlog(req: BlogWriteReq, res: BlogRes): Promise<void> {
-  const parsed = BlogInputSchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(HTTP_STATUS.BAD_REQUEST).json(mapZodError(parsed.error));
-    return;
-  }
-  const blog = await blogsService.createBlog(parsed.data);
+export async function createBlog(req: BlogBodyReq, res: Response<BlogViewModel>): Promise<void> {
+  const blog = await blogsService.createBlog(req.body);
   res.status(HTTP_STATUS.CREATED).json(blog);
+}
+
+export async function createPostForBlog(
+  req: BlogScopedPostReq,
+  res: Response<PostViewModel>,
+): Promise<void> {
+  const post = await blogsService.createPostForBlog(req.params.id, req.body);
+  res.status(HTTP_STATUS.CREATED).json(post);
 }
 
 export async function deleteBlog(req: Request<IdParams>, res: Response<void>): Promise<void> {
@@ -33,19 +35,19 @@ export async function getBlog(req: Request<IdParams>, res: Response<BlogViewMode
   res.status(HTTP_STATUS.OK).json(blog);
 }
 
-export async function listBlogs(_req: Request, res: BlogListRes): Promise<void> {
-  res.status(HTTP_STATUS.OK).json(await blogsService.getAllBlogs());
+export async function listBlogs(req: Request, res: Response): Promise<void> {
+  const query = validatedQuery(req, BlogsQuerySchema);
+  const page = await blogsService.getAllBlogs(query);
+  res.status(HTTP_STATUS.OK).json(page);
 }
 
-export async function updateBlog(
-  req: UpdateReq,
-  res: Response<ApiErrorResult | void>,
-): Promise<void> {
-  const parsed = BlogInputSchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(HTTP_STATUS.BAD_REQUEST).json(mapZodError(parsed.error));
-    return;
-  }
-  await blogsService.updateBlog(req.params.id, parsed.data);
+export async function listPostsForBlog(req: Request<IdParams>, res: Response): Promise<void> {
+  const query = validatedQuery(req, PaginationQuerySchema);
+  const page = await blogsService.getPostsByBlogId(req.params.id, query);
+  res.status(HTTP_STATUS.OK).json(page);
+}
+
+export async function updateBlog(req: BlogUpdateReq, res: Response<void>): Promise<void> {
+  await blogsService.updateBlog(req.params.id, req.body);
   res.status(HTTP_STATUS.NO_CONTENT).send();
 }

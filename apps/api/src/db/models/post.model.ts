@@ -1,6 +1,9 @@
+import type { Types } from "mongoose";
+
 import { model, Schema } from "mongoose";
 
-interface PostDoc {
+export interface PostDoc {
+  _id: Types.ObjectId;
   blogId: string;
   blogName: string;
   content: string;

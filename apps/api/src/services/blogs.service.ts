@@ -1,18 +1,49 @@
-import type { BlogInput, BlogViewModel } from "@app/shared";
+import type {
+  BlogInput,
+  BlogScopedPostInput,
+  BlogsQuery,
+  BlogViewModel,
+  PaginationQuery,
+  Paginator,
+  PostViewModel,
+} from "@app/shared";
+
+import type { BlogDoc } from "../db/models/blog.model.js";
 
 import * as blogsRepository from "../db/repositories/blogs.repository.js";
+import * as postsRepository from "../db/repositories/posts.repository.js";
 import { NotFoundError } from "../lib/errors.js";
+import { buildPaginator } from "../lib/paginator.js";
+import { toPostView } from "../services/posts.service.js";
 
 export async function clearAllBlogs(): Promise<void> {
   await blogsRepository.clearAll();
 }
 
 export async function createBlog(input: BlogInput): Promise<BlogViewModel> {
-  return blogsRepository.create({
+  const doc = await blogsRepository.create({
     description: input.description,
     name: input.name,
     websiteUrl: input.websiteUrl,
   });
+  return toBlogView(doc);
+}
+
+export async function createPostForBlog(
+  blogId: string,
+  input: BlogScopedPostInput,
+): Promise<PostViewModel> {
+  const blog = await blogsRepository.findById(blogId);
+  if (!blog) throw new NotFoundError(`Blog with id ${blogId} not found`);
+
+  const doc = await postsRepository.create({
+    blogId: blog._id.toHexString(),
+    blogName: blog.name,
+    content: input.content,
+    shortDescription: input.shortDescription,
+    title: input.title,
+  });
+  return toPostView(doc);
 }
 
 export async function deleteBlog(id: string): Promise<void> {
@@ -20,14 +51,47 @@ export async function deleteBlog(id: string): Promise<void> {
   if (!removed) throw new NotFoundError(`Blog with id ${id} not found`);
 }
 
-export async function getAllBlogs(): Promise<BlogViewModel[]> {
-  return blogsRepository.findAll();
+export async function getAllBlogs(query: BlogsQuery): Promise<Paginator<BlogViewModel>> {
+  const { items, totalCount } = await blogsRepository.findPage(query);
+  return buildPaginator({
+    items: items.map(toBlogView),
+    pageNumber: query.pageNumber,
+    pageSize: query.pageSize,
+    totalCount,
+  });
 }
 
 export async function getBlogById(id: string): Promise<BlogViewModel> {
   const blog = await blogsRepository.findById(id);
   if (!blog) throw new NotFoundError(`Blog with id ${id} not found`);
-  return blog;
+  return toBlogView(blog);
+}
+
+export async function getPostsByBlogId(
+  blogId: string,
+  query: PaginationQuery,
+): Promise<Paginator<PostViewModel>> {
+  const blog = await blogsRepository.findById(blogId);
+  if (!blog) throw new NotFoundError(`Blog with id ${blogId} not found`);
+
+  const { items, totalCount } = await postsRepository.findPage({ ...query, blogId });
+  return buildPaginator({
+    items: items.map(toPostView),
+    pageNumber: query.pageNumber,
+    pageSize: query.pageSize,
+    totalCount,
+  });
+}
+
+export function toBlogView(doc: BlogDoc): BlogViewModel {
+  return {
+    createdAt: doc.createdAt.toISOString(),
+    description: doc.description,
+    id: doc._id.toHexString(),
+    isMembership: doc.isMembership,
+    name: doc.name,
+    websiteUrl: doc.websiteUrl,
+  };
 }
 
 export async function updateBlog(id: string, input: BlogInput): Promise<void> {

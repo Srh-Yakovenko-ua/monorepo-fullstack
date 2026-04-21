@@ -1,27 +1,19 @@
-import type { ApiErrorResult, VideoViewModel } from "@app/shared";
+import type { CreateVideoInput, UpdateVideoInput, VideoViewModel } from "@app/shared";
 import type { Request, Response } from "express";
-
-import { CreateVideoInputSchema, UpdateVideoInputSchema } from "@app/shared";
 
 import { NotFoundError } from "../lib/errors.js";
 import { HTTP_STATUS } from "../lib/http-status.js";
-import { mapZodError } from "../lib/zod-error.js";
 import * as videosService from "../services/videos.service.js";
 
+type CreateVideoReq = Request<unknown, unknown, CreateVideoInput>;
 type IdParams = { id: string };
-type UpdateReq = Request<IdParams, ApiErrorResult | void, unknown>;
-type VideoListRes = Response<VideoViewModel[]>;
-type VideoRes = Response<ApiErrorResult | VideoViewModel>;
-type VideoWriteReq = Request<unknown, ApiErrorResult | VideoViewModel, unknown>;
+type UpdateVideoReq = Request<IdParams, unknown, UpdateVideoInput>;
 
-export async function createVideo(req: VideoWriteReq, res: VideoRes): Promise<void> {
-  const parsed = CreateVideoInputSchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(HTTP_STATUS.BAD_REQUEST).json(mapZodError(parsed.error));
-    return;
-  }
-
-  const video = await videosService.createVideo(parsed.data);
+export async function createVideo(
+  req: CreateVideoReq,
+  res: Response<VideoViewModel>,
+): Promise<void> {
+  const video = await videosService.createVideo(req.body);
   res.status(HTTP_STATUS.CREATED).json(video);
 }
 
@@ -40,23 +32,13 @@ export async function getVideo(
   res.status(HTTP_STATUS.OK).json(video);
 }
 
-export async function listVideos(_req: Request, res: VideoListRes): Promise<void> {
+export async function listVideos(_req: Request, res: Response<VideoViewModel[]>): Promise<void> {
   res.status(HTTP_STATUS.OK).json(await videosService.getAllVideos());
 }
 
-export async function updateVideo(
-  req: UpdateReq,
-  res: Response<ApiErrorResult | void>,
-): Promise<void> {
+export async function updateVideo(req: UpdateVideoReq, res: Response<void>): Promise<void> {
   const id = parseVideoId(req.params.id);
-
-  const parsed = UpdateVideoInputSchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(HTTP_STATUS.BAD_REQUEST).json(mapZodError(parsed.error));
-    return;
-  }
-
-  await videosService.updateVideo(id, parsed.data);
+  await videosService.updateVideo(id, req.body);
   res.status(HTTP_STATUS.NO_CONTENT).send();
 }
 

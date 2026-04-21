@@ -27,14 +27,20 @@ async function createBlog(): Promise<{ id: string; name: string }> {
 
 describe("Posts API", () => {
   describe("GET /api/posts", () => {
-    it("returns empty array when no posts exist", async () => {
+    it("returns empty paginator when no posts exist", async () => {
       const res = await request(app).get("/api/posts");
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual([]);
+      expect(res.body).toMatchObject({
+        items: [],
+        page: 1,
+        pagesCount: 0,
+        pageSize: 10,
+        totalCount: 0,
+      });
     });
 
-    it("returns all posts after creating one", async () => {
+    it("returns paginator with one item after creating one", async () => {
       const blog = await createBlog();
       const postBody = await buildValidPost(blog.id);
       await request(app).post("/api/posts").send(postBody);
@@ -42,7 +48,65 @@ describe("Posts API", () => {
       const res = await request(app).get("/api/posts");
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveLength(1);
+      expect(res.body.items).toHaveLength(1);
+      expect(res.body.totalCount).toBe(1);
+      expect(res.body.pagesCount).toBe(1);
+    });
+
+    it("respects pageNumber and pageSize", async () => {
+      const blog = await createBlog();
+      for (let i = 1; i <= 4; i++) {
+        await request(app)
+          .post("/api/posts")
+          .send({ ...(await buildValidPost(blog.id)), title: `Post ${i}` });
+      }
+
+      const res = await request(app).get("/api/posts?pageNumber=2&pageSize=3");
+
+      expect(res.status).toBe(200);
+      expect(res.body.page).toBe(2);
+      expect(res.body.pageSize).toBe(3);
+      expect(res.body.totalCount).toBe(4);
+      expect(res.body.pagesCount).toBe(2);
+      expect(res.body.items).toHaveLength(1);
+    });
+
+    it("sorts by title asc", async () => {
+      const blog = await createBlog();
+      await request(app)
+        .post("/api/posts")
+        .send({ ...(await buildValidPost(blog.id)), title: "Zebra" });
+      await request(app)
+        .post("/api/posts")
+        .send({ ...(await buildValidPost(blog.id)), title: "Apple" });
+
+      const res = await request(app).get("/api/posts?sortBy=title&sortDirection=asc");
+
+      expect(res.status).toBe(200);
+      expect(res.body.items[0].title).toBe("Apple");
+      expect(res.body.items[1].title).toBe("Zebra");
+    });
+
+    it("sorts by title desc", async () => {
+      const blog = await createBlog();
+      await request(app)
+        .post("/api/posts")
+        .send({ ...(await buildValidPost(blog.id)), title: "Zebra" });
+      await request(app)
+        .post("/api/posts")
+        .send({ ...(await buildValidPost(blog.id)), title: "Apple" });
+
+      const res = await request(app).get("/api/posts?sortBy=title&sortDirection=desc");
+
+      expect(res.status).toBe(200);
+      expect(res.body.items[0].title).toBe("Zebra");
+      expect(res.body.items[1].title).toBe("Apple");
+    });
+
+    it("returns 400 for invalid sortBy field", async () => {
+      const res = await request(app).get("/api/posts?sortBy=invalid");
+
+      expect(res.status).toBe(400);
     });
   });
 

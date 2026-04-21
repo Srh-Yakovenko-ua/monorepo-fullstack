@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx --conditions=source watch src/index.ts",
+    "dev": "tsx watch --conditions=source src/index.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
@@ -13,8 +13,10 @@
   },
   "dependencies": {
     "@app/shared": "workspace:*",
+    "@date-fns/tz": "catalog:",
     "compression": "catalog:",
     "cors": "catalog:",
+    "date-fns": "catalog:",
     "dotenv": "catalog:",
     "express": "catalog:",
     "helmet": "catalog:",

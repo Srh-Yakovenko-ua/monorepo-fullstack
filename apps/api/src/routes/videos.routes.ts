@@ -10,13 +10,14 @@ import {
   updateVideo,
 } from "../controllers/videos.controller.js";
 import { apiErrorResultSchema, integerIdParam, registerPaths } from "../lib/openapi.js";
+import { validateBody } from "../middleware/validate.js";
 
 const router: Router = Router();
 
 router.get("/", listVideos);
-router.post("/", createVideo);
+router.post("/", validateBody(CreateVideoInputSchema), createVideo);
 router.get("/:id", getVideo);
-router.put("/:id", updateVideo);
+router.put("/:id", validateBody(UpdateVideoInputSchema), updateVideo);
 router.delete("/:id", deleteVideo);
 
 const videoViewModelSchema = z.object({

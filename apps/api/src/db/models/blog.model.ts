@@ -1,6 +1,9 @@
+import type { Types } from "mongoose";
+
 import { model, Schema } from "mongoose";
 
-interface BlogDoc {
+export interface BlogDoc {
+  _id: Types.ObjectId;
   createdAt: Date;
   description: string;
   isMembership: boolean;

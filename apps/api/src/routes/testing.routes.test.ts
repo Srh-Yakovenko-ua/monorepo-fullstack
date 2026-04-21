@@ -21,7 +21,7 @@ describe("Testing API", () => {
       });
 
       const blogRes = await request(app).get("/api/blogs");
-      const blogId: string = blogRes.body[0].id;
+      const blogId: string = blogRes.body.items[0].id;
 
       await request(app).post("/api/posts").send({
         blogId,
@@ -46,8 +46,8 @@ describe("Testing API", () => {
         request(app).get("/api/videos"),
       ]);
 
-      expect(blogs.body).toEqual([]);
-      expect(posts.body).toEqual([]);
+      expect(blogs.body.items).toEqual([]);
+      expect(posts.body.items).toEqual([]);
       expect(videos.body).toEqual([]);
     });
   });

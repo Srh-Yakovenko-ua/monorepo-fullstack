@@ -1,11 +1,11 @@
-import type { ApiError } from "@app/shared";
+import type { ApiError, ApiErrorResult } from "@app/shared";
 import type { ErrorRequestHandler } from "express";
 
 import { Error as MongooseError } from "mongoose";
 import { ZodError } from "zod";
 
 import { env } from "../config/env.js";
-import { HttpError, NotFoundError, ValidationError } from "../lib/errors.js";
+import { BadRequestError, HttpError, NotFoundError, ValidationError } from "../lib/errors.js";
 import { HTTP_STATUS } from "../lib/http-status.js";
 import { createLogger } from "../lib/logger.js";
 
@@ -27,6 +27,12 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     },
     httpError.message,
   );
+
+  if (httpError instanceof BadRequestError && httpError.fields && httpError.fields.length > 0) {
+    const fieldBody: ApiErrorResult = { errorsMessages: httpError.fields };
+    res.status(httpError.status).json(fieldBody);
+    return;
+  }
 
   const body: ApiError = {
     message:

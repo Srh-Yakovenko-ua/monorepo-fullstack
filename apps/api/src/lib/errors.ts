@@ -1,3 +1,5 @@
+import type { FieldError } from "@app/shared";
+
 import { HTTP_STATUS, type HttpStatus } from "./http-status.js";
 
 export class HttpError extends Error {
@@ -9,6 +11,16 @@ export class HttpError extends Error {
     this.name = "HttpError";
     this.status = status;
     this.code = code;
+  }
+}
+
+export class BadRequestError extends HttpError {
+  readonly fields?: FieldError[];
+
+  constructor(message: string, options?: { code?: string; fields?: FieldError[] }) {
+    super(HTTP_STATUS.BAD_REQUEST, message, options?.code);
+    this.name = "BadRequestError";
+    this.fields = options?.fields;
   }
 }
 

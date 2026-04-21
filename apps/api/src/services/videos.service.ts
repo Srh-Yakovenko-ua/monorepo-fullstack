@@ -1,5 +1,9 @@
 import type { CreateVideoInput, UpdateVideoInput, VideoViewModel } from "@app/shared";
 
+import { addDays, parseISO } from "date-fns";
+
+import type { VideoDoc } from "../db/models/video.model.js";
+
 import * as videosRepository from "../db/repositories/videos.repository.js";
 import { NotFoundError } from "../lib/errors.js";
 
@@ -8,22 +12,17 @@ export async function clearAllVideos(): Promise<void> {
 }
 
 export async function createVideo(input: CreateVideoInput): Promise<VideoViewModel> {
-  const now = Date.now();
-  const createdAt = new Date(now).toISOString();
-  const publicationDate = new Date(now + 24 * 60 * 60 * 1000).toISOString();
-
-  const video: VideoViewModel = {
+  const now = new Date();
+  const doc = await videosRepository.create({
+    _id: now.getTime(),
     author: input.author,
     availableResolutions: input.availableResolutions,
     canBeDownloaded: false,
-    createdAt,
-    id: now,
     minAgeRestriction: null,
-    publicationDate,
+    publicationDate: addDays(now, 1),
     title: input.title,
-  };
-
-  return videosRepository.create(video);
+  });
+  return toVideoView(doc);
 }
 
 export async function deleteVideo(id: number): Promise<void> {
@@ -32,13 +31,27 @@ export async function deleteVideo(id: number): Promise<void> {
 }
 
 export async function getAllVideos(): Promise<VideoViewModel[]> {
-  return videosRepository.findAll();
+  const docs = await videosRepository.findAll();
+  return docs.map(toVideoView);
 }
 
 export async function getVideoById(id: number): Promise<VideoViewModel> {
-  const video = await videosRepository.findById(id);
-  if (!video) throw new NotFoundError(`Video with id ${id} not found`);
-  return video;
+  const doc = await videosRepository.findById(id);
+  if (!doc) throw new NotFoundError(`Video with id ${id} not found`);
+  return toVideoView(doc);
+}
+
+export function toVideoView(doc: VideoDoc): VideoViewModel {
+  return {
+    author: doc.author,
+    availableResolutions: doc.availableResolutions,
+    canBeDownloaded: doc.canBeDownloaded,
+    createdAt: doc.createdAt.toISOString(),
+    id: doc._id,
+    minAgeRestriction: doc.minAgeRestriction,
+    publicationDate: doc.publicationDate.toISOString(),
+    title: doc.title,
+  };
 }
 
 export async function updateVideo(id: number, input: UpdateVideoInput): Promise<void> {
@@ -50,7 +63,7 @@ export async function updateVideo(id: number, input: UpdateVideoInput): Promise<
     availableResolutions: input.availableResolutions,
     canBeDownloaded: input.canBeDownloaded,
     minAgeRestriction: input.minAgeRestriction,
-    publicationDate: input.publicationDate,
+    publicationDate: parseISO(input.publicationDate),
     title: input.title,
   });
 }
