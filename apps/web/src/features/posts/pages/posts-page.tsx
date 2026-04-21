@@ -58,11 +58,8 @@ export function PostsPage() {
 
   return (
     <main className="relative flex flex-1 flex-col px-5 pb-10 md:px-8 md:pb-14 lg:px-12 lg:pb-16">
-      <section className="relative mt-10 md:mt-14 lg:mt-16">
-        <p className="animate-in font-mono text-[10px] tracking-[0.26em] text-muted-foreground uppercase duration-700 fill-mode-both fade-in slide-in-from-bottom-2">
-          {t("posts.list.eyebrow")}
-        </p>
-        <div className="mt-5 flex items-center justify-between gap-4">
+      <section className="relative">
+        <div className="flex items-center justify-between gap-4">
           <h1
             className={cn(
               "animate-in fill-mode-both fade-in slide-in-from-bottom-3",

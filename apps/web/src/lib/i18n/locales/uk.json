@@ -73,7 +73,6 @@
   "blogs": {
     "list": {
       "title": "Blogs",
-      "eyebrow": "Content library",
       "createButton": "Створити блог",
       "empty": "Поки немає блогів",
       "emptyDescription": "Створіть перший блог, щоб почати публікувати пости.",
@@ -117,7 +116,6 @@
   "posts": {
     "list": {
       "title": "Posts",
-      "eyebrow": "Published content",
       "createButton": "Створити пост",
       "empty": "Поки немає постів",
       "emptyDescription": "Оберіть блог та напишіть перший пост.",

@@ -73,7 +73,6 @@
   "blogs": {
     "list": {
       "title": "Blogs",
-      "eyebrow": "Content library",
       "createButton": "Создать блог",
       "empty": "Пока нет блогов",
       "emptyDescription": "Создайте свой первый блог, чтобы начать публиковать посты.",
@@ -117,7 +116,6 @@
   "posts": {
     "list": {
       "title": "Posts",
-      "eyebrow": "Published content",
       "createButton": "Создать пост",
       "empty": "Пока нет постов",
       "emptyDescription": "Выберите блог и напишите первый пост.",
