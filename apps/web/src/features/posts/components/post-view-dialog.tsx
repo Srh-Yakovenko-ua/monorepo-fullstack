@@ -32,50 +32,48 @@ export function PostViewDialog({
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="gap-0 p-0 sm:max-w-xl">
         <DialogHeader className="sr-only">
           <DialogTitle>{post.title}</DialogTitle>
           <DialogDescription>{post.shortDescription || post.blogName || ""}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex max-h-[70vh] flex-col gap-5 overflow-y-auto pr-1">
-          <div className="relative">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -inset-x-2 -top-4 h-32 opacity-50"
-              style={{
-                background:
-                  "radial-gradient(ellipse 50% 70% at 20% 40%, oklch(from var(--info) l c h / 0.07), transparent 65%)",
-              }}
-            />
-            <div className="relative flex items-start gap-4">
-              <div className="mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/8">
-                <FileText aria-hidden className="size-5 text-primary/70" />
-              </div>
-              <div className="flex flex-col gap-1">
-                {post.blogName && (
-                  <p
-                    aria-hidden
-                    className="font-mono text-[10px] tracking-[0.26em] text-muted-foreground uppercase"
-                  >
-                    {post.blogName}
-                  </p>
-                )}
+        <div className="relative overflow-hidden px-7 pt-8 pb-7">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse 80% 100% at 0% 0%, oklch(from var(--info) l c h / 0.07), transparent 65%)",
+            }}
+          />
+          <div className="relative flex items-start gap-4">
+            <div className="mt-1 flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <FileText aria-hidden className="size-5 text-primary" />
+            </div>
+            <div className="flex min-w-0 flex-col gap-1.5">
+              {post.blogName && (
                 <p
                   aria-hidden
-                  className="font-display text-2xl leading-tight font-normal"
-                  style={{ letterSpacing: "-0.028em" }}
+                  className="font-mono text-[10px] tracking-[0.26em] text-muted-foreground uppercase"
                 >
-                  {post.title}
+                  {post.blogName}
                 </p>
-                <div
-                  aria-hidden
-                  className="mt-1 h-0.5 w-8 rounded-full bg-gradient-to-r from-primary/60 to-primary/0"
-                />
-              </div>
+              )}
+              <p
+                aria-hidden
+                className="font-display text-[clamp(1.5rem,3vw,2rem)] leading-tight font-normal"
+                style={{ letterSpacing: "-0.03em" }}
+              >
+                {post.title}
+              </p>
             </div>
           </div>
+        </div>
 
+        <div className="h-px w-full bg-border/60" />
+
+        <div className="flex max-h-[50vh] flex-col gap-5 overflow-y-auto px-7 py-6">
           {post.shortDescription && (
             <p className="text-sm leading-relaxed font-medium text-foreground">
               {post.shortDescription}
@@ -87,7 +85,9 @@ export function PostViewDialog({
           )}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <div className="h-px w-full bg-border/60" />
+
+        <DialogFooter className="gap-2 px-7 py-5 sm:gap-2">
           <Button
             className="cursor-pointer transition-all duration-150 hover:ring-4 hover:ring-primary/15"
             onClick={onEdit}

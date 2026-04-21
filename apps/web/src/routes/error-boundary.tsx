@@ -54,6 +54,7 @@ export function AppErrorBoundary() {
 
           <h1 className="mt-6 font-display text-[clamp(2rem,4vw,3.5rem)] leading-[0.86] font-semibold tracking-[-0.035em]">
             {statusText}
+            <span className="text-error">.</span>
           </h1>
 
           <div className="mt-3 h-[2px] w-12 rounded-full bg-gradient-to-r from-error to-error/40" />
@@ -78,7 +79,7 @@ export function AppErrorBoundary() {
           <div className="flex items-center gap-3">
             <Button
               asChild
-              className="h-12 px-6 font-mono text-[11px] tracking-[0.22em] uppercase"
+              className="h-12 cursor-pointer px-6 font-mono text-[11px] tracking-[0.22em] uppercase transition-all duration-150 hover:ring-4 hover:ring-primary/15"
               variant="outline"
             >
               <Link to="/">
@@ -88,7 +89,7 @@ export function AppErrorBoundary() {
             </Button>
 
             <Button
-              className="h-12 px-6 font-mono text-[11px] tracking-[0.22em] uppercase"
+              className="h-12 cursor-pointer px-6 font-mono text-[11px] tracking-[0.22em] uppercase transition-all duration-150 hover:shadow-[var(--shadow-glow-brand)]"
               onClick={() => window.location.reload()}
               variant="default"
             >

@@ -72,7 +72,8 @@ export function HealthPage() {
           <div
             className={cn(
               "animate-in fill-mode-both fade-in",
-              "grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-border/60 bg-border/40 md:grid-cols-3",
+              "grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/30 md:grid-cols-3",
+              "shadow-[var(--shadow-card)]",
               "delay-300 duration-700",
             )}
           >
@@ -84,7 +85,7 @@ export function HealthPage() {
             <Metric label={t("health.metrics.environment")} value={env.MODE.toUpperCase()} />
           </div>
         ) : isLoading ? (
-          <div className="grid grid-cols-1 gap-px md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl md:grid-cols-3">
             <Skeleton className="h-[116px] rounded-none" />
             <Skeleton className="h-[116px] rounded-none" />
             <Skeleton className="h-[116px] rounded-none" />
@@ -92,7 +93,7 @@ export function HealthPage() {
         ) : null}
       </section>
 
-      <footer className="mt-10 flex flex-col items-start justify-between gap-5 border-t border-border/60 pt-8 md:mt-14 md:flex-row md:items-center">
+      <footer className="mt-12 flex flex-col items-start justify-between gap-5 border-t border-border/60 pt-8 md:mt-16 md:flex-row md:items-center">
         <div className="flex flex-wrap gap-3">
           <Button
             className="h-11 px-5 font-mono text-[10px] tracking-[0.22em] uppercase transition-all duration-150 hover:ring-4 hover:ring-primary/15"
@@ -147,11 +148,11 @@ function deriveHeadline(
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="group bg-card/70 px-7 py-6 backdrop-blur-sm transition-colors duration-150 hover:bg-accent/50">
+    <div className="group bg-card/80 px-7 py-7 backdrop-blur-sm transition-colors duration-150 hover:bg-accent/40">
       <p className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground uppercase">
         {label}
       </p>
-      <p className="mt-3 font-mono text-xl text-foreground tabular-nums transition-colors duration-150 group-hover:text-primary md:text-2xl">
+      <p className="mt-4 font-mono text-xl text-foreground tabular-nums transition-colors duration-150 group-hover:text-primary md:text-2xl">
         {value}
       </p>
     </div>

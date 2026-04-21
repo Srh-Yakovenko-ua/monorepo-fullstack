@@ -42,27 +42,27 @@ export function BlogViewDialog({
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="gap-0 p-0 sm:max-w-lg">
         <DialogHeader className="sr-only">
           <DialogTitle>{blog.name}</DialogTitle>
           <DialogDescription>{blog.description || t("blogs.detail.eyebrow")}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-5">
-          <div className="relative">
+        <div className="flex flex-col gap-0">
+          <div className="relative overflow-hidden px-7 pt-8 pb-7">
             <div
               aria-hidden
-              className="pointer-events-none absolute -inset-x-2 -top-4 h-32 opacity-50"
+              className="pointer-events-none absolute inset-0"
               style={{
                 background:
-                  "radial-gradient(ellipse 50% 70% at 20% 40%, oklch(from var(--primary) l c h / 0.07), transparent 65%)",
+                  "radial-gradient(ellipse 80% 100% at 0% 0%, oklch(from var(--primary) l c h / 0.08), transparent 65%)",
               }}
             />
             <div className="relative flex items-start gap-4">
-              <div className="mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/8">
-                <BookOpen aria-hidden className="size-5 text-primary/70" />
+              <div className="mt-1 flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <BookOpen aria-hidden className="size-5 text-primary" />
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex min-w-0 flex-col gap-1.5">
                 <p
                   aria-hidden
                   className="font-mono text-[10px] tracking-[0.26em] text-muted-foreground uppercase"
@@ -71,37 +71,39 @@ export function BlogViewDialog({
                 </p>
                 <p
                   aria-hidden
-                  className="font-display text-2xl leading-tight font-normal"
-                  style={{ letterSpacing: "-0.028em" }}
+                  className="font-display text-[clamp(1.5rem,3vw,2rem)] leading-tight font-normal"
+                  style={{ letterSpacing: "-0.03em" }}
                 >
                   {blog.name}
                 </p>
-                <div
-                  aria-hidden
-                  className="mt-1 h-0.5 w-8 rounded-full bg-gradient-to-r from-primary/60 to-primary/0"
-                />
               </div>
             </div>
           </div>
 
-          {websiteHostname && (
-            <a
-              className="flex cursor-pointer items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-150 hover:text-primary"
-              href={blog.websiteUrl}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <ExternalLink className="size-3 shrink-0" />
-              <span className="truncate">{websiteHostname}</span>
-            </a>
-          )}
+          <div className="h-px w-full bg-border/60" />
 
-          {blog.description && (
-            <p className="text-sm leading-relaxed text-muted-foreground">{blog.description}</p>
-          )}
+          <div className="flex flex-col gap-4 px-7 py-6">
+            {websiteHostname && (
+              <a
+                className="flex cursor-pointer items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase transition-colors duration-150 hover:text-primary"
+                href={blog.websiteUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                <ExternalLink className="size-3 shrink-0" />
+                <span className="truncate">{websiteHostname}</span>
+              </a>
+            )}
+
+            {blog.description && (
+              <p className="text-sm leading-relaxed text-muted-foreground">{blog.description}</p>
+            )}
+          </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <div className="h-px w-full bg-border/60" />
+
+        <DialogFooter className="gap-2 px-7 py-5 sm:gap-2">
           <Button
             className="cursor-pointer transition-all duration-150 hover:ring-4 hover:ring-primary/15"
             onClick={onEdit}

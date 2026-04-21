@@ -73,8 +73,10 @@
   "blogs": {
     "list": {
       "title": "Blogs",
+      "eyebrow": "Content library",
       "createButton": "Create blog",
       "empty": "No blogs yet",
+      "emptyDescription": "Create your first blog to start publishing posts.",
       "error": "Failed to load blogs"
     },
     "detail": {
@@ -115,8 +117,10 @@
   "posts": {
     "list": {
       "title": "Posts",
+      "eyebrow": "Published content",
       "createButton": "Create post",
       "empty": "No posts yet",
+      "emptyDescription": "Select a blog and write your first post.",
       "error": "Failed to load posts"
     },
     "detail": {

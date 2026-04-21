@@ -24,7 +24,7 @@ export function NotFoundPage() {
           )}
           style={{ letterSpacing: "-0.038em" }}
         >
-          404
+          404<span className="text-primary">.</span>
         </h1>
 
         <h2

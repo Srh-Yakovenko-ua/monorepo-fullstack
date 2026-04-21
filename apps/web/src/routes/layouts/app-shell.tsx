@@ -54,15 +54,15 @@ function AppSidebar() {
       <SidebarHeader className="px-4 py-5">
         <div
           className={cn(
-            "flex items-center gap-2.5 transition-all duration-200",
+            "flex items-center gap-3 transition-all duration-200",
             collapsed && "justify-center gap-0",
           )}
         >
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary/12 shadow-[var(--shadow-soft)]">
             <Layers className="size-4 text-primary" />
           </div>
           {!collapsed && (
-            <span className="font-display text-base font-semibold tracking-tight text-foreground">
+            <span className="font-display text-[15px] font-semibold tracking-tight text-foreground">
               {t("appShell.label")}
             </span>
           )}
@@ -82,22 +82,22 @@ function AppSidebar() {
                           "relative cursor-pointer gap-3 transition-all duration-150",
                           isActive
                             ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
-                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                            : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground",
                         )}
                         isActive={isActive}
                         tooltip={t(`nav.${key}`)}
                       >
                         <Icon
                           className={cn(
-                            "size-[18px] shrink-0",
-                            isActive ? "text-primary" : "text-muted-foreground",
+                            "size-[18px] shrink-0 transition-colors duration-150",
+                            isActive ? "text-primary" : "text-muted-foreground/70",
                           )}
                         />
                         <span className="font-mono text-[11px] tracking-[0.14em] uppercase">
                           {t(`nav.${key}`)}
                         </span>
                         {isActive && (
-                          <div className="absolute top-1/2 left-0 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-primary" />
+                          <div className="absolute top-1/2 left-0 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
                         )}
                       </SidebarMenuButton>
                     )}

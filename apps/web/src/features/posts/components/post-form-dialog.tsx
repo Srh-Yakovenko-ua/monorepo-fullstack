@@ -108,18 +108,23 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent aria-describedby={undefined} className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent aria-describedby={undefined} className="gap-0 p-0 sm:max-w-md">
+        <DialogHeader className="px-7 pt-7 pb-6">
+          <DialogTitle
+            className="font-display text-xl font-normal"
+            style={{ letterSpacing: "-0.025em" }}
+          >
             {mode === "create" ? t("posts.form.createTitle") : t("posts.form.editTitle")}
           </DialogTitle>
         </DialogHeader>
 
-        <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="h-px w-full bg-border/60" />
+
+        <form className="flex flex-col gap-5 px-7 py-6" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="post-title">{t("posts.form.titleLabel")}</Label>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
                 {t("posts.form.titleCounter", { current: titleValue?.length ?? 0 })}
               </span>
             </div>
@@ -136,7 +141,7 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="post-shortDescription">{t("posts.form.shortDescriptionLabel")}</Label>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
                 {t("posts.form.shortDescriptionCounter", {
                   current: shortDescriptionValue?.length ?? 0,
                 })}
@@ -161,7 +166,7 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="post-content">{t("posts.form.contentLabel")}</Label>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
                 {t("posts.form.contentCounter", { current: contentValue?.length ?? 0 })}
               </span>
             </div>
@@ -208,8 +213,14 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
             <FieldError error={form.formState.errors.blogId} id="post-blogId-error" />
           </div>
 
-          <DialogFooter>
-            <Button disabled={isPending || noBlogs} type="submit">
+          <div className="h-px w-full bg-border/60" />
+
+          <DialogFooter className="-mb-1">
+            <Button
+              className="transition-all duration-150 hover:shadow-[var(--shadow-glow-brand)]"
+              disabled={isPending || noBlogs}
+              type="submit"
+            >
               {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               {mode === "create" ? t("common.create") : t("common.save")}
             </Button>

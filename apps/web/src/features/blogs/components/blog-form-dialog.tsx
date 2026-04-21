@@ -82,18 +82,23 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent aria-describedby={undefined} className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent aria-describedby={undefined} className="gap-0 p-0 sm:max-w-md">
+        <DialogHeader className="px-7 pt-7 pb-6">
+          <DialogTitle
+            className="font-display text-xl font-normal"
+            style={{ letterSpacing: "-0.025em" }}
+          >
             {mode === "create" ? t("blogs.form.createTitle") : t("blogs.form.editTitle")}
           </DialogTitle>
         </DialogHeader>
 
-        <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="h-px w-full bg-border/60" />
+
+        <form className="flex flex-col gap-5 px-7 py-6" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="blog-name">{t("blogs.form.nameLabel")}</Label>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
                 {t("blogs.form.nameCounter", { current: nameValue?.length ?? 0 })}
               </span>
             </div>
@@ -110,7 +115,7 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="blog-description">{t("blogs.form.descriptionLabel")}</Label>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
                 {t("blogs.form.descriptionCounter", { current: descriptionValue?.length ?? 0 })}
               </span>
             </div>
@@ -142,8 +147,14 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
             <FieldError error={form.formState.errors.websiteUrl} id="blog-websiteUrl-error" />
           </div>
 
-          <DialogFooter>
-            <Button disabled={isPending} type="submit">
+          <div className="h-px w-full bg-border/60" />
+
+          <DialogFooter className="-mb-1">
+            <Button
+              className="transition-all duration-150 hover:shadow-[var(--shadow-glow-brand)]"
+              disabled={isPending}
+              type="submit"
+            >
               {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               {mode === "create" ? t("common.create") : t("common.save")}
             </Button>

@@ -58,13 +58,16 @@ export function BlogsPage() {
 
   return (
     <main className="relative flex flex-1 flex-col px-5 pb-10 md:px-8 md:pb-14 lg:px-12 lg:pb-16">
-      <section className="relative">
-        <div className="relative flex items-center justify-between gap-4">
+      <section className="relative mt-10 md:mt-14 lg:mt-16">
+        <p className="animate-in font-mono text-[10px] tracking-[0.26em] text-muted-foreground uppercase duration-700 fill-mode-both fade-in slide-in-from-bottom-2">
+          {t("blogs.list.eyebrow")}
+        </p>
+        <div className="mt-5 flex items-center justify-between gap-4">
           <h1
             className={cn(
               "animate-in fill-mode-both fade-in slide-in-from-bottom-3",
               "font-display leading-[0.88] font-normal",
-              "text-[clamp(2.25rem,4.5vw,3.5rem)]",
+              "text-[clamp(2.5rem,5vw,4.5rem)]",
               "delay-100 duration-700",
             )}
             style={{ letterSpacing: "-0.03em" }}
@@ -72,7 +75,7 @@ export function BlogsPage() {
             {t("blogs.list.title")}
           </h1>
           <Button
-            className="shrink-0 gap-1.5 transition-all duration-150 hover:ring-4 hover:ring-primary/15"
+            className="shrink-0 gap-1.5 transition-all duration-150 hover:shadow-[var(--shadow-glow-brand)] hover:ring-4 hover:ring-primary/15"
             onClick={() => setCreateOpen(true)}
             size="sm"
           >
@@ -80,10 +83,10 @@ export function BlogsPage() {
             {t("blogs.list.createButton")}
           </Button>
         </div>
-        <div className="mt-2 h-0.5 w-12 rounded-full bg-gradient-to-r from-primary/60 to-primary/0" />
+        <div className="mt-3 h-px w-full bg-border/60" />
       </section>
 
-      <section className="mt-6">
+      <section className="mt-8">
         {isLoading && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -103,21 +106,42 @@ export function BlogsPage() {
         )}
 
         {isError && (
-          <div className="rounded-2xl border border-border/60 bg-card/60 px-8 py-10 text-center backdrop-blur-md">
-            <p className="font-mono text-sm text-destructive">
-              {t("blogs.list.error")}: {error.message}
+          <div className="animate-in rounded-2xl border border-destructive/20 bg-destructive/5 px-8 py-12 text-center backdrop-blur-md duration-500 fill-mode-both fade-in">
+            <p
+              className="font-display text-base font-normal text-destructive"
+              style={{ letterSpacing: "-0.02em" }}
+            >
+              {t("blogs.list.error")}
+            </p>
+            <p className="mt-1 font-mono text-[10px] tracking-[0.18em] text-muted-foreground uppercase">
+              {error.message}
             </p>
           </div>
         )}
 
         {!isLoading && !isError && blogs.length === 0 && (
-          <div className="rounded-2xl border border-border/60 bg-card/60 px-8 py-16 text-center backdrop-blur-md">
-            <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-primary/8">
-              <BookOpen className="size-5 text-primary/60" />
+          <div className="animate-in rounded-2xl border border-border/60 bg-card/70 px-8 py-20 text-center shadow-[var(--shadow-card)] backdrop-blur-md duration-700 fill-mode-both fade-in">
+            <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-primary/8">
+              <BookOpen className="size-6 text-primary/70" />
             </div>
-            <p className="font-mono text-[11px] tracking-[0.22em] text-muted-foreground uppercase">
+            <p
+              className="font-display text-lg font-normal text-foreground"
+              style={{ letterSpacing: "-0.02em" }}
+            >
               {t("blogs.list.empty")}
             </p>
+            <p className="mt-2 font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
+              {t("blogs.list.emptyDescription")}
+            </p>
+            <Button
+              className="mt-6 gap-1.5 transition-all duration-150 hover:ring-4 hover:ring-primary/15"
+              onClick={() => setCreateOpen(true)}
+              size="sm"
+              variant="outline"
+            >
+              <Plus className="size-3.5" />
+              {t("blogs.list.createButton")}
+            </Button>
           </div>
         )}
 
@@ -194,10 +218,10 @@ function BlogCard({
     <article
       className={cn(
         "group relative flex animate-in flex-col rounded-2xl",
-        "border border-border/60 bg-card/70 backdrop-blur-md",
-        "shadow-[0_1px_0_0_oklch(1_0_0/0.06)_inset,0_6px_20px_-6px_oklch(0_0_0/0.1)]",
-        "transition-all duration-200 hover:-translate-y-0.5",
-        "hover:border-primary/30 hover:shadow-[0_1px_0_0_oklch(1_0_0/0.06)_inset,0_12px_28px_-8px_oklch(0_0_0/0.18)]",
+        "border border-border/60 bg-card/80 backdrop-blur-md",
+        "shadow-[var(--shadow-card)]",
+        "transition-all duration-200 hover:-translate-y-1",
+        "hover:border-primary/25 hover:shadow-[var(--shadow-pop)]",
         "overflow-hidden fill-mode-both fade-in slide-in-from-bottom-2",
       )}
       style={{ animationDelay: `${index * 60}ms`, animationDuration: "500ms" }}
