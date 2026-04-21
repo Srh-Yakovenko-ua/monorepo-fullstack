@@ -8,6 +8,10 @@ import { AppShell } from "@/routes/layouts/app-shell";
 
 const HealthPage = lazy(() => import("@/features/health").then((m) => ({ default: m.HealthPage })));
 
+const BlogsPage = lazy(() => import("@/features/blogs").then((m) => ({ default: m.BlogsPage })));
+
+const PostsPage = lazy(() => import("@/features/posts").then((m) => ({ default: m.PostsPage })));
+
 const NotFoundPage = lazy(() =>
   import("@/routes/not-found-page").then((m) => ({ default: m.NotFoundPage })),
 );
@@ -24,6 +28,8 @@ const router = createBrowserRouter([
   {
     children: [
       { element: lazyRoute(HealthPage), index: true },
+      { element: lazyRoute(BlogsPage), path: "blogs" },
+      { element: lazyRoute(PostsPage), path: "posts" },
       { element: lazyRoute(NotFoundPage), path: "*" },
     ],
     element: <AppShell />,

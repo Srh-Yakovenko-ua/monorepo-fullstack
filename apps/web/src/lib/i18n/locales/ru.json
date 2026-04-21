@@ -1,0 +1,162 @@
+{
+  "common": {
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "create": "Создать",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "back": "Назад",
+    "loading": "Загрузка...",
+    "retry": "Повторить",
+    "somethingWentWrong": "Что-то пошло не так",
+    "fixFormErrors": "Исправьте ошибки в форме"
+  },
+  "nav": {
+    "health": "Health",
+    "blogs": "Блоги",
+    "posts": "Посты"
+  },
+  "appShell": {
+    "label": "Blogger",
+    "collapseLabel": "Свернуть меню",
+    "openLabel": "Открыть меню"
+  },
+  "breadcrumbs": {
+    "blogs": "Блоги",
+    "posts": "Посты",
+    "health": "Health"
+  },
+  "actions": {
+    "open": "Открыть",
+    "edit": "Редактировать",
+    "delete": "Удалить"
+  },
+  "health": {
+    "systemStatus": "System status",
+    "headline": {
+      "unreachable": "Unreachable",
+      "connecting": "Connecting",
+      "operational": "Operational",
+      "degraded": "Degraded",
+      "down": "Down"
+    },
+    "description": {
+      "error": "API на localhost:4000 не отвечает. {{message}}.",
+      "ok": "Все системы работают нормально. Express-сервис онлайн и принимает запросы на порту 4000.",
+      "connecting": "Ожидание первого heartbeat от Express-сервиса."
+    },
+    "metrics": {
+      "uptime": "Uptime",
+      "lastHeartbeat": "Last heartbeat",
+      "environment": "Environment"
+    },
+    "actions": {
+      "pinging": "Pinging",
+      "pingAgain": "Ping again",
+      "openConfirmModal": "Open confirm modal"
+    },
+    "footer": "Express + MongoDB · phase 1",
+    "modal": {
+      "title": "Delete this item?",
+      "description": "This action cannot be undone.",
+      "confirmLabel": "Delete"
+    }
+  },
+  "notFound": {
+    "eyebrow": "Error · 404",
+    "headline": "Not found",
+    "description": "Страница, которую вы пытались открыть, не существует на этом сервере. Возможно, она была перемещена или вы перешли по устаревшей ссылке.",
+    "backHome": "Back home",
+    "footer": "Express + MongoDB · phase 1"
+  },
+  "blogs": {
+    "list": {
+      "title": "Blogs",
+      "createButton": "Создать блог",
+      "empty": "Пока нет блогов",
+      "error": "Не удалось загрузить блоги"
+    },
+    "detail": {
+      "eyebrow": "Blog",
+      "notFound": "Блог не найден",
+      "error": "Ошибка загрузки: {{message}}",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "deleteModal": {
+        "title": "Удалить блог?",
+        "description": "Это действие необратимо. Блог будет удалён навсегда.",
+        "confirmLabel": "Удалить"
+      }
+    },
+    "form": {
+      "createTitle": "Создать блог",
+      "editTitle": "Редактировать блог",
+      "nameLabel": "Название",
+      "namePlaceholder": "Мой блог",
+      "descriptionLabel": "Описание",
+      "descriptionPlaceholder": "О чём этот блог",
+      "websiteUrlLabel": "Сайт",
+      "websiteUrlPlaceholder": "https://example.com",
+      "nameCounter": "{{current}}/15",
+      "descriptionCounter": "{{current}}/500",
+      "errors": {
+        "websiteUrlInvalid": "Нужна полная ссылка с https://, например https://example.com",
+        "websiteUrlTooLong": "Не длиннее 100 символов"
+      }
+    },
+    "toasts": {
+      "created": "Блог создан",
+      "updated": "Блог обновлён",
+      "deleted": "Блог удалён",
+      "createError": "Не удалось создать",
+      "updateError": "Не удалось обновить",
+      "deleteError": "Не удалось удалить"
+    }
+  },
+  "posts": {
+    "list": {
+      "title": "Posts",
+      "createButton": "Создать пост",
+      "empty": "Пока нет постов",
+      "error": "Не удалось загрузить посты"
+    },
+    "detail": {
+      "notFound": "Пост не найден",
+      "error": "Ошибка загрузки: {{message}}",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "deleteModal": {
+        "title": "Удалить пост?",
+        "description": "Это действие необратимо. Пост будет удалён навсегда.",
+        "confirmLabel": "Удалить"
+      }
+    },
+    "form": {
+      "createTitle": "Создать пост",
+      "editTitle": "Редактировать пост",
+      "titleLabel": "Заголовок",
+      "titlePlaceholder": "Название поста",
+      "titleCounter": "{{current}}/30",
+      "shortDescriptionLabel": "Краткое описание",
+      "shortDescriptionPlaceholder": "Краткое описание поста",
+      "shortDescriptionCounter": "{{current}}/100",
+      "contentLabel": "Контент",
+      "contentPlaceholder": "Содержание поста",
+      "contentCounter": "{{current}}/1000",
+      "blogIdLabel": "Блог",
+      "blogIdPlaceholderEmpty": "Сначала создайте блог",
+      "blogIdPlaceholder": "Выберите блог"
+    },
+    "toasts": {
+      "created": "Пост создан",
+      "updated": "Пост обновлён",
+      "deleted": "Пост удалён",
+      "createError": "Не удалось создать",
+      "updateError": "Не удалось обновить",
+      "deleteError": "Не удалось удалить"
+    }
+  },
+  "localePicker": {
+    "ariaLabel": "Язык интерфейса"
+  }
+}

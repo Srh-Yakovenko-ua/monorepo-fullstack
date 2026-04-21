@@ -1,0 +1,162 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "somethingWentWrong": "Something went wrong",
+    "fixFormErrors": "Please fix the errors in the form"
+  },
+  "nav": {
+    "health": "Health",
+    "blogs": "Blogs",
+    "posts": "Posts"
+  },
+  "appShell": {
+    "label": "Blogger",
+    "collapseLabel": "Collapse sidebar",
+    "openLabel": "Open sidebar"
+  },
+  "breadcrumbs": {
+    "blogs": "Blogs",
+    "posts": "Posts",
+    "health": "Health"
+  },
+  "actions": {
+    "open": "Open",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "health": {
+    "systemStatus": "System status",
+    "headline": {
+      "unreachable": "Unreachable",
+      "connecting": "Connecting",
+      "operational": "Operational",
+      "degraded": "Degraded",
+      "down": "Down"
+    },
+    "description": {
+      "error": "The API at localhost:4000 did not respond. {{message}}.",
+      "ok": "All systems are responding normally. The Express service is online and accepting requests on port 4000.",
+      "connecting": "Waiting for the first heartbeat from the Express service."
+    },
+    "metrics": {
+      "uptime": "Uptime",
+      "lastHeartbeat": "Last heartbeat",
+      "environment": "Environment"
+    },
+    "actions": {
+      "pinging": "Pinging",
+      "pingAgain": "Ping again",
+      "openConfirmModal": "Open confirm modal"
+    },
+    "footer": "Express + MongoDB · phase 1",
+    "modal": {
+      "title": "Delete this item?",
+      "description": "This action cannot be undone.",
+      "confirmLabel": "Delete"
+    }
+  },
+  "notFound": {
+    "eyebrow": "Error · 404",
+    "headline": "Not found",
+    "description": "The page you tried to reach doesn't exist on this server. It may have moved, or you followed a stale link.",
+    "backHome": "Back home",
+    "footer": "Express + MongoDB · phase 1"
+  },
+  "blogs": {
+    "list": {
+      "title": "Blogs",
+      "createButton": "Create blog",
+      "empty": "No blogs yet",
+      "error": "Failed to load blogs"
+    },
+    "detail": {
+      "eyebrow": "Blog",
+      "notFound": "Blog not found",
+      "error": "Failed to load: {{message}}",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteModal": {
+        "title": "Delete blog?",
+        "description": "This action cannot be undone. The blog will be permanently deleted.",
+        "confirmLabel": "Delete"
+      }
+    },
+    "form": {
+      "createTitle": "Create blog",
+      "editTitle": "Edit blog",
+      "nameLabel": "Name",
+      "namePlaceholder": "My blog",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "What this blog is about",
+      "websiteUrlLabel": "Website",
+      "websiteUrlPlaceholder": "https://example.com",
+      "nameCounter": "{{current}}/15",
+      "descriptionCounter": "{{current}}/500",
+      "errors": {
+        "websiteUrlInvalid": "Paste a full URL starting with https://, e.g. https://example.com",
+        "websiteUrlTooLong": "Must be 100 characters or fewer"
+      }
+    },
+    "toasts": {
+      "created": "Blog created",
+      "updated": "Blog updated",
+      "deleted": "Blog deleted",
+      "createError": "Failed to create",
+      "updateError": "Failed to update",
+      "deleteError": "Failed to delete"
+    }
+  },
+  "posts": {
+    "list": {
+      "title": "Posts",
+      "createButton": "Create post",
+      "empty": "No posts yet",
+      "error": "Failed to load posts"
+    },
+    "detail": {
+      "notFound": "Post not found",
+      "error": "Failed to load: {{message}}",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteModal": {
+        "title": "Delete post?",
+        "description": "This action cannot be undone. The post will be permanently deleted.",
+        "confirmLabel": "Delete"
+      }
+    },
+    "form": {
+      "createTitle": "Create post",
+      "editTitle": "Edit post",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Post title",
+      "titleCounter": "{{current}}/30",
+      "shortDescriptionLabel": "Short description",
+      "shortDescriptionPlaceholder": "Brief post description",
+      "shortDescriptionCounter": "{{current}}/100",
+      "contentLabel": "Content",
+      "contentPlaceholder": "Post content",
+      "contentCounter": "{{current}}/1000",
+      "blogIdLabel": "Blog",
+      "blogIdPlaceholderEmpty": "Create a blog first",
+      "blogIdPlaceholder": "Select a blog"
+    },
+    "toasts": {
+      "created": "Post created",
+      "updated": "Post updated",
+      "deleted": "Post deleted",
+      "createError": "Failed to create",
+      "updateError": "Failed to update",
+      "deleteError": "Failed to delete"
+    }
+  },
+  "localePicker": {
+    "ariaLabel": "Language"
+  }
+}

@@ -25,17 +25,17 @@ export function ThemePicker() {
       <DropdownMenuTrigger asChild>
         <Button
           aria-label="Change theme"
-          className="size-9 text-muted-foreground hover:text-foreground"
+          className="size-9 rounded-lg text-muted-foreground transition-all duration-150 hover:bg-muted hover:text-foreground"
           size="icon"
           variant="ghost"
         >
-          <TriggerIcon className="size-4" />
+          <TriggerIcon className="size-[15px]" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[8rem]">
         {OPTIONS.map(({ Icon, label, value }) => (
           <DropdownMenuItem
-            className="font-mono text-[11px] tracking-[0.18em] uppercase"
+            className="cursor-pointer font-mono text-[11px] tracking-[0.18em] uppercase"
             key={value}
             onSelect={() => setTheme(value)}
           >
@@ -45,7 +45,9 @@ export function ThemePicker() {
                 theme === value ? "text-primary" : "text-muted-foreground",
               )}
             />
-            <span className={cn(theme === value && "text-foreground")}>{label}</span>
+            <span className={cn(theme === value ? "text-foreground" : "text-muted-foreground")}>
+              {label}
+            </span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

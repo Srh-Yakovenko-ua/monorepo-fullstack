@@ -1,4 +1,7 @@
+import type { TFunction } from "i18next";
+
 import { RotateCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,24 +18,25 @@ import { cn } from "@/lib/utils";
 const logger = createLogger("health-page");
 
 export function HealthPage() {
+  const { t } = useTranslation();
   usePageTitle("Health");
   const { data, error, isError, isFetching, isLoading, refetch } = useHealth();
 
   const visualStatus: StatusDotState = isError ? "down" : (data?.status ?? "loading");
 
-  const headline = deriveHeadline(isError, isLoading, !!data, visualStatus);
+  const headline = deriveHeadline(isError, isLoading, !!data, visualStatus, t);
 
   const description = isError
-    ? `The API at localhost:4000 did not respond. ${error.message}.`
+    ? t("health.description.error", { message: error.message })
     : visualStatus === "ok"
-      ? "All systems are responding normally. The Express service is online and accepting requests on port 4000."
-      : "Waiting for the first heartbeat from the Express service.";
+      ? t("health.description.ok")
+      : t("health.description.connecting");
 
   return (
-    <main className="relative flex flex-1 flex-col px-6 pb-10 md:px-12 md:pb-14 lg:px-20 lg:pb-16 2xl:px-28 2xl:pb-20">
-      <section className="mt-20 flex-1 md:mt-28 lg:mt-32">
+    <main className="relative flex flex-1 flex-col px-5 pb-10 md:px-8 md:pb-14 lg:px-12 lg:pb-16">
+      <section className="mt-10 flex-1 md:mt-14 lg:mt-16">
         <p className="animate-in font-mono text-[10px] tracking-[0.26em] text-muted-foreground uppercase duration-700 fill-mode-both fade-in slide-in-from-bottom-2">
-          System status
+          {t("health.systemStatus")}
         </p>
 
         <div className="mt-5 flex items-start gap-4 md:gap-6">
@@ -42,21 +46,20 @@ export function HealthPage() {
           <h1
             className={cn(
               "animate-in fill-mode-both fade-in slide-in-from-bottom-3",
-              "font-display leading-[0.86] font-semibold",
-              "text-[clamp(3.75rem,9.5vw,16rem)]",
+              "font-display leading-[0.86] font-normal",
+              "text-[clamp(3.75rem,9.5vw,14rem)]",
               "delay-100 duration-700",
             )}
             style={{ letterSpacing: "-0.038em" }}
           >
             {headline}
-            <span className="text-primary">.</span>
           </h1>
         </div>
 
         <p
           className={cn(
             "animate-in fill-mode-both fade-in slide-in-from-bottom-3",
-            "mt-8 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg",
+            "mt-7 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg",
             "delay-200 duration-700",
           )}
         >
@@ -64,18 +67,21 @@ export function HealthPage() {
         </p>
       </section>
 
-      <section className="mt-20 md:mt-24 lg:mt-28">
+      <section className="mt-12 md:mt-16">
         {data ? (
           <div
             className={cn(
               "animate-in fill-mode-both fade-in",
-              "grid grid-cols-1 gap-px overflow-hidden border border-border bg-border md:grid-cols-3",
+              "grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-border/60 bg-border/40 md:grid-cols-3",
               "delay-300 duration-700",
             )}
           >
-            <Metric label="Uptime" value={formatUptime(data.uptimeSeconds)} />
-            <Metric label="Last heartbeat" value={formatTimestamp(data.timestamp)} />
-            <Metric label="Environment" value={env.MODE.toUpperCase()} />
+            <Metric label={t("health.metrics.uptime")} value={formatUptime(data.uptimeSeconds)} />
+            <Metric
+              label={t("health.metrics.lastHeartbeat")}
+              value={formatTimestamp(data.timestamp)}
+            />
+            <Metric label={t("health.metrics.environment")} value={env.MODE.toUpperCase()} />
           </div>
         ) : isLoading ? (
           <div className="grid grid-cols-1 gap-px md:grid-cols-3">
@@ -86,38 +92,38 @@ export function HealthPage() {
         ) : null}
       </section>
 
-      <footer className="mt-12 flex flex-col items-start justify-between gap-5 border-t border-border pt-8 md:mt-16 md:flex-row md:items-center">
+      <footer className="mt-10 flex flex-col items-start justify-between gap-5 border-t border-border/60 pt-8 md:mt-14 md:flex-row md:items-center">
         <div className="flex flex-wrap gap-3">
           <Button
-            className="h-11 px-5 font-mono text-[10px] tracking-[0.22em] uppercase"
+            className="h-11 px-5 font-mono text-[10px] tracking-[0.22em] uppercase transition-all duration-150 hover:ring-4 hover:ring-primary/15"
             disabled={isFetching}
             onClick={() => void refetch()}
             variant="outline"
           >
             <RotateCw className={cn("mr-2 size-3.5", isFetching && "animate-spin")} />
-            {isFetching ? "Pinging" : "Ping again"}
+            {isFetching ? t("health.actions.pinging") : t("health.actions.pingAgain")}
           </Button>
           <Button
-            className="h-11 px-5 font-mono text-[10px] tracking-[0.22em] uppercase"
+            className="h-11 px-5 font-mono text-[10px] tracking-[0.22em] uppercase transition-all duration-150 hover:ring-4 hover:ring-primary/15"
             onClick={() =>
               modalObserver.addModal(ModalId.Confirm, {
-                confirmLabel: "Delete",
-                description: "This action cannot be undone.",
+                confirmLabel: t("health.modal.confirmLabel"),
+                description: t("health.modal.description"),
                 onConfirm: () => {
                   logger.info("confirmed");
                 },
-                title: "Delete this item?",
+                title: t("health.modal.title"),
                 tone: "destructive",
               })
             }
             variant="outline"
           >
-            Open confirm modal
+            {t("health.actions.openConfirmModal")}
           </Button>
         </div>
 
         <p className="font-mono text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
-          Express + MongoDB · phase 1
+          {t("health.footer")}
         </p>
       </footer>
     </main>
@@ -129,18 +135,19 @@ function deriveHeadline(
   isLoading: boolean,
   hasData: boolean,
   visualStatus: StatusDotState,
+  t: TFunction,
 ): string {
-  if (isError) return "Unreachable";
-  if (isLoading && !hasData) return "Connecting";
-  if (visualStatus === "ok") return "Operational";
-  if (visualStatus === "degraded") return "Degraded";
-  if (visualStatus === "down") return "Down";
-  return "Connecting";
+  if (isError) return t("health.headline.unreachable");
+  if (isLoading && !hasData) return t("health.headline.connecting");
+  if (visualStatus === "ok") return t("health.headline.operational");
+  if (visualStatus === "degraded") return t("health.headline.degraded");
+  if (visualStatus === "down") return t("health.headline.down");
+  return t("health.headline.connecting");
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="group bg-background px-7 py-6 transition-colors duration-150 hover:bg-accent/60">
+    <div className="group bg-card/70 px-7 py-6 backdrop-blur-sm transition-colors duration-150 hover:bg-accent/50">
       <p className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground uppercase">
         {label}
       </p>

@@ -20,7 +20,8 @@ All concrete claims use `path:line` references so the reader can click straight 
 
 ## Active
 
-- [blogs-posts-videos](./blogs-posts-videos.md) — CRUD для блогов, постов и видео с MongoDB, 55 интеграционных тестов (active)
+- [blogs-posts](./blogs-posts.md) — full-stack blogs + posts with modal-only UX, TanStack Query, BE CRUD + 33 integration tests (active)
+- [blogs-posts-videos](./blogs-posts-videos.md) — BE-only reference for all three resources including videos; 55 integration tests; superseded by blogs-posts.md for FE sections (active)
 
 ## Planned
 

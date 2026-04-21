@@ -1,0 +1,162 @@
+{
+  "common": {
+    "cancel": "Скасувати",
+    "save": "Зберегти",
+    "create": "Створити",
+    "delete": "Видалити",
+    "edit": "Редагувати",
+    "back": "Назад",
+    "loading": "Завантаження...",
+    "retry": "Повторити",
+    "somethingWentWrong": "Щось пішло не так",
+    "fixFormErrors": "Виправте помилки у формі"
+  },
+  "nav": {
+    "health": "Health",
+    "blogs": "Блоги",
+    "posts": "Пости"
+  },
+  "appShell": {
+    "label": "Blogger",
+    "collapseLabel": "Згорнути меню",
+    "openLabel": "Відкрити меню"
+  },
+  "breadcrumbs": {
+    "blogs": "Блоги",
+    "posts": "Пости",
+    "health": "Health"
+  },
+  "actions": {
+    "open": "Відкрити",
+    "edit": "Редагувати",
+    "delete": "Видалити"
+  },
+  "health": {
+    "systemStatus": "System status",
+    "headline": {
+      "unreachable": "Unreachable",
+      "connecting": "Connecting",
+      "operational": "Operational",
+      "degraded": "Degraded",
+      "down": "Down"
+    },
+    "description": {
+      "error": "API на localhost:4000 не відповідає. {{message}}.",
+      "ok": "Всі системи працюють нормально. Express-сервіс онлайн та приймає запити на порту 4000.",
+      "connecting": "Очікування першого heartbeat від Express-сервісу."
+    },
+    "metrics": {
+      "uptime": "Uptime",
+      "lastHeartbeat": "Last heartbeat",
+      "environment": "Environment"
+    },
+    "actions": {
+      "pinging": "Pinging",
+      "pingAgain": "Ping again",
+      "openConfirmModal": "Open confirm modal"
+    },
+    "footer": "Express + MongoDB · phase 1",
+    "modal": {
+      "title": "Delete this item?",
+      "description": "This action cannot be undone.",
+      "confirmLabel": "Delete"
+    }
+  },
+  "notFound": {
+    "eyebrow": "Error · 404",
+    "headline": "Not found",
+    "description": "Сторінка, яку ви намагалися відкрити, не існує на цьому сервері. Можливо, вона була переміщена або ви перейшли за застарілим посиланням.",
+    "backHome": "Back home",
+    "footer": "Express + MongoDB · phase 1"
+  },
+  "blogs": {
+    "list": {
+      "title": "Blogs",
+      "createButton": "Створити блог",
+      "empty": "Поки немає блогів",
+      "error": "Не вдалося завантажити блоги"
+    },
+    "detail": {
+      "eyebrow": "Blog",
+      "notFound": "Блог не знайдено",
+      "error": "Помилка завантаження: {{message}}",
+      "edit": "Редагувати",
+      "delete": "Видалити",
+      "deleteModal": {
+        "title": "Видалити блог?",
+        "description": "Цю дію неможливо скасувати. Блог буде видалено назавжди.",
+        "confirmLabel": "Видалити"
+      }
+    },
+    "form": {
+      "createTitle": "Створити блог",
+      "editTitle": "Редагувати блог",
+      "nameLabel": "Назва",
+      "namePlaceholder": "Мій блог",
+      "descriptionLabel": "Опис",
+      "descriptionPlaceholder": "Про що цей блог",
+      "websiteUrlLabel": "Сайт",
+      "websiteUrlPlaceholder": "https://example.com",
+      "nameCounter": "{{current}}/15",
+      "descriptionCounter": "{{current}}/500",
+      "errors": {
+        "websiteUrlInvalid": "Вставте повне посилання з https://, наприклад https://example.com",
+        "websiteUrlTooLong": "Не довше 100 символів"
+      }
+    },
+    "toasts": {
+      "created": "Блог створено",
+      "updated": "Блог оновлено",
+      "deleted": "Блог видалено",
+      "createError": "Не вдалося створити",
+      "updateError": "Не вдалося оновити",
+      "deleteError": "Не вдалося видалити"
+    }
+  },
+  "posts": {
+    "list": {
+      "title": "Posts",
+      "createButton": "Створити пост",
+      "empty": "Поки немає постів",
+      "error": "Не вдалося завантажити пости"
+    },
+    "detail": {
+      "notFound": "Пост не знайдено",
+      "error": "Помилка завантаження: {{message}}",
+      "edit": "Редагувати",
+      "delete": "Видалити",
+      "deleteModal": {
+        "title": "Видалити пост?",
+        "description": "Цю дію неможливо скасувати. Пост буде видалено назавжди.",
+        "confirmLabel": "Видалити"
+      }
+    },
+    "form": {
+      "createTitle": "Створити пост",
+      "editTitle": "Редагувати пост",
+      "titleLabel": "Заголовок",
+      "titlePlaceholder": "Назва посту",
+      "titleCounter": "{{current}}/30",
+      "shortDescriptionLabel": "Короткий опис",
+      "shortDescriptionPlaceholder": "Короткий опис посту",
+      "shortDescriptionCounter": "{{current}}/100",
+      "contentLabel": "Контент",
+      "contentPlaceholder": "Зміст посту",
+      "contentCounter": "{{current}}/1000",
+      "blogIdLabel": "Блог",
+      "blogIdPlaceholderEmpty": "Спочатку створіть блог",
+      "blogIdPlaceholder": "Оберіть блог"
+    },
+    "toasts": {
+      "created": "Пост створено",
+      "updated": "Пост оновлено",
+      "deleted": "Пост видалено",
+      "createError": "Не вдалося створити",
+      "updateError": "Не вдалося оновити",
+      "deleteError": "Не вдалося видалити"
+    }
+  },
+  "localePicker": {
+    "ariaLabel": "Мова інтерфейсу"
+  }
+}

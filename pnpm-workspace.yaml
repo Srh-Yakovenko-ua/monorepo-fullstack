@@ -7,8 +7,11 @@ catalog:
   "@commitlint/cli": ^20.5.0
   "@commitlint/config-conventional": ^20.5.0
   "@eslint/js": ^10.0.1
-  "@fontsource-variable/bricolage-grotesque": ^5.2.10
+  "@fontsource-variable/fraunces": ^5.2.9
+  "@fontsource-variable/geist": ^5.2.8
   "@fontsource-variable/geist-mono": ^5.2.7
+  i18next: ^26.0.6
+  react-i18next: ^17.0.4
   "@hookform/devtools": ^4.4.0
   "@hookform/resolvers": ^5.2.2
   "@storybook/react": ^10.3.5

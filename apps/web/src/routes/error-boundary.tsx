@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowLeft } from "lucide-react";
+import { AlertCircle, ArrowLeft, RefreshCw } from "lucide-react";
 import { isRouteErrorResponse, Link, useRouteError } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ export function AppErrorBoundary() {
       : error instanceof Error
         ? error.message
         : "Something went wrong while rendering the page.";
+
+  const stack = error instanceof Error ? error.stack : undefined;
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
@@ -50,31 +52,50 @@ export function AppErrorBoundary() {
             Error · {status}
           </p>
 
-          <h1 className="mt-6 font-display text-[clamp(3.75rem,9vw,15rem)] leading-[0.86] font-semibold tracking-[-0.035em]">
+          <h1 className="mt-6 font-display text-[clamp(2rem,4vw,3.5rem)] leading-[0.86] font-semibold tracking-[-0.035em]">
             {statusText}
-            <span className="text-error">.</span>
           </h1>
 
-          <p className="mt-10 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg lg:text-xl">
+          <div className="mt-3 h-[2px] w-12 rounded-full bg-gradient-to-r from-error to-error/40" />
+
+          <p className="mt-8 max-w-[720px] text-base leading-relaxed text-foreground md:text-lg">
             {message}
           </p>
+
+          {__DEV__ && stack && (
+            <details className="mt-8 max-w-[720px]">
+              <summary className="cursor-pointer font-mono text-xs tracking-wide text-muted-foreground select-none">
+                Stack trace
+              </summary>
+              <pre className="mt-3 max-h-96 overflow-auto rounded-md bg-muted p-4 font-mono text-xs text-muted-foreground">
+                {stack}
+              </pre>
+            </details>
+          )}
         </section>
 
         <footer className="mt-16 flex flex-col items-start justify-between gap-6 border-t border-border pt-8 md:flex-row md:items-center">
-          <Button
-            asChild
-            className="h-12 px-6 font-mono text-[11px] tracking-[0.22em] uppercase"
-            variant="outline"
-          >
-            <Link to="/">
-              <ArrowLeft className="mr-2 size-4" />
-              Back home
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              asChild
+              className="h-12 px-6 font-mono text-[11px] tracking-[0.22em] uppercase"
+              variant="outline"
+            >
+              <Link to="/">
+                <ArrowLeft className="mr-2 size-4" />
+                Back home
+              </Link>
+            </Button>
 
-          <p className="font-mono text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
-            Express + MongoDB · phase 1
-          </p>
+            <Button
+              className="h-12 px-6 font-mono text-[11px] tracking-[0.22em] uppercase"
+              onClick={() => window.location.reload()}
+              variant="default"
+            >
+              <RefreshCw className="mr-2 size-4" />
+              Reload page
+            </Button>
+          </div>
         </footer>
       </main>
     </div>
