@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -32,8 +33,9 @@ export function PostViewDialog({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="sm:max-w-xl">
-        <DialogHeader>
+        <DialogHeader className="sr-only">
           <DialogTitle>{post.title}</DialogTitle>
+          <DialogDescription>{post.shortDescription || post.blogName || ""}</DialogDescription>
         </DialogHeader>
 
         <div className="flex max-h-[70vh] flex-col gap-5 overflow-y-auto pr-1">
@@ -48,21 +50,28 @@ export function PostViewDialog({
             />
             <div className="relative flex items-start gap-4">
               <div className="mt-0.5 flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/8">
-                <FileText className="size-5 text-primary/70" />
+                <FileText aria-hidden className="size-5 text-primary/70" />
               </div>
               <div className="flex flex-col gap-1">
                 {post.blogName && (
-                  <p className="font-mono text-[10px] tracking-[0.26em] text-muted-foreground uppercase">
+                  <p
+                    aria-hidden
+                    className="font-mono text-[10px] tracking-[0.26em] text-muted-foreground uppercase"
+                  >
                     {post.blogName}
                   </p>
                 )}
-                <h2
+                <p
+                  aria-hidden
                   className="font-display text-2xl leading-tight font-normal"
                   style={{ letterSpacing: "-0.028em" }}
                 >
                   {post.title}
-                </h2>
-                <div className="mt-1 h-0.5 w-8 rounded-full bg-gradient-to-r from-primary/60 to-primary/0" />
+                </p>
+                <div
+                  aria-hidden
+                  className="mt-1 h-0.5 w-8 rounded-full bg-gradient-to-r from-primary/60 to-primary/0"
+                />
               </div>
             </div>
           </div>

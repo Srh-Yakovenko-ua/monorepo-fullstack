@@ -82,7 +82,7 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {mode === "create" ? t("blogs.form.createTitle") : t("blogs.form.editTitle")}
@@ -101,9 +101,10 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
               id="blog-name"
               placeholder={t("blogs.form.namePlaceholder")}
               {...form.register("name")}
+              aria-describedby={form.formState.errors.name ? "blog-name-error" : undefined}
               aria-invalid={!!form.formState.errors.name}
             />
-            <FieldError error={form.formState.errors.name} />
+            <FieldError error={form.formState.errors.name} id="blog-name-error" />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -118,9 +119,12 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
               placeholder={t("blogs.form.descriptionPlaceholder")}
               rows={3}
               {...form.register("description")}
+              aria-describedby={
+                form.formState.errors.description ? "blog-description-error" : undefined
+              }
               aria-invalid={!!form.formState.errors.description}
             />
-            <FieldError error={form.formState.errors.description} />
+            <FieldError error={form.formState.errors.description} id="blog-description-error" />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -130,9 +134,12 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
               placeholder={t("blogs.form.websiteUrlPlaceholder")}
               type="url"
               {...form.register("websiteUrl")}
+              aria-describedby={
+                form.formState.errors.websiteUrl ? "blog-websiteUrl-error" : undefined
+              }
               aria-invalid={!!form.formState.errors.websiteUrl}
             />
-            <FieldError error={form.formState.errors.websiteUrl} />
+            <FieldError error={form.formState.errors.websiteUrl} id="blog-websiteUrl-error" />
           </div>
 
           <DialogFooter>

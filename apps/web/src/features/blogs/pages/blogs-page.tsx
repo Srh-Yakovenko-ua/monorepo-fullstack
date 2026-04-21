@@ -42,7 +42,7 @@ export function BlogsPage() {
     setEditBlog(blog);
   }
 
-  function openViewDelete(blog: BlogViewModel) {
+  function openDeleteConfirm(blog: BlogViewModel) {
     setViewBlog(null);
     modalObserver.addModal(ModalId.Confirm, {
       confirmLabel: t("blogs.detail.deleteModal.confirmLabel"),
@@ -128,6 +128,7 @@ export function BlogsPage() {
                 blog={blog}
                 index={i}
                 key={blog.id}
+                onDelete={openDeleteConfirm}
                 onEdit={setEditBlog}
                 onView={setViewBlog}
               />
@@ -152,7 +153,7 @@ export function BlogsPage() {
       {viewBlog && (
         <BlogViewDialog
           blog={viewBlog}
-          onDelete={() => openViewDelete(viewBlog)}
+          onDelete={() => openDeleteConfirm(viewBlog)}
           onEdit={() => openEdit(viewBlog)}
           onOpenChange={(open) => {
             if (!open) setViewBlog(null);
@@ -167,16 +168,17 @@ export function BlogsPage() {
 function BlogCard({
   blog,
   index,
+  onDelete,
   onEdit,
   onView,
 }: {
   blog: BlogViewModel;
   index: number;
+  onDelete: (blog: BlogViewModel) => void;
   onEdit: (blog: BlogViewModel) => void;
   onView: (blog: BlogViewModel) => void;
 }) {
   const { t } = useTranslation();
-  const deleteBlog = useDeleteBlog();
 
   const hostname = blog.websiteUrl
     ? (() => {
@@ -187,19 +189,6 @@ function BlogCard({
         }
       })()
     : null;
-
-  function handleDelete() {
-    modalObserver.addModal(ModalId.Confirm, {
-      confirmLabel: t("blogs.detail.deleteModal.confirmLabel"),
-      description: t("blogs.detail.deleteModal.description"),
-      onConfirm: async () => {
-        await deleteBlog.mutateAsync(blog.id);
-        toast.success(t("blogs.toasts.deleted"));
-      },
-      title: t("blogs.detail.deleteModal.title"),
-      tone: "destructive",
-    });
-  }
 
   return (
     <article
@@ -226,7 +215,7 @@ function BlogCard({
       </button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <CardActionButton aria-label="Blog actions">
+          <CardActionButton aria-label={t("actions.menu")}>
             <MoreHorizontal className="size-4" />
           </CardActionButton>
         </DropdownMenuTrigger>
@@ -240,7 +229,10 @@ function BlogCard({
             {t("actions.edit")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="cursor-pointer text-destructive" onSelect={handleDelete}>
+          <DropdownMenuItem
+            className="cursor-pointer text-destructive"
+            onSelect={() => onDelete(blog)}
+          >
             {t("actions.delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -250,7 +242,7 @@ function BlogCard({
         <div className="flex flex-1 flex-col gap-1.5">
           <h2 className="line-clamp-1 text-base leading-snug font-semibold">
             <button
-              className="cursor-pointer text-foreground transition-colors duration-150 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="cursor-pointer rounded-sm text-foreground transition-colors duration-150 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
               onClick={() => onView(blog)}
               type="button"
             >

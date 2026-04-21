@@ -29,7 +29,8 @@
   "actions": {
     "open": "Відкрити",
     "edit": "Редагувати",
-    "delete": "Видалити"
+    "delete": "Видалити",
+    "menu": "Більше дій"
   },
   "health": {
     "systemStatus": "System status",
@@ -78,8 +79,6 @@
     },
     "detail": {
       "eyebrow": "Blog",
-      "notFound": "Блог не знайдено",
-      "error": "Помилка завантаження: {{message}}",
       "edit": "Редагувати",
       "delete": "Видалити",
       "deleteModal": {
@@ -121,8 +120,6 @@
       "error": "Не вдалося завантажити пости"
     },
     "detail": {
-      "notFound": "Пост не знайдено",
-      "error": "Помилка завантаження: {{message}}",
       "edit": "Редагувати",
       "delete": "Видалити",
       "deleteModal": {

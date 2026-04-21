@@ -29,7 +29,8 @@
   "actions": {
     "open": "Open",
     "edit": "Edit",
-    "delete": "Delete"
+    "delete": "Delete",
+    "menu": "More actions"
   },
   "health": {
     "systemStatus": "System status",
@@ -78,8 +79,6 @@
     },
     "detail": {
       "eyebrow": "Blog",
-      "notFound": "Blog not found",
-      "error": "Failed to load: {{message}}",
       "edit": "Edit",
       "delete": "Delete",
       "deleteModal": {
@@ -121,8 +120,6 @@
       "error": "Failed to load posts"
     },
     "detail": {
-      "notFound": "Post not found",
-      "error": "Failed to load: {{message}}",
       "edit": "Edit",
       "delete": "Delete",
       "deleteModal": {

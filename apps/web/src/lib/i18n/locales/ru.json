@@ -29,7 +29,8 @@
   "actions": {
     "open": "Открыть",
     "edit": "Редактировать",
-    "delete": "Удалить"
+    "delete": "Удалить",
+    "menu": "Ещё действия"
   },
   "health": {
     "systemStatus": "System status",
@@ -78,8 +79,6 @@
     },
     "detail": {
       "eyebrow": "Blog",
-      "notFound": "Блог не найден",
-      "error": "Ошибка загрузки: {{message}}",
       "edit": "Редактировать",
       "delete": "Удалить",
       "deleteModal": {
@@ -121,8 +120,6 @@
       "error": "Не удалось загрузить посты"
     },
     "detail": {
-      "notFound": "Пост не найден",
-      "error": "Ошибка загрузки: {{message}}",
       "edit": "Редактировать",
       "delete": "Удалить",
       "deleteModal": {

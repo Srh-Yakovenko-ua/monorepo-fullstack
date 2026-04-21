@@ -28,7 +28,6 @@ export function useUpdateBlog(id: string) {
     mutationFn: (input: Parameters<typeof blogsApi.update>[1]) => blogsApi.update(id, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: blogsKeys.all });
-      queryClient.invalidateQueries({ queryKey: blogsKeys.detail(id) });
     },
   });
 }

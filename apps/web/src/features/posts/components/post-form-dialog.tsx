@@ -108,7 +108,7 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {mode === "create" ? t("posts.form.createTitle") : t("posts.form.editTitle")}
@@ -127,9 +127,10 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
               id="post-title"
               placeholder={t("posts.form.titlePlaceholder")}
               {...form.register("title")}
+              aria-describedby={form.formState.errors.title ? "post-title-error" : undefined}
               aria-invalid={!!form.formState.errors.title}
             />
-            <FieldError error={form.formState.errors.title} />
+            <FieldError error={form.formState.errors.title} id="post-title-error" />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -146,9 +147,15 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
               placeholder={t("posts.form.shortDescriptionPlaceholder")}
               rows={2}
               {...form.register("shortDescription")}
+              aria-describedby={
+                form.formState.errors.shortDescription ? "post-shortDescription-error" : undefined
+              }
               aria-invalid={!!form.formState.errors.shortDescription}
             />
-            <FieldError error={form.formState.errors.shortDescription} />
+            <FieldError
+              error={form.formState.errors.shortDescription}
+              id="post-shortDescription-error"
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -163,9 +170,10 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
               placeholder={t("posts.form.contentPlaceholder")}
               rows={4}
               {...form.register("content")}
+              aria-describedby={form.formState.errors.content ? "post-content-error" : undefined}
               aria-invalid={!!form.formState.errors.content}
             />
-            <FieldError error={form.formState.errors.content} />
+            <FieldError error={form.formState.errors.content} id="post-content-error" />
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -176,6 +184,7 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
               onValueChange={(value) => form.setValue("blogId", value, { shouldValidate: true })}
             >
               <SelectTrigger
+                aria-describedby={form.formState.errors.blogId ? "post-blogId-error" : undefined}
                 aria-invalid={!!form.formState.errors.blogId}
                 className="w-full"
                 id="post-blogId"
@@ -196,7 +205,7 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
                 ))}
               </SelectContent>
             </Select>
-            <FieldError error={form.formState.errors.blogId} />
+            <FieldError error={form.formState.errors.blogId} id="post-blogId-error" />
           </div>
 
           <DialogFooter>

@@ -28,7 +28,6 @@ export function useUpdatePost(id: string) {
     mutationFn: (input: Parameters<typeof postsApi.update>[1]) => postsApi.update(id, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: postsKeys.all });
-      queryClient.invalidateQueries({ queryKey: postsKeys.detail(id) });
     },
   });
 }

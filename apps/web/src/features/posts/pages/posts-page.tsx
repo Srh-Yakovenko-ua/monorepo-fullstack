@@ -42,7 +42,7 @@ export function PostsPage() {
     setEditPost(post);
   }
 
-  function openViewDelete(post: PostViewModel) {
+  function openDeleteConfirm(post: PostViewModel) {
     setViewPost(null);
     modalObserver.addModal(ModalId.Confirm, {
       confirmLabel: t("posts.detail.deleteModal.confirmLabel"),
@@ -135,6 +135,7 @@ export function PostsPage() {
               <PostCard
                 index={i}
                 key={post.id}
+                onDelete={openDeleteConfirm}
                 onEdit={setEditPost}
                 onView={setViewPost}
                 post={post}
@@ -159,7 +160,7 @@ export function PostsPage() {
 
       {viewPost && (
         <PostViewDialog
-          onDelete={() => openViewDelete(viewPost)}
+          onDelete={() => openDeleteConfirm(viewPost)}
           onEdit={() => openEdit(viewPost)}
           onOpenChange={(open) => {
             if (!open) setViewPost(null);
@@ -174,30 +175,18 @@ export function PostsPage() {
 
 function PostCard({
   index,
+  onDelete,
   onEdit,
   onView,
   post,
 }: {
   index: number;
+  onDelete: (post: PostViewModel) => void;
   onEdit: (post: PostViewModel) => void;
   onView: (post: PostViewModel) => void;
   post: PostViewModel;
 }) {
   const { t } = useTranslation();
-  const deletePost = useDeletePost();
-
-  function handleDelete() {
-    modalObserver.addModal(ModalId.Confirm, {
-      confirmLabel: t("posts.detail.deleteModal.confirmLabel"),
-      description: t("posts.detail.deleteModal.description"),
-      onConfirm: async () => {
-        await deletePost.mutateAsync(post.id);
-        toast.success(t("posts.toasts.deleted"));
-      },
-      title: t("posts.detail.deleteModal.title"),
-      tone: "destructive",
-    });
-  }
 
   return (
     <article
@@ -224,7 +213,7 @@ function PostCard({
       </button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <CardActionButton aria-label="Post actions">
+          <CardActionButton aria-label={t("actions.menu")}>
             <MoreHorizontal className="size-4" />
           </CardActionButton>
         </DropdownMenuTrigger>
@@ -238,7 +227,10 @@ function PostCard({
             {t("actions.edit")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="cursor-pointer text-destructive" onSelect={handleDelete}>
+          <DropdownMenuItem
+            className="cursor-pointer text-destructive"
+            onSelect={() => onDelete(post)}
+          >
             {t("actions.delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -248,7 +240,7 @@ function PostCard({
         <div className="flex flex-1 flex-col gap-1.5">
           <h2 className="line-clamp-1 text-base leading-snug font-semibold">
             <button
-              className="cursor-pointer text-foreground transition-colors duration-150 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="cursor-pointer rounded-sm text-foreground transition-colors duration-150 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
               onClick={() => onView(post)}
               type="button"
             >
