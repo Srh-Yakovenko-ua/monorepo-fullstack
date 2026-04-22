@@ -41,7 +41,19 @@ export function createApp(): express.Express {
   }
 
   if (env.enableSwagger) {
-    app.use("/api/docs", docsRouter);
+    app.use(
+      "/api/docs",
+      helmet.contentSecurityPolicy({
+        directives: {
+          connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
+          defaultSrc: ["'self'"],
+          imgSrc: ["'self'", "data:", "https://cdn.jsdelivr.net"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        },
+      }),
+      docsRouter,
+    );
   }
 
   app.use((req, _res, next) => {
