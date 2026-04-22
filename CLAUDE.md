@@ -95,6 +95,7 @@ The whole point of phase 1 is to set up clean layer separation **now** so the ev
 6. **Env vars** — read once in `config/env.ts` via Zod, exported as a typed const. **Never `process.env.X` anywhere else in the code.**
 7. **Errors** thrown in services must extend `HttpError`. The central `errorHandler` middleware maps them to JSON responses with `requestId`. ZodErrors auto-map to 422.
 8. **Logging** — use `createLogger("scope")` from `lib/logger.ts`. **Never `console.log` in production code.** Pino is structured (JSON in prod, pretty in dev). The request-id is propagated automatically by `middleware/request-logger.ts`.
+9. **Dependencies — prefer pure-JS over native addons.** Native modules (bcrypt, argon2, sharp, canvas, anything compiling via `node-gyp`) break on CI images that don't pull the prebuilt binary, and break harder on serverless cold-start (Vercel). Pick the pure-JS equivalent when one exists: `bcryptjs` not `bcrypt`, `jose` not `jsonwebtoken`+native, etc. Only reach for a native addon when there's a measured performance need this project actually has.
 
 ### Adding a new endpoint (the canonical workflow)
 

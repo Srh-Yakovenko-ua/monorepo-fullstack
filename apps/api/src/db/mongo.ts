@@ -7,7 +7,7 @@ const log = createLogger("mongo");
 
 export async function connectMongo(): Promise<void> {
   mongoose.set("strictQuery", true);
-  await mongoose.connect(env.mongoUri);
+  await mongoose.connect(env.mongoUri, { serverSelectionTimeoutMS: 3000 });
   log.info({ uri: redactMongoUri(env.mongoUri) }, "connected");
 }
 
