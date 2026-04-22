@@ -23,7 +23,6 @@
     "mongoose": "catalog:",
     "pino": "catalog:",
     "pino-http": "catalog:",
-    "swagger-ui-express": "catalog:",
     "zod": "catalog:",
     "zod-openapi": "catalog:"
   },
@@ -33,7 +32,6 @@
     "@types/express": "catalog:",
     "@types/node": "catalog:",
     "@types/supertest": "catalog:",
-    "@types/swagger-ui-express": "catalog:",
     "mongodb-memory-server": "catalog:",
     "pino-pretty": "catalog:",
     "supertest": "catalog:",
