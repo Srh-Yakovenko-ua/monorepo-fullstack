@@ -6,6 +6,10 @@ const envSchema = z
     BASIC_AUTH_PASSWORD: z.string().min(1).default("qwerty"),
     BASIC_AUTH_USERNAME: z.string().min(1).default("admin"),
     CORS_ORIGIN: z.string().url().default("http://localhost:5173"),
+    ENABLE_SWAGGER: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((value) => value === "true"),
     LOG_LEVEL: z.enum(["debug", "error", "info", "warn"]).default("info"),
     MONGO_URI: z.string().min(1).default("mongodb://localhost:27017/monorepo_fullstack"),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
@@ -15,6 +19,7 @@ const envSchema = z
     basicAuthPassword: raw.BASIC_AUTH_PASSWORD,
     basicAuthUsername: raw.BASIC_AUTH_USERNAME,
     corsOrigin: raw.CORS_ORIGIN,
+    enableSwagger: raw.ENABLE_SWAGGER,
     logLevel: raw.LOG_LEVEL,
     mongoUri: raw.MONGO_URI,
     nodeEnv: raw.NODE_ENV,

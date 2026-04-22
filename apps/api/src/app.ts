@@ -38,6 +38,9 @@ export function createApp(): express.Express {
 
   if (env.nodeEnv !== "production") {
     app.use("/api/testing", testingRouter);
+  }
+
+  if (env.enableSwagger) {
     app.use("/api/docs", docsRouter);
   }
 
