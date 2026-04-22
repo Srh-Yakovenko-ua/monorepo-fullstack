@@ -31,6 +31,13 @@ export class NotFoundError extends HttpError {
   }
 }
 
+export class UnauthorizedError extends HttpError {
+  constructor(message = "Unauthorized", code?: string) {
+    super(HTTP_STATUS.UNAUTHORIZED, message, code);
+    this.name = "UnauthorizedError";
+  }
+}
+
 export class ValidationError extends HttpError {
   constructor(message: string, code?: string) {
     super(HTTP_STATUS.UNPROCESSABLE_ENTITY, message, code);

@@ -18,6 +18,11 @@ const registeredPaths: ZodOpenApiPathsObject = {};
 
 export function buildOpenApiDocument(): ReturnType<typeof createDocument> {
   return createDocument({
+    components: {
+      securitySchemes: {
+        basicAuth: { scheme: "basic", type: "http" },
+      },
+    },
     info: {
       description: "REST API for the monorepo-fullstack project",
       title: "monorepo-fullstack API",

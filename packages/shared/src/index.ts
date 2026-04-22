@@ -122,6 +122,52 @@ export type PostViewModel = {
   title: string;
 };
 
+export const USER_SORT_FIELDS = ["createdAt", "login", "email"] as const;
+export type UserSortField = (typeof USER_SORT_FIELDS)[number];
+
+export const CreateUserInputSchema = z.object({
+  email: z
+    .string()
+    .regex(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, "Invalid email format"),
+  login: z
+    .string()
+    .trim()
+    .min(3, "Login must be at least 3 characters")
+    .max(10, "Login must be at most 10 characters")
+    .regex(/^[a-zA-Z0-9_-]*$/, "Login may only contain letters, digits, _ and -"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .max(20, "Password must be at most 20 characters"),
+});
+
+export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
+
+export const LoginInputSchema = z.object({
+  loginOrEmail: z.string().trim().min(1, "loginOrEmail is required"),
+  password: z.string().min(1, "password is required"),
+});
+
+export type LoginInput = z.infer<typeof LoginInputSchema>;
+
+export const UsersQuerySchema = z.object({
+  pageNumber: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).default(10),
+  searchEmailTerm: z.string().optional(),
+  searchLoginTerm: z.string().optional(),
+  sortBy: z.enum(USER_SORT_FIELDS).default("createdAt"),
+  sortDirection: z.enum(["asc", "desc"]).default("desc"),
+});
+
+export type UsersQuery = z.infer<typeof UsersQuerySchema>;
+
+export type UserViewModel = {
+  createdAt: string;
+  email: string;
+  id: string;
+  login: string;
+};
+
 export const BLOG_SORT_FIELDS = ["createdAt", "name"] as const;
 export const POST_SORT_FIELDS = ["createdAt", "title", "blogName"] as const;
 

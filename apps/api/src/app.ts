@@ -8,11 +8,13 @@ import { NotFoundError } from "./lib/errors.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { requestId } from "./middleware/request-id.js";
 import { requestLogger } from "./middleware/request-logger.js";
+import { authRouter } from "./routes/auth.routes.js";
 import { blogsRouter } from "./routes/blogs.routes.js";
 import { docsRouter } from "./routes/docs.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { postsRouter } from "./routes/posts.routes.js";
 import { testingRouter } from "./routes/testing.routes.js";
+import { usersRouter } from "./routes/users.routes.js";
 import { videosRouter } from "./routes/videos.routes.js";
 
 export function createApp(): express.Express {
@@ -28,8 +30,10 @@ export function createApp(): express.Express {
   app.use(express.json({ limit: "1mb" }));
 
   app.use("/api/health", healthRouter);
+  app.use("/api/auth", authRouter);
   app.use("/api/blogs", blogsRouter);
   app.use("/api/posts", postsRouter);
+  app.use("/api/users", usersRouter);
   app.use("/api/videos", videosRouter);
 
   if (env.nodeEnv !== "production") {

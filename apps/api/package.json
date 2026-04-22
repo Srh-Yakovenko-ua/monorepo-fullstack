@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@app/shared": "workspace:*",
+    "bcrypt": "catalog:",
     "compression": "catalog:",
     "cors": "catalog:",
     "date-fns": "catalog:",
@@ -27,6 +28,7 @@
     "zod-openapi": "catalog:"
   },
   "devDependencies": {
+    "@types/bcrypt": "catalog:",
     "@types/compression": "catalog:",
     "@types/cors": "catalog:",
     "@types/express": "catalog:",
