@@ -5,7 +5,9 @@ async function bootstrap() {
     import("../apps/api/dist/app.js"),
     import("../apps/api/dist/db/mongo.js"),
   ]);
-  await connectMongo();
+  connectMongo().catch((err) => {
+    console.error("[api] mongo connect failed, DB routes will fail until it recovers", err);
+  });
   return createApp();
 }
 
