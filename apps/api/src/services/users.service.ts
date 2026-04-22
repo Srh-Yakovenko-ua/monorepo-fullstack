@@ -1,7 +1,7 @@
 import type { CreateUserInput, UsersQuery, UserViewModel } from "@app/shared";
 import type { Paginator } from "@app/shared";
 
-import { hash } from "bcrypt";
+import { hash } from "bcryptjs";
 
 import type { UserDoc } from "../db/models/user.model.js";
 

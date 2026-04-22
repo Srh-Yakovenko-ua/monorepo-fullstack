@@ -1,6 +1,6 @@
 import type { LoginInput } from "@app/shared";
 
-import { compare } from "bcrypt";
+import { compare } from "bcryptjs";
 
 import * as usersRepository from "../db/repositories/users.repository.js";
 import { UnauthorizedError } from "../lib/errors.js";
