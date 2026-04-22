@@ -23,6 +23,7 @@ const swaggerHtml = `<!DOCTYPE html>
         url: "/api/docs/json",
         dom_id: "#swagger-ui",
         deepLinking: true,
+        validatorUrl: null,
         presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset.slice(0, -1)],
         layout: "StandaloneLayout",
       });

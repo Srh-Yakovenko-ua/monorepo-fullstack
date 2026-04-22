@@ -4,8 +4,6 @@ import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { createDocument, type ZodOpenApiPathsObject } from "zod-openapi";
 
-import { env } from "../config/env.js";
-
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 function readApiVersion(): string {
@@ -30,7 +28,7 @@ export function buildOpenApiDocument(): ReturnType<typeof createDocument> {
     },
     openapi: "3.1.0",
     paths: registeredPaths,
-    servers: [{ url: `http://localhost:${env.port}` }],
+    servers: [{ url: "/" }],
   });
 }
 
