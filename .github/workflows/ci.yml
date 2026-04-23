@@ -59,10 +59,16 @@ jobs:
         run: pnpm build
 
       - name: Test
+        env:
+          JWT_SECRET: ci-test-secret-must-be-at-least-thirty-two-chars
+          JWT_EXPIRES_IN: 1h
         run: pnpm test
 
       - name: Smoke test API prod build
         working-directory: apps/api
+        env:
+          JWT_SECRET: ci-test-secret-must-be-at-least-thirty-two-chars
+          JWT_EXPIRES_IN: 1h
         run: |
           NODE_ENV=production node dist/index.js &
           API_PID=$!
