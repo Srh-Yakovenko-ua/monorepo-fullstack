@@ -10,6 +10,11 @@ const envSchema = z
       .enum(["true", "false"])
       .default("true")
       .transform((value) => value === "true"),
+    JWT_EXPIRES_IN: z
+      .string()
+      .regex(/^\d+[smhdwy]$/, 'JWT_EXPIRES_IN must look like "60s", "30m", "1h", "7d"')
+      .default("1h"),
+    JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
     LOG_LEVEL: z.enum(["debug", "error", "info", "warn"]).default("info"),
     MONGO_URI: z.string().min(1).default("mongodb://localhost:27017/monorepo_fullstack"),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
@@ -20,6 +25,8 @@ const envSchema = z
     basicAuthUsername: raw.BASIC_AUTH_USERNAME,
     corsOrigin: raw.CORS_ORIGIN,
     enableSwagger: raw.ENABLE_SWAGGER,
+    jwtExpiresIn: raw.JWT_EXPIRES_IN,
+    jwtSecret: raw.JWT_SECRET,
     logLevel: raw.LOG_LEVEL,
     mongoUri: raw.MONGO_URI,
     nodeEnv: raw.NODE_ENV,

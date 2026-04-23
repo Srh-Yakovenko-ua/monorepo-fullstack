@@ -1,7 +1,13 @@
-import { PaginationQuerySchema, PostInputSchema } from "@app/shared";
+import {
+  CommentsQuerySchema,
+  CommentUpdateInputSchema,
+  PaginationQuerySchema,
+  PostInputSchema,
+} from "@app/shared";
 import { Router } from "express";
 import { z } from "zod";
 
+import { createPostComment, listPostComments } from "../controllers/comments.controller.js";
 import {
   createPost,
   deletePost,
@@ -10,6 +16,7 @@ import {
   updatePost,
 } from "../controllers/posts.controller.js";
 import { apiErrorResultSchema, registerPaths, stringIdParam } from "../lib/openapi.js";
+import { requireAuth } from "../middleware/require-auth.js";
 import { validateBody, validateQuery } from "../middleware/validate.js";
 
 const router: Router = Router();
@@ -19,6 +26,13 @@ router.post("/", validateBody(PostInputSchema), createPost);
 router.get("/:id", getPost);
 router.put("/:id", validateBody(PostInputSchema), updatePost);
 router.delete("/:id", deletePost);
+router.get("/:postId/comments", validateQuery(CommentsQuerySchema), listPostComments);
+router.post(
+  "/:postId/comments",
+  requireAuth,
+  validateBody(CommentUpdateInputSchema),
+  createPostComment,
+);
 
 const postViewModelSchema = z.object({
   blogId: z.string(),
@@ -66,6 +80,87 @@ const paginationQueryParams = [
     schema: { default: "desc", enum: ["asc", "desc"], type: "string" as const },
   },
 ];
+
+const commentViewSchema = z.object({
+  commentatorInfo: z.object({
+    userId: z.string(),
+    userLogin: z.string(),
+  }),
+  content: z.string(),
+  createdAt: z.string(),
+  id: z.string(),
+});
+
+const postIdParam = {
+  in: "path" as const,
+  name: "postId",
+  required: true,
+  schema: { type: "string" as const },
+};
+
+const commentsQueryParams = [
+  {
+    in: "query" as const,
+    name: "pageNumber",
+    schema: { default: 1, minimum: 1, type: "integer" as const },
+  },
+  {
+    in: "query" as const,
+    name: "pageSize",
+    schema: { default: 10, minimum: 1, type: "integer" as const },
+  },
+  {
+    in: "query" as const,
+    name: "sortBy",
+    schema: { default: "createdAt", enum: ["createdAt"], type: "string" as const },
+  },
+  {
+    in: "query" as const,
+    name: "sortDirection",
+    schema: { default: "desc", enum: ["asc", "desc"], type: "string" as const },
+  },
+];
+
+registerPaths({
+  "/api/posts/{postId}/comments": {
+    get: {
+      operationId: "listPostComments",
+      parameters: [postIdParam, ...commentsQueryParams],
+      responses: {
+        "200": {
+          content: { "application/json": { schema: paginatorSchema(commentViewSchema) } },
+          description: "Paginated list of comments for a post",
+        },
+        "404": { description: "Post not found" },
+      },
+      summary: "Get comments for a post",
+      tags: ["Comments"],
+    },
+    post: {
+      operationId: "createPostComment",
+      parameters: [postIdParam],
+      requestBody: {
+        content: { "application/json": { schema: CommentUpdateInputSchema } },
+        required: true,
+      },
+      responses: {
+        "201": {
+          content: { "application/json": { schema: commentViewSchema } },
+          description: "Comment created",
+        },
+        "400": {
+          content: { "application/json": { schema: apiErrorResultSchema } },
+          description: "Validation failed",
+        },
+        "401": { description: "Unauthorized" },
+        "404": { description: "Post not found" },
+      },
+      security: [{ bearerAuth: [] }],
+      summary: "Create a comment for a post",
+      tags: ["Comments"],
+    },
+  },
+});
 
 registerPaths({
   "/api/posts": {

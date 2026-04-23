@@ -183,6 +183,9 @@ catalogs:
     input-otp:
       specifier: ^1.4.2
       version: 1.4.2
+    jose:
+      specifier: ^5.9.6
+      version: 5.10.0
     knip:
       specifier: ^6.3.1
       version: 6.3.1
@@ -428,6 +431,9 @@ importers:
       helmet:
         specifier: 'catalog:'
         version: 8.1.0
+      jose:
+        specifier: 'catalog:'
+        version: 5.10.0
       mongoose:
         specifier: 'catalog:'
         version: 9.4.1
@@ -5108,6 +5114,9 @@ packages:
   jiti@2.6.1:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
+
+  jose@5.10.0:
+    resolution: {integrity: sha512-s+3Al/p9g32Iq+oqXxkW//7jk2Vig6FF1CFqzVXoTUXt2qz89YWbL+OwS17NFYEvxC35n0FKeGO2LGYSxeM2Gg==}
 
   jose@6.2.2:
     resolution: {integrity: sha512-d7kPDd34KO/YnzaDOlikGpOurfF0ByC2sEV4cANCtdqLlTfBlw2p14O/5d/zv40gJPbIQxfES3nSx1/oYNyuZQ==}
@@ -11481,6 +11490,8 @@ snapshots:
       set-function-name: 2.0.2
 
   jiti@2.6.1: {}
+
+  jose@5.10.0: {}
 
   jose@6.2.2: {}
 

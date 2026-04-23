@@ -34,6 +34,11 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     return;
   }
 
+  if (httpError.bodyless) {
+    res.status(httpError.status).end();
+    return;
+  }
+
   const body: ApiError = {
     message:
       isProduction && httpError.status >= HTTP_STATUS.INTERNAL_SERVER_ERROR

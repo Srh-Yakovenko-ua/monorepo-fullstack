@@ -19,6 +19,7 @@ export function buildOpenApiDocument(): ReturnType<typeof createDocument> {
     components: {
       securitySchemes: {
         basicAuth: { scheme: "basic", type: "http" },
+        bearerAuth: { bearerFormat: "JWT", scheme: "bearer", type: "http" },
       },
     },
     info: {

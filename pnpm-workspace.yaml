@@ -65,6 +65,7 @@ catalog:
   husky: ^9.1.7
   i18next: ^26.0.6
   input-otp: ^1.4.2
+  jose: ^5.9.6
   knip: ^6.3.1
   lint-staged: ^16.4.0
   lucide-react: ^1.8.0

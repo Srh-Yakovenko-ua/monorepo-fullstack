@@ -1,16 +1,22 @@
-import type { LoginInput } from "@app/shared";
+import type { LoginInput, LoginSuccessViewModel, MeViewModel } from "@app/shared";
 import type { Request, Response } from "express";
 
-import { LoginInputSchema } from "@app/shared";
-
+import { UnauthorizedError } from "../lib/errors.js";
 import { HTTP_STATUS } from "../lib/http-status.js";
 import * as authService from "../services/auth.service.js";
 
 export async function login(
   req: Request<unknown, unknown, LoginInput>,
-  res: Response<void>,
+  res: Response<LoginSuccessViewModel>,
 ): Promise<void> {
-  const input = LoginInputSchema.parse(req.body);
-  await authService.validateCredentials(input);
-  res.status(HTTP_STATUS.NO_CONTENT).send();
+  const result = await authService.login(req.body);
+  res.status(HTTP_STATUS.OK).json(result);
+}
+
+export async function me(req: Request, res: Response<MeViewModel>): Promise<void> {
+  const user = req.user;
+  if (!user) throw new UnauthorizedError();
+
+  const result = await authService.getCurrentUser(user.userId);
+  res.status(HTTP_STATUS.OK).json(result);
 }

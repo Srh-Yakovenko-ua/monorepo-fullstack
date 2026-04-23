@@ -1,0 +1,89 @@
+import { CommentUpdateInputSchema } from "@app/shared";
+import { Router } from "express";
+import { z } from "zod";
+
+import {
+  deleteComment,
+  getCommentById,
+  updateComment,
+} from "../controllers/comments.controller.js";
+import { apiErrorResultSchema, registerPaths } from "../lib/openapi.js";
+import { requireAuth } from "../middleware/require-auth.js";
+import { validateBody } from "../middleware/validate.js";
+
+const router: Router = Router();
+
+router.get("/:commentId", getCommentById);
+router.put("/:commentId", requireAuth, validateBody(CommentUpdateInputSchema), updateComment);
+router.delete("/:commentId", requireAuth, deleteComment);
+
+const commentIdParam = {
+  in: "path" as const,
+  name: "commentId",
+  required: true,
+  schema: { type: "string" as const },
+};
+
+const commentViewSchema = z.object({
+  commentatorInfo: z.object({
+    userId: z.string(),
+    userLogin: z.string(),
+  }),
+  content: z.string(),
+  createdAt: z.string(),
+  id: z.string(),
+});
+
+registerPaths({
+  "/api/comments/{commentId}": {
+    delete: {
+      operationId: "deleteComment",
+      parameters: [commentIdParam],
+      responses: {
+        "204": { description: "Comment deleted" },
+        "401": { description: "Unauthorized" },
+        "403": { description: "Forbidden" },
+        "404": { description: "Comment not found" },
+      },
+      security: [{ bearerAuth: [] }],
+      summary: "Delete a comment",
+      tags: ["Comments"],
+    },
+    get: {
+      operationId: "getCommentById",
+      parameters: [commentIdParam],
+      responses: {
+        "200": {
+          content: { "application/json": { schema: commentViewSchema } },
+          description: "Comment found",
+        },
+        "404": { description: "Comment not found" },
+      },
+      summary: "Get comment by id",
+      tags: ["Comments"],
+    },
+    put: {
+      operationId: "updateComment",
+      parameters: [commentIdParam],
+      requestBody: {
+        content: { "application/json": { schema: CommentUpdateInputSchema } },
+        required: true,
+      },
+      responses: {
+        "204": { description: "Comment updated" },
+        "400": {
+          content: { "application/json": { schema: apiErrorResultSchema } },
+          description: "Invalid request body",
+        },
+        "401": { description: "Unauthorized" },
+        "403": { description: "Forbidden" },
+        "404": { description: "Comment not found" },
+      },
+      security: [{ bearerAuth: [] }],
+      summary: "Update comment content",
+      tags: ["Comments"],
+    },
+  },
+});
+
+export const commentsRouter: Router = router;

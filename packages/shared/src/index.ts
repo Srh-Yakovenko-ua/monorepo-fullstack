@@ -134,7 +134,7 @@ export const CreateUserInputSchema = z.object({
     .trim()
     .min(3, "Login must be at least 3 characters")
     .max(10, "Login must be at most 10 characters")
-    .regex(/^[a-zA-Z0-9_-]*$/, "Login may only contain letters, digits, _ and -"),
+    .regex(/^[a-zA-Z0-9_-]+$/, "Login may only contain letters, digits, _ and -"),
   password: z
     .string()
     .min(6, "Password must be at least 6 characters")
@@ -149,6 +149,24 @@ export const LoginInputSchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof LoginInputSchema>;
+
+export type LoginSuccessViewModel = { accessToken: string };
+
+export type MeViewModel = { email: string; login: string; userId: string };
+
+export const CommentUpdateInputSchema = z.object({
+  content: z.string().trim().min(20).max(300),
+});
+export type CommentatorInfo = { userId: string; userLogin: string };
+
+export type CommentUpdateInput = z.infer<typeof CommentUpdateInputSchema>;
+
+export type CommentViewModel = {
+  commentatorInfo: CommentatorInfo;
+  content: string;
+  createdAt: string;
+  id: string;
+};
 
 export const UsersQuerySchema = z.object({
   pageNumber: z.coerce.number().int().min(1).default(1),
@@ -167,6 +185,17 @@ export type UserViewModel = {
   id: string;
   login: string;
 };
+
+export const COMMENT_SORT_FIELDS = ["createdAt"] as const;
+export type CommentSortField = (typeof COMMENT_SORT_FIELDS)[number];
+
+export const CommentsQuerySchema = z.object({
+  pageNumber: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).default(10),
+  sortBy: z.enum(COMMENT_SORT_FIELDS).default("createdAt"),
+  sortDirection: z.enum(["asc", "desc"]).default("desc"),
+});
+export type CommentsQuery = z.infer<typeof CommentsQuerySchema>;
 
 export const BLOG_SORT_FIELDS = ["createdAt", "name"] as const;
 export const POST_SORT_FIELDS = ["createdAt", "title", "blogName"] as const;

@@ -19,6 +19,10 @@ export async function findByEmail(email: string): Promise<null | UserDoc> {
   return UserModel.findOne({ email }).lean();
 }
 
+export async function findById(id: string): Promise<null | UserDoc> {
+  return UserModel.findById(id).lean();
+}
+
 export async function findByLogin(login: string): Promise<null | UserDoc> {
   return UserModel.findOne({ login }).lean();
 }

@@ -20,6 +20,7 @@
     "dotenv": "catalog:",
     "express": "catalog:",
     "helmet": "catalog:",
+    "jose": "catalog:",
     "mongoose": "catalog:",
     "pino": "catalog:",
     "pino-http": "catalog:",
