@@ -3,7 +3,7 @@ import type { Paginator } from "@app/shared";
 
 import { hash } from "bcryptjs";
 
-import type { UserDoc } from "../db/models/user.model.js";
+import type { EmailConfirmation, UserDoc } from "../db/models/user.model.js";
 
 import * as usersRepository from "../db/repositories/users.repository.js";
 import { BadRequestError, NotFoundError } from "../lib/errors.js";
@@ -32,6 +32,7 @@ export async function createUser(input: CreateUserInput): Promise<UserViewModel>
   const passwordHash = await hash(input.password, BCRYPT_SALT_ROUNDS);
   const doc = await usersRepository.create({
     email: input.email,
+    emailConfirmation: { code: null, expiresAt: null, isConfirmed: true },
     login: input.login,
     passwordHash,
   });
@@ -51,6 +52,33 @@ export async function getAllUsers(query: UsersQuery): Promise<Paginator<UserView
     pageNumber: query.pageNumber,
     pageSize: query.pageSize,
     totalCount,
+  });
+}
+
+export async function registerUser(
+  input: CreateUserInput & { emailConfirmation: EmailConfirmation },
+): Promise<UserDoc> {
+  const { emailConfirmation, ...userInput } = input;
+
+  const [existingLogin, existingEmail] = await Promise.all([
+    usersRepository.findByLogin(userInput.login),
+    usersRepository.findByEmail(userInput.email),
+  ]);
+
+  if (existingLogin || existingEmail) {
+    const fields = [
+      ...(existingLogin ? [{ field: "login", message: "Login is already taken" }] : []),
+      ...(existingEmail ? [{ field: "email", message: "Email is already taken" }] : []),
+    ];
+    throw new BadRequestError("User already exists", { fields });
+  }
+
+  const passwordHash = await hash(userInput.password, BCRYPT_SALT_ROUNDS);
+  return usersRepository.create({
+    email: userInput.email,
+    emailConfirmation,
+    login: userInput.login,
+    passwordHash,
   });
 }
 

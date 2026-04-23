@@ -2,18 +2,39 @@ import type { Types } from "mongoose";
 
 import { model, Schema } from "mongoose";
 
+export interface EmailConfirmation {
+  code: null | string;
+  expiresAt: Date | null;
+  isConfirmed: boolean;
+}
+
 export interface UserDoc {
   _id: Types.ObjectId;
   createdAt: Date;
   email: string;
+  emailConfirmation: EmailConfirmation;
   login: string;
   passwordHash: string;
 }
+
+const emailConfirmationSchema = new Schema<EmailConfirmation>(
+  {
+    code: { default: null, type: String },
+    expiresAt: { default: null, type: Date },
+    isConfirmed: { default: true, required: true, type: Boolean },
+  },
+  { _id: false, versionKey: false },
+);
 
 const userSchema = new Schema<UserDoc>(
   {
     createdAt: { default: Date.now, required: true, type: Date },
     email: { required: true, type: String, unique: true },
+    emailConfirmation: {
+      default: () => ({ code: null, expiresAt: null, isConfirmed: true }),
+      required: true,
+      type: emailConfirmationSchema,
+    },
     login: { required: true, type: String, unique: true },
     passwordHash: { required: true, type: String },
   },

@@ -1,4 +1,11 @@
-import type { LoginInput, LoginSuccessViewModel, MeViewModel } from "@app/shared";
+import type {
+  CreateUserInput,
+  LoginInput,
+  LoginSuccessViewModel,
+  MeViewModel,
+  RegistrationConfirmationInput,
+  RegistrationEmailResendingInput,
+} from "@app/shared";
 import type { Request, Response } from "express";
 
 import { UnauthorizedError } from "../lib/errors.js";
@@ -19,4 +26,28 @@ export async function me(req: Request, res: Response<MeViewModel>): Promise<void
 
   const result = await authService.getCurrentUser(user.userId);
   res.status(HTTP_STATUS.OK).json(result);
+}
+
+export async function registration(
+  req: Request<unknown, unknown, CreateUserInput>,
+  res: Response,
+): Promise<void> {
+  await authService.register(req.body);
+  res.status(HTTP_STATUS.NO_CONTENT).send();
+}
+
+export async function registrationConfirmation(
+  req: Request<unknown, unknown, RegistrationConfirmationInput>,
+  res: Response,
+): Promise<void> {
+  await authService.confirmRegistration(req.body);
+  res.status(HTTP_STATUS.NO_CONTENT).send();
+}
+
+export async function registrationEmailResending(
+  req: Request<unknown, unknown, RegistrationEmailResendingInput>,
+  res: Response,
+): Promise<void> {
+  await authService.resendConfirmationEmail(req.body);
+  res.status(HTTP_STATUS.NO_CONTENT).send();
 }

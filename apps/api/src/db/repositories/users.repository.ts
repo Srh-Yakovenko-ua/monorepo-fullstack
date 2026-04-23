@@ -1,10 +1,13 @@
 import type { UsersQuery } from "@app/shared";
 
-import type { UserDoc } from "../models/user.model.js";
+import type { EmailConfirmation, UserDoc } from "../models/user.model.js";
 
 import { UserModel } from "../models/user.model.js";
 
-export type UserCreateInput = Pick<UserDoc, "email" | "login" | "passwordHash">;
+export type UserCreateInput = Pick<
+  UserDoc,
+  "email" | "emailConfirmation" | "login" | "passwordHash"
+>;
 
 export async function clearAll(): Promise<void> {
   await UserModel.deleteMany({});
@@ -17,6 +20,10 @@ export async function create(input: UserCreateInput): Promise<UserDoc> {
 
 export async function findByEmail(email: string): Promise<null | UserDoc> {
   return UserModel.findOne({ email }).lean();
+}
+
+export async function findByEmailConfirmationCode(code: string): Promise<null | UserDoc> {
+  return UserModel.findOne({ "emailConfirmation.code": code }).lean();
 }
 
 export async function findById(id: string): Promise<null | UserDoc> {
@@ -52,9 +59,24 @@ export async function findPage(
   return { items, totalCount };
 }
 
+export async function markEmailConfirmed(userId: string): Promise<void> {
+  await UserModel.findByIdAndUpdate(userId, {
+    "emailConfirmation.code": null,
+    "emailConfirmation.expiresAt": null,
+    "emailConfirmation.isConfirmed": true,
+  });
+}
+
 export async function remove(id: string): Promise<boolean> {
   const result = await UserModel.findByIdAndDelete(id);
   return result !== null;
+}
+
+export async function updateEmailConfirmation(
+  userId: string,
+  emailConfirmation: EmailConfirmation,
+): Promise<void> {
+  await UserModel.findByIdAndUpdate(userId, { emailConfirmation });
 }
 
 function buildFilter(query: UsersQuery): Record<string, unknown> {

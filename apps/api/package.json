@@ -22,7 +22,9 @@
     "helmet": "catalog:",
     "jose": "catalog:",
     "mongoose": "catalog:",
+    "nodemailer": "catalog:",
     "pino": "catalog:",
+    "resend": "catalog:",
     "pino-http": "catalog:",
     "zod": "catalog:",
     "zod-openapi": "catalog:"
@@ -31,6 +33,7 @@
     "@types/compression": "catalog:",
     "@types/cors": "catalog:",
     "@types/express": "catalog:",
+    "@types/nodemailer": "catalog:",
     "@types/node": "catalog:",
     "@types/supertest": "catalog:",
     "mongodb-memory-server": "catalog:",

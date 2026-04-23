@@ -62,6 +62,9 @@ jobs:
         env:
           JWT_SECRET: ci-test-secret-must-be-at-least-thirty-two-chars
           JWT_EXPIRES_IN: 1h
+          FRONTEND_URL: http://localhost:5173
+          EMAIL_PROVIDER: mailtrap
+          EMAIL_FROM: no-reply@example.com
         run: pnpm test
 
       - name: Smoke test API prod build
@@ -69,6 +72,9 @@ jobs:
         env:
           JWT_SECRET: ci-test-secret-must-be-at-least-thirty-two-chars
           JWT_EXPIRES_IN: 1h
+          FRONTEND_URL: http://localhost:5173
+          EMAIL_PROVIDER: mailtrap
+          EMAIL_FROM: no-reply@example.com
         run: |
           NODE_ENV=production node dist/index.js &
           API_PID=$!

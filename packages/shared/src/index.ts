@@ -154,6 +154,18 @@ export type LoginSuccessViewModel = { accessToken: string };
 
 export type MeViewModel = { email: string; login: string; userId: string };
 
+export const RegistrationConfirmationInputSchema = z.object({
+  code: z.string().min(1, "Code is required"),
+});
+export type RegistrationConfirmationInput = z.infer<typeof RegistrationConfirmationInputSchema>;
+
+export const RegistrationEmailResendingInputSchema = z.object({
+  email: z
+    .string()
+    .regex(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, "Invalid email format"),
+});
+export type RegistrationEmailResendingInput = z.infer<typeof RegistrationEmailResendingInputSchema>;
+
 export const CommentUpdateInputSchema = z.object({
   content: z.string().trim().min(20).max(300),
 });
