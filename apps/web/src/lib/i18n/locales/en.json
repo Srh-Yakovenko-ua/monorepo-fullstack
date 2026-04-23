@@ -15,7 +15,8 @@
     "health": "Health",
     "blogs": "Blogs",
     "posts": "Posts",
-    "videos": "Videos"
+    "videos": "Videos",
+    "users": "Users"
   },
   "appShell": {
     "label": "Blogger",
@@ -26,13 +27,15 @@
     "blogs": "Blogs",
     "posts": "Posts",
     "health": "Health",
-    "videos": "Videos"
+    "videos": "Videos",
+    "users": "Users"
   },
   "actions": {
     "open": "Open",
     "edit": "Edit",
     "delete": "Delete",
-    "menu": "More actions"
+    "menu": "More actions",
+    "signOut": "Sign out"
   },
   "health": {
     "systemStatus": "System status",
@@ -232,5 +235,66 @@
   },
   "localePicker": {
     "ariaLabel": "Language"
+  },
+  "users": {
+    "list": {
+      "title": "Users",
+      "addButton": "Add user",
+      "empty": "No users yet",
+      "emptyDescription": "Add the first user to get started.",
+      "noResults": "No results for your search",
+      "error": "Failed to load users",
+      "searchLoginPlaceholder": "Search by login",
+      "searchEmailPlaceholder": "Search by email",
+      "sort": {
+        "label": "Sort",
+        "newest": "Newest",
+        "oldest": "Oldest",
+        "loginAToZ": "Login A → Z",
+        "loginZToA": "Login Z → A",
+        "emailAToZ": "Email A → Z",
+        "emailZToA": "Email Z → A"
+      },
+      "columns": {
+        "username": "Username",
+        "email": "Email",
+        "id": "User ID",
+        "createdAt": "Date added",
+        "actions": "Actions"
+      },
+      "sortAriaLabel": "Sort by {{column}}",
+      "idCopied": "User ID copied",
+      "copyId": "Copy user ID"
+    },
+    "form": {
+      "createTitle": "Add user",
+      "loginLabel": "Login",
+      "loginPlaceholder": "john_doe",
+      "emailLabel": "Email",
+      "emailPlaceholder": "john@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••"
+    },
+    "toasts": {
+      "created": "User created",
+      "createFailed": "Failed to create user",
+      "deleted": "User deleted",
+      "deleteFailed": "Failed to delete user"
+    },
+    "delete": {
+      "title": "Are you sure you want to delete this user?",
+      "description": "This action cannot be undone. The user will be permanently deleted.",
+      "confirmLabel": "Delete"
+    }
+  },
+  "admin": {
+    "login": {
+      "title": "Admin login",
+      "subtitle": "Blogger Platform · Superadmin",
+      "loginLabel": "Login or email",
+      "passwordLabel": "Password",
+      "submit": "Sign in",
+      "invalidCreds": "Invalid login or password"
+    }
   }
 }

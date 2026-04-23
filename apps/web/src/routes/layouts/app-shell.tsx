@@ -1,7 +1,7 @@
-import { Activity, BookOpen, FileText, Layers, Video } from "lucide-react";
+import { Activity, BookOpen, FileText, Layers, LogOut, Users, Video } from "lucide-react";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { useTranslation } from "react-i18next";
-import { NavLink, Outlet, useLocation } from "react-router";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
 
 import { LocalePicker } from "@/components/locale-picker";
 import { ThemePicker } from "@/components/theme-picker";
@@ -28,6 +28,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAdminAuth } from "@/features/admin-auth";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { icon: BookOpen, key: "blogs" as const, to: "/blogs" },
   { icon: FileText, key: "posts" as const, to: "/posts" },
   { icon: Video, key: "videos" as const, to: "/videos" },
+  { icon: Users, key: "users" as const, to: "/users" },
 ] as const;
 
 export function AppShell() {
@@ -52,6 +54,13 @@ function AppSidebar() {
   const { t } = useTranslation();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { isAuthed, signOut } = useAdminAuth();
+  const navigate = useNavigate();
+
+  function handleSignOut() {
+    signOut();
+    void navigate("/admin/login");
+  }
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -122,6 +131,17 @@ function AppSidebar() {
         >
           <ThemePicker />
           <LocalePicker />
+          {isAuthed && (
+            <button
+              aria-label={t("actions.signOut")}
+              className="flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              onClick={handleSignOut}
+              title={t("actions.signOut")}
+              type="button"
+            >
+              <LogOut className="size-4" />
+            </button>
+          )}
         </div>
       </SidebarFooter>
 
@@ -151,7 +171,7 @@ function ContentArea() {
           backgroundSize: "32px 32px",
         }}
       />
-      <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b border-border/50 bg-background/80 px-4 backdrop-blur-xl backdrop-saturate-150">
+      <header className="sticky top-0 z-30 flex h-[var(--shell-header-height)] shrink-0 items-center gap-4 border-b border-border/50 bg-background/80 px-4 backdrop-blur-xl backdrop-saturate-150">
         <SidebarTrigger className="size-8 cursor-pointer text-muted-foreground transition-colors duration-150 hover:text-foreground" />
         <PageBreadcrumbs />
       </header>
@@ -191,7 +211,9 @@ function PageBreadcrumbs() {
         ? t("breadcrumbs.posts")
         : first === "videos"
           ? t("breadcrumbs.videos")
-          : t("breadcrumbs.health");
+          : first === "users"
+            ? t("breadcrumbs.users")
+            : t("breadcrumbs.health");
 
   const sectionTo = `/${first}`;
 

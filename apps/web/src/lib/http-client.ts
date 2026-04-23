@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { clearAdminAuth, getAdminAuthHeader } from "@/features/admin-auth/lib/admin-auth";
+import { useAdminAuthStore } from "@/features/admin-auth/store/admin-auth-store";
 import { env } from "@/lib/env";
 
 const fieldErrorSchema = z.object({
@@ -25,13 +27,25 @@ export class ApiError extends Error {
 }
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const adminHeader = getAdminAuthHeader();
+  const isLoginEndpoint = path === "/api/auth/login";
+
+  const authHeaders: Record<string, string> =
+    adminHeader && !isLoginEndpoint ? { Authorization: adminHeader } : {};
+
   const res = await fetch(`${env.VITE_API_BASE_URL}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders,
       ...init?.headers,
     },
   });
+
+  if (res.status === 401 && adminHeader && !isLoginEndpoint) {
+    clearAdminAuth();
+    useAdminAuthStore.getState().setAuthed(false);
+  }
 
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);

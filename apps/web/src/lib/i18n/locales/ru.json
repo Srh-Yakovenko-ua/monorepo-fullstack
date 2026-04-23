@@ -15,7 +15,8 @@
     "health": "Health",
     "blogs": "Блоги",
     "posts": "Посты",
-    "videos": "Видео"
+    "videos": "Видео",
+    "users": "Пользователи"
   },
   "appShell": {
     "label": "Blogger",
@@ -26,13 +27,15 @@
     "blogs": "Блоги",
     "posts": "Посты",
     "health": "Health",
-    "videos": "Видео"
+    "videos": "Видео",
+    "users": "Пользователи"
   },
   "actions": {
     "open": "Открыть",
     "edit": "Редактировать",
     "delete": "Удалить",
-    "menu": "Ещё действия"
+    "menu": "Ещё действия",
+    "signOut": "Выйти"
   },
   "health": {
     "systemStatus": "System status",
@@ -232,5 +235,66 @@
   },
   "localePicker": {
     "ariaLabel": "Язык интерфейса"
+  },
+  "users": {
+    "list": {
+      "title": "Пользователи",
+      "addButton": "Добавить пользователя",
+      "empty": "Пользователей ещё нет",
+      "emptyDescription": "Добавьте первого пользователя, чтобы начать.",
+      "noResults": "Ничего не найдено",
+      "error": "Не удалось загрузить пользователей",
+      "searchLoginPlaceholder": "Поиск по логину",
+      "searchEmailPlaceholder": "Поиск по email",
+      "sort": {
+        "label": "Сортировка",
+        "newest": "Новые",
+        "oldest": "Старые",
+        "loginAToZ": "Логин А → Я",
+        "loginZToA": "Логин Я → А",
+        "emailAToZ": "Email А → Я",
+        "emailZToA": "Email Я → А"
+      },
+      "columns": {
+        "username": "Логин",
+        "email": "Email",
+        "id": "ID пользователя",
+        "createdAt": "Дата создания",
+        "actions": "Действия"
+      },
+      "sortAriaLabel": "Сортировать по {{column}}",
+      "idCopied": "ID пользователя скопирован",
+      "copyId": "Скопировать ID пользователя"
+    },
+    "form": {
+      "createTitle": "Добавить пользователя",
+      "loginLabel": "Логин",
+      "loginPlaceholder": "john_doe",
+      "emailLabel": "Email",
+      "emailPlaceholder": "john@example.com",
+      "passwordLabel": "Пароль",
+      "passwordPlaceholder": "••••••"
+    },
+    "toasts": {
+      "created": "Пользователь создан",
+      "createFailed": "Не удалось создать пользователя",
+      "deleted": "Пользователь удалён",
+      "deleteFailed": "Не удалось удалить пользователя"
+    },
+    "delete": {
+      "title": "Удалить пользователя?",
+      "description": "Это действие необратимо. Пользователь будет удалён навсегда.",
+      "confirmLabel": "Удалить"
+    }
+  },
+  "admin": {
+    "login": {
+      "title": "Вход для администратора",
+      "subtitle": "Blogger Platform · Суперадмин",
+      "loginLabel": "Логин или email",
+      "passwordLabel": "Пароль",
+      "submit": "Войти",
+      "invalidCreds": "Неверный логин или пароль"
+    }
   }
 }

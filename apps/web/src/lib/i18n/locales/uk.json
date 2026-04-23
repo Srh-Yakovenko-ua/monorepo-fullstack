@@ -15,7 +15,8 @@
     "health": "Health",
     "blogs": "Блоги",
     "posts": "Пости",
-    "videos": "Відео"
+    "videos": "Відео",
+    "users": "Користувачі"
   },
   "appShell": {
     "label": "Blogger",
@@ -26,13 +27,15 @@
     "blogs": "Блоги",
     "posts": "Пости",
     "health": "Health",
-    "videos": "Відео"
+    "videos": "Відео",
+    "users": "Користувачі"
   },
   "actions": {
     "open": "Відкрити",
     "edit": "Редагувати",
     "delete": "Видалити",
-    "menu": "Більше дій"
+    "menu": "Більше дій",
+    "signOut": "Вийти"
   },
   "health": {
     "systemStatus": "System status",
@@ -232,5 +235,66 @@
   },
   "localePicker": {
     "ariaLabel": "Мова інтерфейсу"
+  },
+  "users": {
+    "list": {
+      "title": "Користувачі",
+      "addButton": "Додати користувача",
+      "empty": "Користувачів ще немає",
+      "emptyDescription": "Додайте першого користувача, щоб розпочати.",
+      "noResults": "Нічого не знайдено",
+      "error": "Не вдалося завантажити користувачів",
+      "searchLoginPlaceholder": "Пошук за логіном",
+      "searchEmailPlaceholder": "Пошук за email",
+      "sort": {
+        "label": "Сортування",
+        "newest": "Нові",
+        "oldest": "Старі",
+        "loginAToZ": "Логін А → Я",
+        "loginZToA": "Логін Я → А",
+        "emailAToZ": "Email А → Я",
+        "emailZToA": "Email Я → А"
+      },
+      "columns": {
+        "username": "Логін",
+        "email": "Email",
+        "id": "ID користувача",
+        "createdAt": "Дата створення",
+        "actions": "Дії"
+      },
+      "sortAriaLabel": "Сортувати за {{column}}",
+      "idCopied": "ID користувача скопійовано",
+      "copyId": "Скопіювати ID користувача"
+    },
+    "form": {
+      "createTitle": "Додати користувача",
+      "loginLabel": "Логін",
+      "loginPlaceholder": "john_doe",
+      "emailLabel": "Email",
+      "emailPlaceholder": "john@example.com",
+      "passwordLabel": "Пароль",
+      "passwordPlaceholder": "••••••"
+    },
+    "toasts": {
+      "created": "Користувача створено",
+      "createFailed": "Не вдалося створити користувача",
+      "deleted": "Користувача видалено",
+      "deleteFailed": "Не вдалося видалити користувача"
+    },
+    "delete": {
+      "title": "Видалити користувача?",
+      "description": "Цю дію неможливо скасувати. Користувача буде видалено назавжди.",
+      "confirmLabel": "Видалити"
+    }
+  },
+  "admin": {
+    "login": {
+      "title": "Вхід для адміністратора",
+      "subtitle": "Blogger Platform · Суперадмін",
+      "loginLabel": "Логін або email",
+      "passwordLabel": "Пароль",
+      "submit": "Увійти",
+      "invalidCreds": "Невірний логін або пароль"
+    }
   }
 }
