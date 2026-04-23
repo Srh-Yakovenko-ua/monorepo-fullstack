@@ -61,8 +61,6 @@ export async function findPage(
 
 export async function markEmailConfirmed(userId: string): Promise<void> {
   await UserModel.findByIdAndUpdate(userId, {
-    "emailConfirmation.code": null,
-    "emailConfirmation.expiresAt": null,
     "emailConfirmation.isConfirmed": true,
   });
 }
