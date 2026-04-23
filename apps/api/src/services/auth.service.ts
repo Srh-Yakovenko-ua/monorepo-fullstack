@@ -87,11 +87,7 @@ export async function register(input: CreateUserInput): Promise<void> {
   const template = renderConfirmEmail({ confirmLink, login: user.login });
 
   try {
-    await sendEmail({
-      ...template,
-      idempotencyKey: `confirm-email/${user._id.toHexString()}/${code}`,
-      to: user.email,
-    });
+    await sendEmail({ ...template, to: user.email });
   } catch (err) {
     log.error({ err, userId: user._id.toHexString() }, "Failed to send confirmation email");
   }
@@ -127,11 +123,7 @@ export async function resendConfirmationEmail({
   const template = renderConfirmEmail({ confirmLink, login: user.login });
 
   try {
-    await sendEmail({
-      ...template,
-      idempotencyKey: `confirm-email/${user._id.toHexString()}/${code}`,
-      to: user.email,
-    });
+    await sendEmail({ ...template, to: user.email });
   } catch (err) {
     log.error({ err, userId: user._id.toHexString() }, "Failed to resend confirmation email");
   }

@@ -24,7 +24,6 @@
     "mongoose": "catalog:",
     "nodemailer": "catalog:",
     "pino": "catalog:",
-    "resend": "catalog:",
     "pino-http": "catalog:",
     "zod": "catalog:",
     "zod-openapi": "catalog:"

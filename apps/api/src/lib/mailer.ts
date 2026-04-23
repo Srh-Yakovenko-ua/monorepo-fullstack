@@ -1,14 +1,12 @@
 import type { Transporter } from "nodemailer";
 
 import { createTransport } from "nodemailer";
-import { Resend } from "resend";
 
 import { env } from "../config/env.js";
 import { createLogger } from "./logger.js";
 
 type SendEmailInput = {
   html: string;
-  idempotencyKey?: string;
   subject: string;
   text?: string;
   to: string;
@@ -16,52 +14,30 @@ type SendEmailInput = {
 
 const log = createLogger("mailer");
 
-let mailtrapTransport: null | Transporter = null;
-let resendClient: null | Resend = null;
+let transport: null | Transporter = null;
 
 export async function sendEmail(input: SendEmailInput): Promise<void> {
-  const { html, idempotencyKey, subject, text, to } = input;
+  const { html, subject, text, to } = input;
 
-  if (env.emailProvider === "resend") {
-    const { error } = await getResendClient().emails.send({
-      from: env.emailFrom,
-      html,
-      subject,
-      to: [to],
-      ...(text !== undefined && { text }),
-      ...(idempotencyKey !== undefined && { idempotencyKey }),
-    });
-    if (error) throw new Error(`Resend error: ${error.message}`);
-    log.info({ to }, "Email sent via Resend");
-    return;
-  }
-
-  await getMailtrapTransport().sendMail({
+  await getTransport().sendMail({
     from: env.emailFrom,
     html,
     subject,
     text,
     to,
   });
-  log.info({ to }, "Email sent via Mailtrap");
+  log.info({ to }, "Email sent");
 }
 
-function getMailtrapTransport(): Transporter {
-  if (mailtrapTransport) return mailtrapTransport;
-  if (!env.mailtrapSmtpUser || !env.mailtrapSmtpPass) {
-    throw new Error("Mailtrap SMTP credentials are not configured");
+function getTransport(): Transporter {
+  if (transport) return transport;
+  if (!env.smtpUser || !env.smtpPass) {
+    throw new Error("SMTP credentials are not configured (SMTP_USER / SMTP_PASS)");
   }
-  mailtrapTransport = createTransport({
-    auth: { pass: env.mailtrapSmtpPass, user: env.mailtrapSmtpUser },
-    host: env.mailtrapSmtpHost,
-    port: env.mailtrapSmtpPort,
+  transport = createTransport({
+    auth: { pass: env.smtpPass, user: env.smtpUser },
+    host: env.smtpHost,
+    port: env.smtpPort,
   });
-  return mailtrapTransport;
-}
-
-function getResendClient(): Resend {
-  if (resendClient) return resendClient;
-  if (!env.resendApiKey) throw new Error("RESEND_API_KEY is not configured");
-  resendClient = new Resend(env.resendApiKey);
-  return resendClient;
+  return transport;
 }
