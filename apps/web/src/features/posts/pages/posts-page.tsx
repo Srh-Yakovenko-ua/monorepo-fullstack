@@ -4,6 +4,7 @@ import { BookOpen, FileText, MoreHorizontal, Plus } from "lucide-react";
 import { parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModalId, modalObserver } from "@/features/modals";
 import { PostFormDialog } from "@/features/posts/components/post-form-dialog";
-import { PostViewDialog } from "@/features/posts/components/post-view-dialog";
 import { useDeletePost } from "@/features/posts/hooks/use-post-mutations";
 import { useInfinitePosts } from "@/features/posts/hooks/use-posts";
 import { usePageTitle } from "@/hooks/use-page-title";
@@ -58,7 +58,6 @@ export function PostsPage() {
   const { sort: sortValue } = filters;
   const [createOpen, setCreateOpen] = useState(false);
   const [editPost, setEditPost] = useState<null | PostViewModel>(null);
-  const [viewPost, setViewPost] = useState<null | PostViewModel>(null);
 
   const deletePost = useDeletePost();
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -104,13 +103,7 @@ export function PostsPage() {
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
 
-  function openEdit(post: PostViewModel) {
-    setViewPost(null);
-    setEditPost(post);
-  }
-
   function openDeleteConfirm(post: PostViewModel) {
-    setViewPost(null);
     modalObserver.addModal(ModalId.Confirm, {
       confirmLabel: t("posts.detail.deleteModal.confirmLabel"),
       description: t("posts.detail.deleteModal.description"),
@@ -142,18 +135,6 @@ export function PostsPage() {
 
   function handleEditFormOpenChange(open: boolean) {
     if (!open) setEditPost(null);
-  }
-
-  function handleViewOpenChange(open: boolean) {
-    if (!open) setViewPost(null);
-  }
-
-  function handleViewDelete() {
-    if (viewPost) openDeleteConfirm(viewPost);
-  }
-
-  function handleViewEdit() {
-    if (viewPost) openEdit(viewPost);
   }
 
   function handleRetryLoadMore() {
@@ -252,7 +233,6 @@ export function PostsPage() {
                 key={post.id}
                 onDelete={openDeleteConfirm}
                 onEdit={setEditPost}
-                onView={setViewPost}
                 post={post}
               />
             ))}
@@ -301,16 +281,6 @@ export function PostsPage() {
           post={editPost}
         />
       )}
-
-      {viewPost && (
-        <PostViewDialog
-          onDelete={handleViewDelete}
-          onEdit={handleViewEdit}
-          onOpenChange={handleViewOpenChange}
-          open={!!viewPost}
-          post={viewPost}
-        />
-      )}
     </main>
   );
 }
@@ -319,19 +289,18 @@ function PostCard({
   index,
   onDelete,
   onEdit,
-  onView,
   post,
 }: {
   index: number;
   onDelete: (post: PostViewModel) => void;
   onEdit: (post: PostViewModel) => void;
-  onView: (post: PostViewModel) => void;
   post: PostViewModel;
 }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
-  function handleView() {
-    onView(post);
+  function handleNavigateToPost() {
+    void navigate(`/posts/${post.id}`);
   }
 
   function handleEdit() {
@@ -357,7 +326,7 @@ function PostCard({
       <button
         aria-label={t("actions.open")}
         className="relative block h-36 shrink-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
-        onClick={handleView}
+        onClick={handleNavigateToPost}
         type="button"
       >
         <div className="absolute inset-0" style={{ background: gradientFromString(post.blogId) }} />
@@ -372,7 +341,7 @@ function PostCard({
           </CardActionButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[10rem]">
-          <DropdownMenuItem className="cursor-pointer" onSelect={handleView}>
+          <DropdownMenuItem className="cursor-pointer" onSelect={handleNavigateToPost}>
             <FileText className="mr-2 size-3.5 text-muted-foreground" />
             {t("actions.open")}
           </DropdownMenuItem>
@@ -392,7 +361,7 @@ function PostCard({
           <h2 className="line-clamp-1 text-base leading-snug font-semibold">
             <button
               className="cursor-pointer rounded-sm text-foreground transition-colors duration-150 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-inset"
-              onClick={handleView}
+              onClick={handleNavigateToPost}
               type="button"
             >
               {post.title}

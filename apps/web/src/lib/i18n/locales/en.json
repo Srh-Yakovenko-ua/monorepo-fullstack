@@ -148,6 +148,10 @@
     "detail": {
       "edit": "Edit",
       "delete": "Delete",
+      "notFound": "Post not found",
+      "createdAt": "Published",
+      "blog": "Blog",
+      "commentsSection": "Comments",
       "deleteModal": {
         "title": "Delete post?",
         "description": "This action cannot be undone. The post will be permanently deleted.",
@@ -183,6 +187,34 @@
       "updateError": "Failed to update",
       "deleteError": "Failed to delete",
       "deleteFailed": "Failed to delete post"
+    }
+  },
+  "comments": {
+    "empty": "No comments yet",
+    "showMore": "Show more",
+    "newComment": {
+      "placeholder": "Share your thoughts...",
+      "send": "Send a comment",
+      "cancel": "Cancel",
+      "counter": "{{count}}/300"
+    },
+    "editComment": {
+      "save": "Edit comment",
+      "cancel": "Cancel"
+    },
+    "deleteModal": {
+      "title": "Delete comment",
+      "description": "Are you sure you want to delete comment?",
+      "confirmLabel": "Yes",
+      "cancelLabel": "No"
+    },
+    "toasts": {
+      "created": "Comment posted",
+      "createFailed": "Failed to post comment",
+      "updated": "Comment updated",
+      "updateFailed": "Failed to update comment",
+      "deleted": "Comment deleted",
+      "deleteFailed": "Failed to delete comment"
     }
   },
   "videos": {
@@ -295,6 +327,16 @@
       "passwordLabel": "Password",
       "submit": "Sign in",
       "invalidCreds": "Invalid login or password"
+    }
+  },
+  "userAuth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Blogger Platform · User account",
+      "loginOrEmailLabel": "Email or Username",
+      "passwordLabel": "Password",
+      "submit": "Sign In",
+      "invalidCreds": "The password or the email or Username are incorrect. Try again, please"
     }
   }
 }

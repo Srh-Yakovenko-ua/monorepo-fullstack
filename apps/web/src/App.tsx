@@ -5,6 +5,7 @@ import { ListPageSkeleton } from "@/components/list-page-skeleton";
 import { PageLoading } from "@/components/page-loading";
 import { AdminLoginPage, RequireAdminAuth } from "@/features/admin-auth";
 import { ModalsRoot } from "@/features/modals";
+import { UserLoginPage } from "@/features/user-auth";
 import { AppErrorBoundary } from "@/routes/error-boundary";
 import { AppShell } from "@/routes/layouts/app-shell";
 
@@ -13,6 +14,10 @@ const HealthPage = lazy(() => import("@/features/health").then((m) => ({ default
 const BlogsPage = lazy(() => import("@/features/blogs").then((m) => ({ default: m.BlogsPage })));
 
 const PostsPage = lazy(() => import("@/features/posts").then((m) => ({ default: m.PostsPage })));
+
+const PostDetailPage = lazy(() =>
+  import("@/features/posts").then((m) => ({ default: m.PostDetailPage })),
+);
 
 const VideosPage = lazy(() => import("@/features/videos").then((m) => ({ default: m.VideosPage })));
 
@@ -35,6 +40,7 @@ const router = createBrowserRouter([
       { element: lazyRoute(HealthPage), index: true },
       { element: lazyRoute(BlogsPage, <ListPageSkeleton />), path: "blogs" },
       { element: lazyRoute(PostsPage, <ListPageSkeleton />), path: "posts" },
+      { element: lazyRoute(PostDetailPage), path: "posts/:postId" },
       { element: lazyRoute(VideosPage, <ListPageSkeleton />), path: "videos" },
       {
         element: <RequireAdminAuth>{lazyRoute(UsersPage, <ListPageSkeleton />)}</RequireAdminAuth>,
@@ -49,6 +55,10 @@ const router = createBrowserRouter([
   {
     element: <AdminLoginPage />,
     path: "admin/login",
+  },
+  {
+    element: <UserLoginPage />,
+    path: "login",
   },
 ]);
 

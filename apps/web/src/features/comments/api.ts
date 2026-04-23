@@ -1,0 +1,39 @@
+import type { CommentViewModel, Paginator } from "@app/shared";
+
+import { request } from "@/lib/http-client";
+
+export const commentsKeys = {
+  all: ["comments"] as const,
+  detail: (id: string) => [...commentsKeys.all, "detail", id] as const,
+  postComments: (postId: string) => [...commentsKeys.all, "post", postId] as const,
+};
+
+export const commentsApi = {
+  create: ({ content, postId }: { content: string; postId: string }) =>
+    request<CommentViewModel>(`/api/posts/${postId}/comments`, {
+      body: JSON.stringify({ content }),
+      method: "POST",
+    }),
+  listByPost: ({
+    pageNumber,
+    pageSize,
+    postId,
+  }: {
+    pageNumber: number;
+    pageSize: number;
+    postId: string;
+  }) => {
+    const url = new URL(`/api/posts/${postId}/comments`, window.location.origin);
+    url.searchParams.set("pageNumber", String(pageNumber));
+    url.searchParams.set("pageSize", String(pageSize));
+    url.searchParams.set("sortBy", "createdAt");
+    url.searchParams.set("sortDirection", "desc");
+    return request<Paginator<CommentViewModel>>(url.pathname + url.search);
+  },
+  remove: (commentId: string) => request<void>(`/api/comments/${commentId}`, { method: "DELETE" }),
+  update: ({ commentId, content }: { commentId: string; content: string }) =>
+    request<void>(`/api/comments/${commentId}`, {
+      body: JSON.stringify({ content }),
+      method: "PUT",
+    }),
+};

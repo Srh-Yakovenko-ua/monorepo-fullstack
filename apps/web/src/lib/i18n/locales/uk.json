@@ -148,6 +148,10 @@
     "detail": {
       "edit": "Редагувати",
       "delete": "Видалити",
+      "notFound": "Пост не знайдено",
+      "createdAt": "Опубліковано",
+      "blog": "Блог",
+      "commentsSection": "Коментарі",
       "deleteModal": {
         "title": "Видалити пост?",
         "description": "Цю дію неможливо скасувати. Пост буде видалено назавжди.",
@@ -183,6 +187,34 @@
       "updateError": "Не вдалося оновити",
       "deleteError": "Не вдалося видалити",
       "deleteFailed": "Не вдалося видалити пост"
+    }
+  },
+  "comments": {
+    "empty": "Коментарів поки немає",
+    "showMore": "Показати ще",
+    "newComment": {
+      "placeholder": "Поділіться думками...",
+      "send": "Надіслати коментар",
+      "cancel": "Скасувати",
+      "counter": "{{count}}/300"
+    },
+    "editComment": {
+      "save": "Зберегти",
+      "cancel": "Скасувати"
+    },
+    "deleteModal": {
+      "title": "Видалити коментар",
+      "description": "Are you sure you want to delete comment?",
+      "confirmLabel": "Yes",
+      "cancelLabel": "No"
+    },
+    "toasts": {
+      "created": "Коментар додано",
+      "createFailed": "Не вдалося додати коментар",
+      "updated": "Коментар оновлено",
+      "updateFailed": "Не вдалося оновити коментар",
+      "deleted": "Коментар видалено",
+      "deleteFailed": "Не вдалося видалити коментар"
     }
   },
   "videos": {
@@ -295,6 +327,16 @@
       "passwordLabel": "Пароль",
       "submit": "Увійти",
       "invalidCreds": "Невірний логін або пароль"
+    }
+  },
+  "userAuth": {
+    "login": {
+      "title": "Увійти",
+      "subtitle": "Blogger Platform · Акаунт користувача",
+      "loginOrEmailLabel": "Email або логін",
+      "passwordLabel": "Пароль",
+      "submit": "Увійти",
+      "invalidCreds": "The password or the email or Username are incorrect. Try again, please"
     }
   }
 }

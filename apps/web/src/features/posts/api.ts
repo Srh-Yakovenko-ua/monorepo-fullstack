@@ -11,6 +11,7 @@ export type PostsListQuery = {
 
 export const postsKeys = {
   all: ["posts"] as const,
+  detail: (id: string) => [...postsKeys.all, "detail", id] as const,
   list: (query: Omit<PostsListQuery, "pageNumber">) => [...postsKeys.lists(), query] as const,
   lists: () => [...postsKeys.all, "list"] as const,
 };
@@ -21,6 +22,7 @@ export const postsApi = {
       body: JSON.stringify(input),
       method: "POST",
     }),
+  getById: (id: string) => request<PostViewModel>(`/api/posts/${id}`),
   list: (query: PostsListQuery) => {
     const url = new URL("/api/posts", window.location.origin);
     url.searchParams.set("pageNumber", String(query.pageNumber));

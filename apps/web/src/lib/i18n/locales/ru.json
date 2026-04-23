@@ -148,6 +148,10 @@
     "detail": {
       "edit": "Редактировать",
       "delete": "Удалить",
+      "notFound": "Пост не найден",
+      "createdAt": "Опубликовано",
+      "blog": "Блог",
+      "commentsSection": "Комментарии",
       "deleteModal": {
         "title": "Удалить пост?",
         "description": "Это действие необратимо. Пост будет удалён навсегда.",
@@ -183,6 +187,34 @@
       "updateError": "Не удалось обновить",
       "deleteError": "Не удалось удалить",
       "deleteFailed": "Не удалось удалить пост"
+    }
+  },
+  "comments": {
+    "empty": "Комментариев пока нет",
+    "showMore": "Показать ещё",
+    "newComment": {
+      "placeholder": "Поделитесь мыслями...",
+      "send": "Отправить комментарий",
+      "cancel": "Отмена",
+      "counter": "{{count}}/300"
+    },
+    "editComment": {
+      "save": "Сохранить",
+      "cancel": "Отмена"
+    },
+    "deleteModal": {
+      "title": "Удалить комментарий",
+      "description": "Are you sure you want to delete comment?",
+      "confirmLabel": "Yes",
+      "cancelLabel": "No"
+    },
+    "toasts": {
+      "created": "Комментарий добавлен",
+      "createFailed": "Не удалось добавить комментарий",
+      "updated": "Комментарий обновлён",
+      "updateFailed": "Не удалось обновить комментарий",
+      "deleted": "Комментарий удалён",
+      "deleteFailed": "Не удалось удалить комментарий"
     }
   },
   "videos": {
@@ -295,6 +327,16 @@
       "passwordLabel": "Пароль",
       "submit": "Войти",
       "invalidCreds": "Неверный логин или пароль"
+    }
+  },
+  "userAuth": {
+    "login": {
+      "title": "Войти",
+      "subtitle": "Blogger Platform · Аккаунт пользователя",
+      "loginOrEmailLabel": "Email или логин",
+      "passwordLabel": "Пароль",
+      "submit": "Войти",
+      "invalidCreds": "The password or the email or Username are incorrect. Try again, please"
     }
   }
 }

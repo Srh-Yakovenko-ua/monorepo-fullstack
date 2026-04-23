@@ -29,6 +29,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAdminAuth } from "@/features/admin-auth";
+import { UserMenu } from "@/features/user-auth";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -131,6 +132,7 @@ function AppSidebar() {
         >
           <ThemePicker />
           <LocalePicker />
+          <UserMenu />
           {isAuthed && (
             <button
               aria-label={t("actions.signOut")}
