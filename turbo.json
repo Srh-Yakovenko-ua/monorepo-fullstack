@@ -43,6 +43,7 @@
         "package.json",
         "tsconfig*.json"
       ],
+      "env": ["JWT_SECRET", "JWT_EXPIRES_IN"],
       "outputs": ["coverage/**"]
     },
     "dev": {
