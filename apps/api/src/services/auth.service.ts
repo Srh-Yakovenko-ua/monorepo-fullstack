@@ -14,7 +14,8 @@ import { randomUUID } from "node:crypto";
 import { env } from "../config/env.js";
 import * as usersRepository from "../db/repositories/users.repository.js";
 import { renderConfirmEmail } from "../lib/email-templates.js";
-import { BadRequestError, UnauthorizedError } from "../lib/errors.js";
+import { BadRequestError, HttpError, UnauthorizedError } from "../lib/errors.js";
+import { HTTP_STATUS } from "../lib/http-status.js";
 import { signAccessToken } from "../lib/jwt.js";
 import { createLogger } from "../lib/logger.js";
 import { sendEmail } from "../lib/mailer.js";
@@ -126,5 +127,6 @@ export async function resendConfirmationEmail({
     await sendEmail({ ...template, to: user.email });
   } catch (err) {
     log.error({ err, userId: user._id.toHexString() }, "Failed to resend confirmation email");
+    throw new HttpError(HTTP_STATUS.BAD_GATEWAY, "Failed to send confirmation email");
   }
 }
