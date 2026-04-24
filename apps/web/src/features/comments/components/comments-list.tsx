@@ -1,16 +1,27 @@
+import type { Variants } from "motion/react";
+
+import { AnimatePresence, motion } from "motion/react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CommentItem } from "@/features/comments/components/comment-item";
 import { usePostComments } from "@/features/comments/hooks/use-post-comments";
+import { useUserAuth } from "@/features/user-auth";
 
 type Props = {
+  newCommentId?: null | string;
   postId: string;
 };
 
-export function CommentsList({ postId }: Props) {
+const listVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+};
+
+export function CommentsList({ newCommentId = null, postId }: Props) {
   const { t } = useTranslation();
+  const { user } = useUserAuth();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     usePostComments(postId);
 
@@ -47,11 +58,24 @@ export function CommentsList({ postId }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <ul className="flex flex-col gap-3">
-        {comments.map((comment) => (
-          <CommentItem comment={comment} key={comment.id} postId={postId} />
-        ))}
-      </ul>
+      <motion.ul
+        animate="visible"
+        className="flex flex-col gap-3"
+        initial="hidden"
+        variants={listVariants}
+      >
+        <AnimatePresence initial={false} mode="popLayout">
+          {comments.map((comment) => (
+            <CommentItem
+              comment={comment}
+              currentUserId={user?.userId ?? null}
+              isNew={comment.id === newCommentId}
+              key={comment.id}
+              postId={postId}
+            />
+          ))}
+        </AnimatePresence>
+      </motion.ul>
 
       {hasNextPage && (
         <div className="flex justify-center">

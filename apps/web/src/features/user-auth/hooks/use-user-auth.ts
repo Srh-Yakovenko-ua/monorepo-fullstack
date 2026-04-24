@@ -8,7 +8,7 @@ export function useUserAuth() {
   const queryClient = useQueryClient();
   const storeClearToken = useUserAuthStore((state) => state.clearToken);
   const { data: user, isLoading } = useMe();
-  const { isPending: isSigningIn, mutateAsync: signIn } = useSignIn();
+  const { mutateAsync: signIn } = useSignIn();
 
   function signOut() {
     storeClearToken();
@@ -18,7 +18,6 @@ export function useUserAuth() {
   return {
     isAuthed: !!user,
     isLoading,
-    isSigningIn,
     signIn,
     signOut,
     user: user ?? null,

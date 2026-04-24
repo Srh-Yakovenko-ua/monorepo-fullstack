@@ -2,10 +2,9 @@ import type { z } from "zod";
 
 import { LoginInputSchema } from "@app/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useSearchParams } from "react-router";
+import { useTranslation } from "react-i18next";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -14,15 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUserAuth } from "@/features/user-auth/hooks/use-user-auth";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { applyMessageToFields, toastApiError } from "@/lib/api-errors";
 import { ApiError } from "@/lib/http-client";
 
 type LoginFormValues = z.infer<typeof LoginInputSchema>;
 
-const INVALID_CREDS_MESSAGE =
-  "The password or the email or Username are incorrect. Try again, please";
-
 export function UserLoginPage() {
-  usePageTitle("Sign in");
+  const { t } = useTranslation();
+  usePageTitle(t("userAuth.login.title"));
 
   const { isAuthed, signIn } = useUserAuth();
   const navigate = useNavigate();
@@ -36,11 +34,9 @@ export function UserLoginPage() {
 
   const isPending = form.formState.isSubmitting;
 
-  useEffect(() => {
-    if (isAuthed) {
-      void navigate(nextPath ?? "/blogs", { replace: true });
-    }
-  }, [isAuthed, navigate, nextPath]);
+  if (isAuthed) {
+    return <Navigate replace to={nextPath ?? "/blogs"} />;
+  }
 
   async function onSubmit({ loginOrEmail, password }: LoginFormValues) {
     try {
@@ -48,36 +44,36 @@ export function UserLoginPage() {
       void navigate(nextPath ?? "/blogs", { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        form.setError("loginOrEmail", { message: INVALID_CREDS_MESSAGE });
-        form.setError("password", { message: INVALID_CREDS_MESSAGE });
-        toast.error(INVALID_CREDS_MESSAGE);
-      } else {
-        toast.error(err instanceof Error ? err.message : "Something went wrong");
+        const message = t("userAuth.login.invalidCreds");
+        applyMessageToFields(form, ["loginOrEmail", "password"], message);
+        toast.error(message);
+        return;
       }
+      toastApiError(err, t("common.somethingWentWrong"));
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm animate-in rounded-2xl border border-border/60 bg-card/80 p-8 shadow-[var(--shadow-card)] backdrop-blur-md duration-500 fill-mode-both fade-in slide-in-from-bottom-3">
         <div className="mb-6">
           <h1
             className="font-display text-2xl font-normal text-foreground"
             style={{ letterSpacing: "-0.025em" }}
           >
-            Sign in
+            {t("userAuth.login.title")}
           </h1>
           <p className="mt-1 font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-            Blogger Platform · User account
+            {t("userAuth.login.subtitle")}
           </p>
         </div>
 
         <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="login-or-email">Email or Username</Label>
+            <Label htmlFor="login-or-email">{t("userAuth.login.loginOrEmailLabel")}</Label>
             <Input
               id="login-or-email"
-              placeholder="Email or Username"
+              placeholder={t("userAuth.login.loginOrEmailLabel")}
               {...form.register("loginOrEmail")}
               aria-describedby={
                 form.formState.errors.loginOrEmail ? "login-or-email-error" : undefined
@@ -88,7 +84,7 @@ export function UserLoginPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="login-password">Password</Label>
+            <Label htmlFor="login-password">{t("userAuth.login.passwordLabel")}</Label>
             <Input
               id="login-password"
               type="password"
@@ -99,12 +95,18 @@ export function UserLoginPage() {
             <FieldError error={form.formState.errors.password} id="login-password-error" />
           </div>
 
-          <Button className="mt-2 w-full" disabled={isPending} type="submit">
-            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
-            Sign In
+          <Button className="mt-2 w-full" loading={isPending} type="submit">
+            {t("userAuth.login.submit")}
           </Button>
+
+          <p className="text-center text-sm text-muted-foreground">
+            {t("userAuth.login.noAccount")}{" "}
+            <Link className="font-medium text-primary underline underline-offset-2" to="/signup">
+              {t("userAuth.login.signUpLink")}
+            </Link>
+          </p>
         </form>
       </div>
-    </div>
+    </main>
   );
 }

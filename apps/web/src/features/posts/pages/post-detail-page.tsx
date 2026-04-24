@@ -1,4 +1,5 @@
 import { BookOpen, FileText } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 
@@ -12,8 +13,19 @@ export function PostDetailPage() {
   const { t } = useTranslation();
   const { postId } = useParams<{ postId: string }>();
   const { data: post, isError, isLoading } = usePost(postId ?? "");
+  const [newCommentId, setNewCommentId] = useState<null | string>(null);
 
   usePageTitle(post?.title ?? t("posts.list.title"));
+
+  useEffect(() => {
+    if (!newCommentId) return;
+    const timer = window.setTimeout(() => setNewCommentId(null), 2300);
+    return () => window.clearTimeout(timer);
+  }, [newCommentId]);
+
+  function handleCommentCreated(commentId: string) {
+    setNewCommentId(commentId);
+  }
 
   if (isLoading) {
     return <PostDetailSkeleton />;
@@ -41,15 +53,18 @@ export function PostDetailPage() {
           className="relative h-48 overflow-hidden rounded-2xl md:h-56"
           style={{ background: gradientFromString(post.blogId) }}
         >
-          <div className="absolute inset-0 flex items-center justify-center">
-            <FileText className="size-14 text-white/50" />
+          <div
+            aria-hidden
+            className="absolute inset-0 flex animate-in items-center justify-center duration-700 fill-mode-both zoom-in-95"
+          >
+            <FileText className="size-14 text-white/50 transition-transform duration-700 ease-out group-hover:scale-110" />
           </div>
         </div>
 
         <div className="mt-6 flex flex-col gap-4">
           {post.blogName && (
             <span className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
-              <BookOpen className="size-3 shrink-0" />
+              <BookOpen aria-hidden className="size-3 shrink-0" />
               {post.blogName}
             </span>
           )}
@@ -77,27 +92,30 @@ export function PostDetailPage() {
         </div>
       </article>
 
-      <section className="mt-10 flex flex-col gap-5">
+      <section aria-labelledby="comments-heading" className="mt-10 flex flex-col gap-5">
         <h2
           className="font-display text-lg font-normal text-foreground"
+          id="comments-heading"
           style={{ letterSpacing: "-0.02em" }}
         >
           {t("posts.detail.commentsSection")}
         </h2>
 
-        <NewCommentForm postId={post.id} />
-        <CommentsList postId={post.id} />
+        <NewCommentForm onCommentCreated={handleCommentCreated} postId={post.id} />
+        <CommentsList newCommentId={newCommentId} postId={post.id} />
       </section>
     </main>
   );
 }
 
+const postDateFormatter = new Intl.DateTimeFormat(undefined, {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
 function formatPostDate(iso: string): string {
-  return new Intl.DateTimeFormat(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(iso));
+  return postDateFormatter.format(new Date(iso));
 }
 
 function PostDetailSkeleton() {

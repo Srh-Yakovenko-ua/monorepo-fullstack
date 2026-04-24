@@ -4,7 +4,6 @@ import type { z } from "zod";
 
 import { PostInputSchema } from "@app/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -193,8 +192,7 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
         <div className="h-px w-full bg-border/60" />
 
         <div className="flex justify-end px-7 py-4">
-          <Button disabled={isPending} form="post-form" type="submit">
-            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+          <Button form="post-form" loading={isPending} type="submit">
             {mode === "create" ? t("common.create") : t("common.save")}
           </Button>
         </div>

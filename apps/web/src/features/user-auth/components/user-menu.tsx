@@ -28,10 +28,11 @@ export function UserMenu() {
   return (
     <div className="flex items-center gap-1">
       <div
+        aria-label={user?.login}
         className="flex size-8 items-center justify-center rounded-md text-muted-foreground"
-        title={user?.login}
+        role="img"
       >
-        <User className="size-4" />
+        <User aria-hidden className="size-4" />
       </div>
       <button
         aria-label="Sign out user"

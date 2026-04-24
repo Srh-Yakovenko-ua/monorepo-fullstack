@@ -3,7 +3,6 @@ import type { z } from "zod";
 
 import { CreateVideoInputSchema, UpdateVideoInputSchema, VIDEO_RESOLUTIONS } from "@app/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -160,8 +159,7 @@ function CreateForm({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className="sticky bottom-0 z-10 flex justify-end border-t border-border/60 bg-popover py-3">
-        <Button disabled={isPending || form.formState.isSubmitting} type="submit">
-          {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+        <Button disabled={form.formState.isSubmitting} loading={isPending} type="submit">
           {t("common.create")}
         </Button>
       </div>
@@ -342,8 +340,7 @@ function EditForm({ onClose, video }: { onClose: () => void; video: VideoViewMod
       </div>
 
       <div className="sticky bottom-0 z-10 flex justify-end border-t border-border/60 bg-popover py-3">
-        <Button disabled={isPending || form.formState.isSubmitting} type="submit">
-          {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+        <Button disabled={form.formState.isSubmitting} loading={isPending} type="submit">
           {t("common.save")}
         </Button>
       </div>

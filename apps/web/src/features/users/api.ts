@@ -11,6 +11,7 @@ export const usersKeys = {
 export const usersApi = {
   create: (input: CreateUserInput) =>
     request<UserViewModel>("/api/users", {
+      authMode: "basic",
       body: JSON.stringify(input),
       method: "POST",
     }),
@@ -22,7 +23,8 @@ export const usersApi = {
     url.searchParams.set("sortDirection", query.sortDirection);
     if (query.searchLoginTerm) url.searchParams.set("searchLoginTerm", query.searchLoginTerm);
     if (query.searchEmailTerm) url.searchParams.set("searchEmailTerm", query.searchEmailTerm);
-    return request<Paginator<UserViewModel>>(url.pathname + url.search);
+    return request<Paginator<UserViewModel>>(url.pathname + url.search, { authMode: "basic" });
   },
-  remove: (id: string) => request<void>(`/api/users/${id}`, { method: "DELETE" }),
+  remove: (id: string) =>
+    request<void>(`/api/users/${id}`, { authMode: "basic", method: "DELETE" }),
 };

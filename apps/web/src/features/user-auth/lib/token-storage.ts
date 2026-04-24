@@ -8,7 +8,7 @@ export function clearToken(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch {
-    // Safari private mode
+    void 0;
   }
 }
 
@@ -26,6 +26,6 @@ export function setToken(token: string): void {
   try {
     localStorage.setItem(STORAGE_KEY, token);
   } catch {
-    // Safari private mode
+    void 0;
   }
 }

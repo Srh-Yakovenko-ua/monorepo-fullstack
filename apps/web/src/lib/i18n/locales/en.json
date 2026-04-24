@@ -200,7 +200,8 @@
     },
     "editComment": {
       "save": "Edit comment",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "label": "Edit comment"
     },
     "deleteModal": {
       "title": "Delete comment",
@@ -336,7 +337,58 @@
       "loginOrEmailLabel": "Email or Username",
       "passwordLabel": "Password",
       "submit": "Sign In",
-      "invalidCreds": "The password or the email or Username are incorrect. Try again, please"
+      "invalidCreds": "The password or the email or Username are incorrect. Try again, please",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign Up"
+    }
+  },
+  "registration": {
+    "signup": {
+      "title": "Sign up",
+      "subtitle": "Create your Blogger Platform account",
+      "usernameLabel": "Username",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Sign Up",
+      "haveAccount": "Already have an account?",
+      "signInLink": "Sign In"
+    },
+    "successDialog": {
+      "title": "Email confirmation sent",
+      "description": "We have sent a link to confirm your email to {{email}}",
+      "ok": "OK"
+    },
+    "linkSentBanner": {
+      "text": "The link has been sent by email. If you don't receive an email, <resend>send link again</resend>"
+    },
+    "alreadyRegisteredDialog": {
+      "title": {
+        "email": "Already registered",
+        "login": "Username taken"
+      },
+      "description": {
+        "email": "User with this email is already registered",
+        "login": "User with this username is already registered"
+      }
+    },
+    "resendDialog": {
+      "title": "Resend confirmation link",
+      "emailLabel": "Email",
+      "send": "Send",
+      "cancel": "Cancel"
+    },
+    "confirm": {
+      "loading": "Confirming your email…",
+      "successTitle": "Congratulations! Your email has been confirmed",
+      "alreadyConfirmedTitle": "Your email is already confirmed. You can sign in now.",
+      "missingCodeMessage": "The confirmation link is missing a code. Please use the link from your email.",
+      "signIn": "Sign In",
+      "expiredTitle": "Looks like the verification link has expired. Not to worry, we can send the link again",
+      "resend": "Resend verification link"
+    },
+    "toasts": {
+      "resent": "Confirmation email resent",
+      "generic": "Something went wrong"
     }
   }
 }

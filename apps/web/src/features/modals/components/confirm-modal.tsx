@@ -52,7 +52,7 @@ export function ConfirmModal({ isOpen, props }: Props) {
             {props.cancelLabel ?? "Cancel"}
           </Button>
           <Button
-            disabled={pending}
+            loading={pending}
             onClick={handleConfirm}
             variant={props.tone === "destructive" ? "destructive" : "default"}
           >

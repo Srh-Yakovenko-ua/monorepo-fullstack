@@ -2,7 +2,6 @@ import type { z } from "zod";
 
 import { LoginInputSchema } from "@app/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
@@ -14,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAdminAuth } from "@/features/admin-auth/hooks/use-admin-auth";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { applyMessageToFields, toastApiError } from "@/lib/api-errors";
 import { ApiError } from "@/lib/http-client";
 
 type LoginFormValues = z.infer<typeof LoginInputSchema>;
@@ -40,12 +40,12 @@ export function AdminLoginPage() {
       void navigate(nextPath ?? "/users", { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        form.setError("loginOrEmail", { message: t("admin.login.invalidCreds") });
-        form.setError("password", { message: t("admin.login.invalidCreds") });
-        toast.error(t("admin.login.invalidCreds"));
-      } else {
-        toast.error(err instanceof Error ? err.message : t("common.somethingWentWrong"));
+        const message = t("admin.login.invalidCreds");
+        applyMessageToFields(form, ["loginOrEmail", "password"], message);
+        toast.error(message);
+        return;
       }
+      toastApiError(err, t("common.somethingWentWrong"));
     }
   }
 
@@ -91,8 +91,7 @@ export function AdminLoginPage() {
             <FieldError error={form.formState.errors.password} id="login-password-error" />
           </div>
 
-          <Button className="mt-2 w-full" disabled={isPending} type="submit">
-            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+          <Button className="mt-2 w-full" loading={isPending} type="submit">
             {t("admin.login.submit")}
           </Button>
         </form>

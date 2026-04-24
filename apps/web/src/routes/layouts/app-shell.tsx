@@ -1,4 +1,5 @@
 import { Activity, BookOpen, FileText, Layers, LogOut, Users, Video } from "lucide-react";
+import { motion } from "motion/react";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
@@ -29,6 +30,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAdminAuth } from "@/features/admin-auth";
+import { usePost } from "@/features/posts/hooks/use-post";
 import { UserMenu } from "@/features/user-auth";
 import { cn } from "@/lib/utils";
 
@@ -111,7 +113,11 @@ function AppSidebar() {
                           {t(`nav.${key}`)}
                         </span>
                         {isActive && (
-                          <div className="absolute top-1/2 left-0 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
+                          <motion.div
+                            className="absolute top-1/2 left-0 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-primary"
+                            layoutId="sidebar-active-indicator"
+                            transition={{ damping: 34, stiffness: 420, type: "spring" }}
+                          />
                         )}
                       </SidebarMenuButton>
                     )}
@@ -240,8 +246,12 @@ function PageBreadcrumbs() {
           <>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage className="max-w-[160px] truncate font-mono text-[11px] tracking-[0.14em] uppercase">
-                {second}
+              <BreadcrumbPage className="max-w-[260px] truncate font-mono text-[11px] tracking-[0.14em] uppercase">
+                {first === "posts" ? (
+                  <PostBreadcrumbTitle fallback={second} postId={second} />
+                ) : (
+                  second
+                )}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </>
@@ -249,4 +259,9 @@ function PageBreadcrumbs() {
       </BreadcrumbList>
     </Breadcrumb>
   );
+}
+
+function PostBreadcrumbTitle({ fallback, postId }: { fallback: string; postId: string }) {
+  const { data: post } = usePost(postId);
+  return <>{post?.title ?? fallback}</>;
 }

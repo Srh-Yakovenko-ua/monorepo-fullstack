@@ -15,7 +15,11 @@ const apiErrorBodySchema = z.object({
   errorsMessages: z.array(fieldErrorSchema),
 });
 
+export type AuthMode = "basic" | "jwt" | "none";
+
 export type FieldError = z.infer<typeof fieldErrorSchema>;
+
+export type RequestOptions = RequestInit & { authMode?: AuthMode };
 
 export class ApiError extends Error {
   constructor(
@@ -28,37 +32,23 @@ export class ApiError extends Error {
   }
 }
 
-export async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const jwtToken = getToken();
-  const adminHeader = getAdminAuthHeader();
-  const isLoginEndpoint = path === "/api/auth/login";
+export async function request<T>(path: string, init?: RequestOptions): Promise<T> {
+  const { authMode = "jwt", ...fetchInit } = init ?? {};
+  const { header, mode } = resolveAuthHeader(authMode);
 
-  const authHeaders: Record<string, string> = {};
-  if (jwtToken && !isLoginEndpoint) {
-    authHeaders["Authorization"] = `Bearer ${jwtToken}`;
-  } else if (adminHeader && !isLoginEndpoint) {
-    authHeaders["Authorization"] = adminHeader;
-  }
-
-  const usedJwt = !!jwtToken && !isLoginEndpoint;
-  const usedAdmin = !jwtToken && !!adminHeader && !isLoginEndpoint;
+  const authHeaders: Record<string, string> = header ? { Authorization: header } : {};
 
   const res = await fetch(`${env.VITE_API_BASE_URL}${path}`, {
-    ...init,
+    ...fetchInit,
     headers: {
       "Content-Type": "application/json",
       ...authHeaders,
-      ...init?.headers,
+      ...fetchInit.headers,
     },
   });
 
-  if (res.status === 401 && !isLoginEndpoint) {
-    if (usedJwt) {
-      useUserAuthStore.getState().clearToken();
-    } else if (usedAdmin) {
-      clearAdminAuth();
-      useAdminAuthStore.getState().setAuthed(false);
-    }
+  if (res.status === 401 && header) {
+    clearAuthFor(mode);
   }
 
   if (!res.ok) {
@@ -78,4 +68,24 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (res.status === 204) return undefined as T;
 
   return res.json() as Promise<T>;
+}
+
+function clearAuthFor(mode: AuthMode): void {
+  if (mode === "jwt") {
+    useUserAuthStore.getState().clearToken();
+    return;
+  }
+  if (mode === "basic") {
+    clearAdminAuth();
+    useAdminAuthStore.getState().setAuthed(false);
+  }
+}
+
+function resolveAuthHeader(authMode: AuthMode): { header: null | string; mode: AuthMode } {
+  if (authMode === "none") return { header: null, mode: "none" };
+  if (authMode === "basic") {
+    return { header: getAdminAuthHeader(), mode: "basic" };
+  }
+  const token = getToken();
+  return { header: token ? `Bearer ${token}` : null, mode: "jwt" };
 }

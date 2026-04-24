@@ -163,6 +163,15 @@
   --sidebar-ring: var(--ring);
 }
 
+@keyframes progress-shimmer {
+  0% {
+    left: -10%;
+  }
+  100% {
+    left: 110%;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -190,6 +199,19 @@
   @media (prefers-reduced-motion: reduce) {
     body {
       transition: none;
+    }
+
+    .animate-in,
+    .animate-out {
+      animation: none !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
     }
   }
 

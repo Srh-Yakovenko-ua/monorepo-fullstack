@@ -1,64 +1,110 @@
-import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
-import { ListPageSkeleton } from "@/components/list-page-skeleton";
-import { PageLoading } from "@/components/page-loading";
-import { AdminLoginPage, RequireAdminAuth } from "@/features/admin-auth";
+import { RequireAdminAuth } from "@/features/admin-auth";
 import { ModalsRoot } from "@/features/modals";
-import { UserLoginPage } from "@/features/user-auth";
 import { AppErrorBoundary } from "@/routes/error-boundary";
 import { AppShell } from "@/routes/layouts/app-shell";
-
-const HealthPage = lazy(() => import("@/features/health").then((m) => ({ default: m.HealthPage })));
-
-const BlogsPage = lazy(() => import("@/features/blogs").then((m) => ({ default: m.BlogsPage })));
-
-const PostsPage = lazy(() => import("@/features/posts").then((m) => ({ default: m.PostsPage })));
-
-const PostDetailPage = lazy(() =>
-  import("@/features/posts").then((m) => ({ default: m.PostDetailPage })),
-);
-
-const VideosPage = lazy(() => import("@/features/videos").then((m) => ({ default: m.VideosPage })));
-
-const UsersPage = lazy(() => import("@/features/users").then((m) => ({ default: m.UsersPage })));
-
-const NotFoundPage = lazy(() =>
-  import("@/routes/not-found-page").then((m) => ({ default: m.NotFoundPage })),
-);
-
-function lazyRoute(
-  Component: React.LazyExoticComponent<React.ComponentType>,
-  fallback: React.ReactNode = <PageLoading />,
-) {
-  return <Suspense fallback={fallback}>{<Component />}</Suspense>;
-}
+import { RootLayout } from "@/routes/layouts/root-layout";
 
 const router = createBrowserRouter([
   {
     children: [
-      { element: lazyRoute(HealthPage), index: true },
-      { element: lazyRoute(BlogsPage, <ListPageSkeleton />), path: "blogs" },
-      { element: lazyRoute(PostsPage, <ListPageSkeleton />), path: "posts" },
-      { element: lazyRoute(PostDetailPage), path: "posts/:postId" },
-      { element: lazyRoute(VideosPage, <ListPageSkeleton />), path: "videos" },
       {
-        element: <RequireAdminAuth>{lazyRoute(UsersPage, <ListPageSkeleton />)}</RequireAdminAuth>,
-        path: "users",
+        children: [
+          {
+            index: true,
+            lazy: async () => {
+              const { HealthPage } = await import("@/features/health/pages/health-page");
+              return { Component: HealthPage };
+            },
+          },
+          {
+            lazy: async () => {
+              const { BlogsPage } = await import("@/features/blogs/pages/blogs-page");
+              return { Component: BlogsPage };
+            },
+            path: "blogs",
+          },
+          {
+            lazy: async () => {
+              const { PostsPage } = await import("@/features/posts/pages/posts-page");
+              return { Component: PostsPage };
+            },
+            path: "posts",
+          },
+          {
+            lazy: async () => {
+              const { PostDetailPage } = await import("@/features/posts/pages/post-detail-page");
+              return { Component: PostDetailPage };
+            },
+            path: "posts/:postId",
+          },
+          {
+            lazy: async () => {
+              const { VideosPage } = await import("@/features/videos/pages/videos-page");
+              return { Component: VideosPage };
+            },
+            path: "videos",
+          },
+          {
+            lazy: async () => {
+              const { UsersPage } = await import("@/features/users/pages/users-page");
+              return {
+                Component: function UsersRoute() {
+                  return (
+                    <RequireAdminAuth>
+                      <UsersPage />
+                    </RequireAdminAuth>
+                  );
+                },
+              };
+            },
+            path: "users",
+          },
+          {
+            lazy: async () => {
+              const { NotFoundPage } = await import("@/routes/not-found-page");
+              return { Component: NotFoundPage };
+            },
+            path: "*",
+          },
+        ],
+        element: <AppShell />,
+        errorElement: <AppErrorBoundary />,
+        path: "/",
       },
-      { element: lazyRoute(NotFoundPage), path: "*" },
+      {
+        lazy: async () => {
+          const { AdminLoginPage } =
+            await import("@/features/admin-auth/components/admin-login-page");
+          return { Component: AdminLoginPage };
+        },
+        path: "admin/login",
+      },
+      {
+        lazy: async () => {
+          const { UserLoginPage } = await import("@/features/user-auth/components/login-page");
+          return { Component: UserLoginPage };
+        },
+        path: "login",
+      },
+      {
+        lazy: async () => {
+          const { SignupPage } = await import("@/features/registration/components/signup-page");
+          return { Component: SignupPage };
+        },
+        path: "signup",
+      },
+      {
+        lazy: async () => {
+          const { ConfirmRegistrationPage } =
+            await import("@/features/registration/components/confirm-registration-page");
+          return { Component: ConfirmRegistrationPage };
+        },
+        path: "confirm-registration",
+      },
     ],
-    element: <AppShell />,
-    errorElement: <AppErrorBoundary />,
-    path: "/",
-  },
-  {
-    element: <AdminLoginPage />,
-    path: "admin/login",
-  },
-  {
-    element: <UserLoginPage />,
-    path: "login",
+    element: <RootLayout />,
   },
 ]);
 

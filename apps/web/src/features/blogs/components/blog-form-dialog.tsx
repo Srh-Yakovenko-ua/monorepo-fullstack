@@ -4,7 +4,6 @@ import type { z } from "zod";
 
 import { BlogInputSchema } from "@app/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -149,8 +148,7 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
         <div className="h-px w-full bg-border/60" />
 
         <div className="flex justify-end px-7 py-4">
-          <Button disabled={isPending} form="blog-form" type="submit">
-            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+          <Button form="blog-form" loading={isPending} type="submit">
             {mode === "create" ? t("common.create") : t("common.save")}
           </Button>
         </div>

@@ -1,6 +1,8 @@
 import type { PostSortField, PostViewModel } from "@app/shared";
+import type { Variants } from "motion/react";
 
 import { BookOpen, FileText, MoreHorizontal, Plus } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,7 +32,6 @@ import { useDeletePost } from "@/features/posts/hooks/use-post-mutations";
 import { useInfinitePosts } from "@/features/posts/hooks/use-posts";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { gradientFromString } from "@/lib/gradient-from-string";
-import { cn } from "@/lib/utils";
 
 const SORT_VALUES = ["newest", "oldest"] as const;
 type SortValue = (typeof SORT_VALUES)[number];
@@ -47,6 +48,19 @@ const SORT_OPTIONS = [
   { sortBy: "createdAt", sortDirection: "desc", value: "newest" },
   { sortBy: "createdAt", sortDirection: "asc", value: "oldest" },
 ] satisfies readonly [SortOption, ...SortOption[]];
+
+const gridVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.06 },
+  },
+};
+
+const cardVariants: Variants = {
+  exit: { opacity: 0, scale: 0.9 },
+  hidden: { opacity: 0, scale: 0.96, y: 12 },
+  visible: { opacity: 1, scale: 1, y: 0 },
+};
 
 export function PostsPage() {
   const { t } = useTranslation();
@@ -186,7 +200,12 @@ export function PostsPage() {
         )}
 
         {isError && (
-          <div className="animate-in rounded-2xl border border-destructive/20 bg-destructive/5 px-8 py-12 text-center backdrop-blur-md duration-500 fill-mode-both fade-in">
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-destructive/20 bg-destructive/5 px-8 py-12 text-center backdrop-blur-md"
+            initial={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.4 }}
+          >
             <p
               className="font-display text-base font-normal text-destructive"
               style={{ letterSpacing: "-0.02em" }}
@@ -196,11 +215,16 @@ export function PostsPage() {
             <p className="mt-1 font-mono text-[10px] tracking-[0.18em] text-muted-foreground uppercase">
               {error.message}
             </p>
-          </div>
+          </motion.div>
         )}
 
         {!isLoading && !isError && posts.length === 0 && (
-          <div className="animate-in rounded-2xl border border-border/60 bg-card/70 px-8 py-20 text-center shadow-[var(--shadow-card)] backdrop-blur-md duration-700 fill-mode-both fade-in">
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-border/60 bg-card/70 px-8 py-20 text-center shadow-[var(--shadow-card)] backdrop-blur-md"
+            initial={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.5 }}
+          >
             <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-primary/8">
               <FileText className="size-6 text-primary/70" />
             </div>
@@ -222,21 +246,27 @@ export function PostsPage() {
               <Plus className="size-3.5" />
               {t("posts.list.createButton")}
             </Button>
-          </div>
+          </motion.div>
         )}
 
         {!isLoading && !isError && posts.length > 0 && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {posts.map(({ post, postIndex }) => (
-              <PostCard
-                index={Math.min(postIndex, 6)}
-                key={post.id}
-                onDelete={openDeleteConfirm}
-                onEdit={setEditPost}
-                post={post}
-              />
-            ))}
-          </div>
+          <motion.div
+            animate="visible"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            initial="hidden"
+            variants={gridVariants}
+          >
+            <AnimatePresence mode="popLayout">
+              {posts.map(({ post }) => (
+                <PostCard
+                  key={post.id}
+                  onDelete={openDeleteConfirm}
+                  onEdit={setEditPost}
+                  post={post}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
 
         {isFetchingNextPage && (
@@ -286,12 +316,10 @@ export function PostsPage() {
 }
 
 function PostCard({
-  index,
   onDelete,
   onEdit,
   post,
 }: {
-  index: number;
   onDelete: (post: PostViewModel) => void;
   onEdit: (post: PostViewModel) => void;
   post: PostViewModel;
@@ -312,16 +340,13 @@ function PostCard({
   }
 
   return (
-    <article
-      className={cn(
-        "group relative flex animate-in flex-col rounded-2xl",
-        "border border-border/60 bg-card/80 backdrop-blur-md",
-        "shadow-[var(--shadow-card)]",
-        "transition-all duration-200 hover:-translate-y-1",
-        "hover:border-primary/25 hover:shadow-[var(--shadow-pop)]",
-        "overflow-hidden fill-mode-both fade-in slide-in-from-bottom-2",
-      )}
-      style={{ animationDelay: `${index * 60}ms`, animationDuration: "500ms" }}
+    <motion.article
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/80 shadow-[var(--shadow-card)] backdrop-blur-md hover:border-primary/25 hover:shadow-[var(--shadow-pop)]"
+      layout
+      transition={{ damping: 28, stiffness: 340, type: "spring" }}
+      variants={cardVariants}
+      whileHover={{ scale: 1.02, y: -4 }}
+      whileTap={{ scale: 0.98 }}
     >
       <button
         aria-label={t("actions.open")}
@@ -380,6 +405,6 @@ function PostCard({
           </span>
         )}
       </div>
-    </article>
+    </motion.article>
   );
 }

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateComment } from "@/features/comments/hooks/use-comment-mutations";
+import { applyFieldErrors, toastApiError } from "@/lib/api-errors";
 
 type FormValues = { content: string };
 
@@ -35,19 +36,24 @@ export function EditCommentForm({ comment, onDone, postId }: Props) {
       await updateComment.mutateAsync({ commentId: comment.id, content: values.content });
       toast.success(t("comments.toasts.updated"));
       onDone();
-    } catch {
-      toast.error(t("comments.toasts.updateFailed"));
+    } catch (err) {
+      if (applyFieldErrors(form, err)) return;
+      toastApiError(err, t("comments.toasts.updateFailed"));
     }
   }
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)}>
-      <Textarea {...form.register("content")} />
+      <Textarea
+        aria-label={t("comments.editComment.label")}
+        maxLength={300}
+        {...form.register("content")}
+      />
       <div className="mt-2 flex justify-end gap-2">
         <Button onClick={onDone} size="sm" type="button" variant="ghost">
           {t("comments.editComment.cancel")}
         </Button>
-        <Button disabled={isSaveDisabled} size="sm" type="submit">
+        <Button disabled={isSaveDisabled} loading={updateComment.isPending} size="sm" type="submit">
           {t("comments.editComment.save")}
         </Button>
       </div>

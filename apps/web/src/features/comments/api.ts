@@ -3,9 +3,7 @@ import type { CommentViewModel, Paginator } from "@app/shared";
 import { request } from "@/lib/http-client";
 
 export const commentsKeys = {
-  all: ["comments"] as const,
-  detail: (id: string) => [...commentsKeys.all, "detail", id] as const,
-  postComments: (postId: string) => [...commentsKeys.all, "post", postId] as const,
+  postComments: (postId: string) => ["comments", "post", postId] as const,
 };
 
 export const commentsApi = {

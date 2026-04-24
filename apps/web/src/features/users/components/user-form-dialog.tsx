@@ -3,7 +3,6 @@ import type { z } from "zod";
 
 import { CreateUserInputSchema } from "@app/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -120,8 +119,7 @@ export function UserFormDialog({ onOpenChange, open }: UserFormDialogProps) {
         <div className="h-px w-full bg-border/60" />
 
         <div className="flex justify-end px-7 py-4">
-          <Button disabled={isPending} form="user-form" type="submit">
-            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+          <Button form="user-form" loading={isPending} type="submit">
             {t("common.create")}
           </Button>
         </div>
