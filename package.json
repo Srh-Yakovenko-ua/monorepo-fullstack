@@ -24,7 +24,7 @@
     "knip:fix": "knip --fix",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "storybook": "pnpm --filter @app/web storybook",
-    "super-admin": "pnpm --filter @app/api super-admin --",
+    "super-admin": "pnpm --filter @app/api super-admin",
     "clean:cache": "rm -rf .turbo apps/*/.turbo packages/*/.turbo node_modules/.cache .playwright-mcp && find . -maxdepth 1 -name '*.png' -delete",
     "prepare": "husky"
   },

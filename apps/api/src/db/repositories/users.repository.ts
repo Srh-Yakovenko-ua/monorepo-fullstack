@@ -87,6 +87,10 @@ export async function updateEmailConfirmation(
   await UserModel.findByIdAndUpdate(userId, { emailConfirmation });
 }
 
+export async function updatePasswordHash(userId: string, passwordHash: string): Promise<void> {
+  await UserModel.findByIdAndUpdate(userId, { passwordHash });
+}
+
 export async function updateRole(userId: string, role: UserRole): Promise<void> {
   await UserModel.findByIdAndUpdate(userId, { role });
 }
