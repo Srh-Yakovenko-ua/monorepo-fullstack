@@ -1,4 +1,4 @@
-import type { UpdateUserRoleInput, UserRole, UsersQuery } from "@app/shared";
+import type { UserRole, UsersQuery } from "@app/shared";
 
 import { ROLE } from "@app/shared";
 
@@ -91,7 +91,7 @@ export async function updateEmailConfirmation(
   await UserModel.findByIdAndUpdate(userId, { emailConfirmation });
 }
 
-export async function updateRole(userId: string, role: UpdateUserRoleInput["role"]): Promise<void> {
+export async function updateRole(userId: string, role: UserRole): Promise<void> {
   await UserModel.findByIdAndUpdate(userId, { role });
 }
 
