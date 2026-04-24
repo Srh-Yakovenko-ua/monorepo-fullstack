@@ -1,6 +1,7 @@
-import type { CreateUserInput, UsersQuery, UserViewModel } from "@app/shared";
+import type { CreateUserInput, UpdateUserRoleInput, UsersQuery, UserViewModel } from "@app/shared";
 import type { Paginator } from "@app/shared";
 
+import { ROLE } from "@app/shared";
 import { hash } from "bcryptjs";
 
 import type { EmailConfirmation, UserDoc } from "../db/models/user.model.js";
@@ -35,12 +36,16 @@ export async function createUser(input: CreateUserInput): Promise<UserViewModel>
     emailConfirmation: { code: null, expiresAt: null, isConfirmed: true },
     login: input.login,
     passwordHash,
+    role: ROLE.user,
   });
 
   return toUserView(doc);
 }
 
 export async function deleteUser(id: string): Promise<void> {
+  const target = await usersRepository.findById(id);
+  if (!target) throw new NotFoundError(`User with id ${id} not found`);
+  if (target.role === ROLE.superAdmin) throw new BadRequestError("Cannot delete super-admin");
   const removed = await usersRepository.remove(id);
   if (!removed) throw new NotFoundError(`User with id ${id} not found`);
 }
@@ -79,6 +84,7 @@ export async function registerUser(
     emailConfirmation,
     login: userInput.login,
     passwordHash,
+    role: ROLE.user,
   });
 }
 
@@ -89,4 +95,31 @@ export function toUserView(doc: UserDoc): UserViewModel {
     id: doc._id.toHexString(),
     login: doc.login,
   };
+}
+
+export async function updateUserRole({
+  actorUserId,
+  newRole,
+  targetUserId,
+}: {
+  actorUserId: string;
+  newRole: UpdateUserRoleInput["role"];
+  targetUserId: string;
+}): Promise<void> {
+  if (targetUserId === actorUserId) {
+    throw new BadRequestError("Cannot change your own role");
+  }
+
+  const target = await usersRepository.findById(targetUserId);
+  if (!target) throw new NotFoundError(`User with id ${targetUserId} not found`);
+
+  if (target.role === ROLE.superAdmin) {
+    throw new BadRequestError("Cannot change super-admin role");
+  }
+
+  if (target.role === newRole) {
+    return;
+  }
+
+  await usersRepository.updateRole(targetUserId, newRole);
 }

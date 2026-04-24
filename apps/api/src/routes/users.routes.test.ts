@@ -5,6 +5,12 @@ import request from "supertest";
 import { describe, expect, it } from "vitest";
 
 import { createApp } from "../app.js";
+import { UserModel } from "../db/models/user.model.js";
+import {
+  createAdminAndLogin,
+  createSuperAdminAndLogin,
+  createUserAndLogin,
+} from "../test/auth-helpers.js";
 
 const app = createApp();
 
@@ -14,10 +20,10 @@ const validUser = {
   password: "password1",
 };
 
-const createUserViaApi = async (override: Partial<typeof validUser> = {}) =>
+const createUserViaApi = async (adminToken: string, override: Partial<typeof validUser> = {}) =>
   request(app)
     .post("/api/users")
-    .auth("admin", "qwerty")
+    .set("authorization", `Bearer ${adminToken}`)
     .send({ ...validUser, ...override });
 
 describe("Users API", () => {
@@ -28,61 +34,76 @@ describe("Users API", () => {
       expect(res.status).toBe(401);
     });
 
-    it("returns 401 with wrong credentials", async () => {
-      const res = await request(app).get("/api/users").auth("admin", "wrong");
+    it("returns 401 with invalid token", async () => {
+      const res = await request(app)
+        .get("/api/users")
+        .set("authorization", "Bearer garbage.token.value");
 
       expect(res.status).toBe(401);
     });
 
-    it("returns 200 with empty paginator when no users exist", async () => {
-      const res = await request(app).get("/api/users").auth("admin", "qwerty");
-
-      expect(res.status).toBe(200);
-      expect(res.body).toMatchObject({
-        items: [],
-        page: 1,
-        pagesCount: 0,
-        pageSize: 10,
-        totalCount: 0,
+    it("returns 403 with user-level token", async () => {
+      const userToken = await createUserAndLogin(app, {
+        email: "user@example.dev",
+        login: "regularuser",
+        password: "password1",
       });
+
+      const res = await request(app).get("/api/users").set("authorization", `Bearer ${userToken}`);
+
+      expect(res.status).toBe(403);
     });
 
-    it("returns 200 with paginator containing one item after creating a user", async () => {
-      await createUserViaApi();
+    it("returns 200 with paginator containing only the seed admin when no extra users exist", async () => {
+      const adminToken = await createAdminAndLogin(app);
 
-      const res = await request(app).get("/api/users").auth("admin", "qwerty");
+      const res = await request(app).get("/api/users").set("authorization", `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.items).toHaveLength(1);
       expect(res.body.totalCount).toBe(1);
+      expect(res.body.pagesCount).toBe(1);
+      expect(res.body.items).toHaveLength(1);
+    });
+
+    it("returns 200 with paginator containing two items after creating one extra user", async () => {
+      const adminToken = await createAdminAndLogin(app);
+      await createUserViaApi(adminToken);
+
+      const res = await request(app).get("/api/users").set("authorization", `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.items).toHaveLength(2);
+      expect(res.body.totalCount).toBe(2);
       expect(res.body.pagesCount).toBe(1);
     });
 
     it("respects pageNumber and pageSize", async () => {
-      await createUserViaApi({ email: "a@example.dev", login: "usera" });
-      await createUserViaApi({ email: "b@example.dev", login: "userb" });
-      await createUserViaApi({ email: "c@example.dev", login: "userc" });
-      await createUserViaApi({ email: "d@example.dev", login: "userd" });
+      const adminToken = await createAdminAndLogin(app);
+      await createUserViaApi(adminToken, { email: "a@example.dev", login: "usera" });
+      await createUserViaApi(adminToken, { email: "b@example.dev", login: "userb" });
+      await createUserViaApi(adminToken, { email: "c@example.dev", login: "userc" });
+      await createUserViaApi(adminToken, { email: "d@example.dev", login: "userd" });
 
       const res = await request(app)
-        .get("/api/users?pageSize=2&pageNumber=2")
-        .auth("admin", "qwerty");
+        .get("/api/users?pageSize=3&pageNumber=2")
+        .set("authorization", `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body.page).toBe(2);
-      expect(res.body.pageSize).toBe(2);
-      expect(res.body.totalCount).toBe(4);
+      expect(res.body.pageSize).toBe(3);
+      expect(res.body.totalCount).toBe(5);
       expect(res.body.pagesCount).toBe(2);
       expect(res.body.items).toHaveLength(2);
     });
 
     it("filters by searchLoginTerm case-insensitively", async () => {
-      await createUserViaApi({ email: "alice@example.dev", login: "alice" });
-      await createUserViaApi({ email: "bob@example.dev", login: "bob" });
+      const adminToken = await createAdminAndLogin(app);
+      await createUserViaApi(adminToken, { email: "alice@example.dev", login: "alice" });
+      await createUserViaApi(adminToken, { email: "bob@example.dev", login: "bob" });
 
       const res = await request(app)
         .get("/api/users?searchLoginTerm=ALICE")
-        .auth("admin", "qwerty");
+        .set("authorization", `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body.items).toHaveLength(1);
@@ -90,12 +111,13 @@ describe("Users API", () => {
     });
 
     it("filters by searchEmailTerm case-insensitively", async () => {
-      await createUserViaApi({ email: "charlie@example.dev", login: "charlie" });
-      await createUserViaApi({ email: "dave@other.dev", login: "dave" });
+      const adminToken = await createAdminAndLogin(app);
+      await createUserViaApi(adminToken, { email: "charlie@example.dev", login: "charlie" });
+      await createUserViaApi(adminToken, { email: "dave@other.dev", login: "dave" });
 
       const res = await request(app)
         .get("/api/users?searchEmailTerm=EXAMPLE")
-        .auth("admin", "qwerty");
+        .set("authorization", `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body.items).toHaveLength(1);
@@ -103,13 +125,14 @@ describe("Users API", () => {
     });
 
     it("OR-combines searchLoginTerm and searchEmailTerm", async () => {
-      await createUserViaApi({ email: "eva@example.dev", login: "eva" });
-      await createUserViaApi({ email: "frank@special.dev", login: "frank" });
-      await createUserViaApi({ email: "grace@other.dev", login: "grace" });
+      const adminToken = await createAdminAndLogin(app);
+      await createUserViaApi(adminToken, { email: "eva@example.dev", login: "eva" });
+      await createUserViaApi(adminToken, { email: "frank@special.dev", login: "frank" });
+      await createUserViaApi(adminToken, { email: "grace@other.dev", login: "grace" });
 
       const res = await request(app)
         .get("/api/users?searchLoginTerm=eva&searchEmailTerm=special")
-        .auth("admin", "qwerty");
+        .set("authorization", `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body.totalCount).toBe(2);
@@ -120,22 +143,24 @@ describe("Users API", () => {
     });
 
     it("sorts by login ascending", async () => {
-      await createUserViaApi({ email: "zebra@example.dev", login: "zebra" });
-      await createUserViaApi({ email: "apple@example.dev", login: "apple" });
+      const adminToken = await createAdminAndLogin(app);
+      await createUserViaApi(adminToken, { email: "zebra@example.dev", login: "zebra" });
+      await createUserViaApi(adminToken, { email: "apple@example.dev", login: "apple" });
 
       const res = await request(app)
         .get("/api/users?sortBy=login&sortDirection=asc")
-        .auth("admin", "qwerty");
+        .set("authorization", `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body.items[0].login).toBe("apple");
-      expect(res.body.items[1].login).toBe("zebra");
+      expect(res.body.items[2].login).toBe("zebra");
     });
 
     it("view model contains id, login, email, createdAt and no password fields", async () => {
-      await createUserViaApi();
+      const adminToken = await createAdminAndLogin(app);
+      await createUserViaApi(adminToken);
 
-      const res = await request(app).get("/api/users").auth("admin", "qwerty");
+      const res = await request(app).get("/api/users").set("authorization", `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       const userItem: UserViewModel = res.body.items[0];
@@ -155,8 +180,24 @@ describe("Users API", () => {
       expect(res.status).toBe(401);
     });
 
+    it("returns 403 with user-level token", async () => {
+      const userToken = await createUserAndLogin(app, {
+        email: "user@example.dev",
+        login: "regularuser",
+        password: "password1",
+      });
+
+      const res = await request(app)
+        .post("/api/users")
+        .set("authorization", `Bearer ${userToken}`)
+        .send(validUser);
+
+      expect(res.status).toBe(403);
+    });
+
     it("returns 201 with view model on valid body", async () => {
-      const res = await createUserViaApi();
+      const adminToken = await createAdminAndLogin(app);
+      const res = await createUserViaApi(adminToken);
 
       expect(res.status).toBe(201);
       expect(typeof res.body.id).toBe("string");
@@ -166,7 +207,8 @@ describe("Users API", () => {
     });
 
     it("response body does not contain password or passwordHash", async () => {
-      const res = await createUserViaApi();
+      const adminToken = await createAdminAndLogin(app);
+      const res = await createUserViaApi(adminToken);
 
       expect(res.status).toBe(201);
       expect(res.body).not.toHaveProperty("password");
@@ -174,7 +216,8 @@ describe("Users API", () => {
     });
 
     it("stores a bcrypt hash in the database", async () => {
-      const res = await createUserViaApi();
+      const adminToken = await createAdminAndLogin(app);
+      const res = await createUserViaApi(adminToken);
 
       expect(res.status).toBe(201);
 
@@ -188,7 +231,8 @@ describe("Users API", () => {
     });
 
     it("returns 400 when login is too short", async () => {
-      const res = await createUserViaApi({ login: "ab" });
+      const adminToken = await createAdminAndLogin(app);
+      const res = await createUserViaApi(adminToken, { login: "ab" });
 
       expect(res.status).toBe(400);
       expect(res.body.errorsMessages).toEqual(
@@ -197,7 +241,8 @@ describe("Users API", () => {
     });
 
     it("returns 400 when login is too long", async () => {
-      const res = await createUserViaApi({ login: "a".repeat(11) });
+      const adminToken = await createAdminAndLogin(app);
+      const res = await createUserViaApi(adminToken, { login: "a".repeat(11) });
 
       expect(res.status).toBe(400);
       expect(res.body.errorsMessages).toEqual(
@@ -206,7 +251,8 @@ describe("Users API", () => {
     });
 
     it("returns 400 when login contains invalid characters", async () => {
-      const res = await createUserViaApi({ login: "bad!name" });
+      const adminToken = await createAdminAndLogin(app);
+      const res = await createUserViaApi(adminToken, { login: "bad!name" });
 
       expect(res.status).toBe(400);
       expect(res.body.errorsMessages).toEqual(
@@ -215,7 +261,8 @@ describe("Users API", () => {
     });
 
     it("returns 400 when password is too short", async () => {
-      const res = await createUserViaApi({ password: "abc" });
+      const adminToken = await createAdminAndLogin(app);
+      const res = await createUserViaApi(adminToken, { password: "abc" });
 
       expect(res.status).toBe(400);
       expect(res.body.errorsMessages).toEqual(
@@ -224,7 +271,8 @@ describe("Users API", () => {
     });
 
     it("returns 400 when password is too long", async () => {
-      const res = await createUserViaApi({ password: "a".repeat(21) });
+      const adminToken = await createAdminAndLogin(app);
+      const res = await createUserViaApi(adminToken, { password: "a".repeat(21) });
 
       expect(res.status).toBe(400);
       expect(res.body.errorsMessages).toEqual(
@@ -233,7 +281,8 @@ describe("Users API", () => {
     });
 
     it("returns 400 when email does not match the required pattern", async () => {
-      const res = await createUserViaApi({ email: "not-an-email" });
+      const adminToken = await createAdminAndLogin(app);
+      const res = await createUserViaApi(adminToken, { email: "not-an-email" });
 
       expect(res.status).toBe(400);
       expect(res.body.errorsMessages).toEqual(
@@ -242,9 +291,10 @@ describe("Users API", () => {
     });
 
     it("returns 400 with login field error on duplicate login", async () => {
-      await createUserViaApi();
+      const adminToken = await createAdminAndLogin(app);
+      await createUserViaApi(adminToken);
 
-      const res = await createUserViaApi({ email: "other@example.dev" });
+      const res = await createUserViaApi(adminToken, { email: "other@example.dev" });
 
       expect(res.status).toBe(400);
       expect(res.body.errorsMessages).toEqual(
@@ -253,9 +303,10 @@ describe("Users API", () => {
     });
 
     it("returns 400 with email field error on duplicate email", async () => {
-      await createUserViaApi();
+      const adminToken = await createAdminAndLogin(app);
+      await createUserViaApi(adminToken);
 
-      const res = await createUserViaApi({ login: "other" });
+      const res = await createUserViaApi(adminToken, { login: "other" });
 
       expect(res.status).toBe(400);
       expect(res.body.errorsMessages).toEqual(
@@ -266,7 +317,8 @@ describe("Users API", () => {
 
   describe("DELETE /api/users/:id", () => {
     it("returns 401 without auth", async () => {
-      const created = await createUserViaApi();
+      const adminToken = await createAdminAndLogin(app);
+      const created = await createUserViaApi(adminToken);
       const id: string = created.body.id;
 
       const res = await request(app).delete(`/api/users/${id}`);
@@ -274,29 +326,192 @@ describe("Users API", () => {
       expect(res.status).toBe(401);
     });
 
-    it("returns 204 on existing user and 404 on the same id afterwards", async () => {
-      const created = await createUserViaApi();
+    it("returns 403 with user-level token", async () => {
+      const adminToken = await createAdminAndLogin(app);
+      const created = await createUserViaApi(adminToken);
       const id: string = created.body.id;
 
-      const deleteRes = await request(app).delete(`/api/users/${id}`).auth("admin", "qwerty");
+      const userToken = await createUserAndLogin(app, {
+        email: "user2@example.dev",
+        login: "regularuser2",
+        password: "password1",
+      });
+
+      const res = await request(app)
+        .delete(`/api/users/${id}`)
+        .set("authorization", `Bearer ${userToken}`);
+
+      expect(res.status).toBe(403);
+    });
+
+    it("returns 204 on existing user and 404 on the same id afterwards", async () => {
+      const adminToken = await createAdminAndLogin(app);
+      const created = await createUserViaApi(adminToken);
+      const id: string = created.body.id;
+
+      const deleteRes = await request(app)
+        .delete(`/api/users/${id}`)
+        .set("authorization", `Bearer ${adminToken}`);
 
       expect(deleteRes.status).toBe(204);
 
-      const secondDeleteRes = await request(app).delete(`/api/users/${id}`).auth("admin", "qwerty");
+      const secondDeleteRes = await request(app)
+        .delete(`/api/users/${id}`)
+        .set("authorization", `Bearer ${adminToken}`);
 
       expect(secondDeleteRes.status).toBe(404);
     });
 
     it("returns 404 for a valid ObjectId that does not exist", async () => {
+      const adminToken = await createAdminAndLogin(app);
+
       const res = await request(app)
         .delete("/api/users/000000000000000000000000")
-        .auth("admin", "qwerty");
+        .set("authorization", `Bearer ${adminToken}`);
 
       expect(res.status).toBe(404);
     });
 
     it("returns 404 for a malformed id", async () => {
-      const res = await request(app).delete("/api/users/not-an-id").auth("admin", "qwerty");
+      const adminToken = await createAdminAndLogin(app);
+
+      const res = await request(app)
+        .delete("/api/users/not-an-id")
+        .set("authorization", `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(404);
+    });
+
+    it("returns 400 when trying to delete a super-admin", async () => {
+      const { token: superToken, userId: superAdminId } = await createSuperAdminAndLogin(app);
+
+      const adminToken = await createAdminAndLogin(app);
+
+      const res = await request(app)
+        .delete(`/api/users/${superAdminId}`)
+        .set("authorization", `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(400);
+
+      void superToken;
+    });
+  });
+
+  describe("PUT /api/users/:id/role", () => {
+    it("returns 401 without token", async () => {
+      const res = await request(app)
+        .put("/api/users/000000000000000000000000/role")
+        .send({ role: "admin" });
+
+      expect(res.status).toBe(401);
+    });
+
+    it("returns 403 with user-level token", async () => {
+      const userToken = await createUserAndLogin(app, {
+        email: "roleuser@example.dev",
+        login: "roleuser",
+        password: "password1",
+      });
+
+      const res = await request(app)
+        .put("/api/users/000000000000000000000000/role")
+        .set("authorization", `Bearer ${userToken}`)
+        .send({ role: "admin" });
+
+      expect(res.status).toBe(403);
+    });
+
+    it("returns 403 with regular admin token", async () => {
+      const adminToken = await createAdminAndLogin(app);
+
+      const res = await request(app)
+        .put("/api/users/000000000000000000000000/role")
+        .set("authorization", `Bearer ${adminToken}`)
+        .send({ role: "admin" });
+
+      expect(res.status).toBe(403);
+    });
+
+    it("returns 204 when super-admin promotes user to admin then demotes back", async () => {
+      const { token: superToken } = await createSuperAdminAndLogin(app);
+      const adminToken = await createAdminAndLogin(app);
+      const created = await createUserViaApi(adminToken);
+      const userId: string = created.body.id;
+
+      const promoteRes = await request(app)
+        .put(`/api/users/${userId}/role`)
+        .set("authorization", `Bearer ${superToken}`)
+        .send({ role: "admin" });
+
+      expect(promoteRes.status).toBe(204);
+
+      const demoteRes = await request(app)
+        .put(`/api/users/${userId}/role`)
+        .set("authorization", `Bearer ${superToken}`)
+        .send({ role: "user" });
+
+      expect(demoteRes.status).toBe(204);
+    });
+
+    it("returns 400 when super-admin tries to change own role", async () => {
+      const { token: superToken, userId: superAdminId } = await createSuperAdminAndLogin(app);
+
+      const res = await request(app)
+        .put(`/api/users/${superAdminId}/role`)
+        .set("authorization", `Bearer ${superToken}`)
+        .send({ role: "admin" });
+
+      expect(res.status).toBe(400);
+    });
+
+    it("returns 400 when targeting another super-admin", async () => {
+      const { token: superToken } = await createSuperAdminAndLogin(app);
+
+      const anotherSuperAdmin = await UserModel.create({
+        email: "super2@test.dev",
+        emailConfirmation: { code: null, expiresAt: null, isConfirmed: true },
+        login: "superadmin2",
+        passwordHash: "irrelevant",
+        role: "superAdmin",
+      });
+
+      const res = await request(app)
+        .put(`/api/users/${anotherSuperAdmin._id.toHexString()}/role`)
+        .set("authorization", `Bearer ${superToken}`)
+        .send({ role: "admin" });
+
+      expect(res.status).toBe(400);
+    });
+
+    it("returns 400 for invalid body role value", async () => {
+      const { token: superToken } = await createSuperAdminAndLogin(app);
+
+      const res = await request(app)
+        .put("/api/users/000000000000000000000000/role")
+        .set("authorization", `Bearer ${superToken}`)
+        .send({ role: "foo" });
+
+      expect(res.status).toBe(400);
+    });
+
+    it("returns 400 when trying to assign superAdmin role via API", async () => {
+      const { token: superToken } = await createSuperAdminAndLogin(app);
+
+      const res = await request(app)
+        .put("/api/users/000000000000000000000000/role")
+        .set("authorization", `Bearer ${superToken}`)
+        .send({ role: "superAdmin" });
+
+      expect(res.status).toBe(400);
+    });
+
+    it("returns 404 for non-existent user id", async () => {
+      const { token: superToken } = await createSuperAdminAndLogin(app);
+
+      const res = await request(app)
+        .put("/api/users/000000000000000000000000/role")
+        .set("authorization", `Bearer ${superToken}`)
+        .send({ role: "admin" });
 
       expect(res.status).toBe(404);
     });

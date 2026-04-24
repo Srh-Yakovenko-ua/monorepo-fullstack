@@ -1,4 +1,6 @@
-import type { UsersQuery } from "@app/shared";
+import type { UpdateUserRoleInput, UserRole, UsersQuery } from "@app/shared";
+
+import { ROLE } from "@app/shared";
 
 import type { EmailConfirmation, UserDoc } from "../models/user.model.js";
 
@@ -6,8 +8,16 @@ import { UserModel } from "../models/user.model.js";
 
 export type UserCreateInput = Pick<
   UserDoc,
-  "email" | "emailConfirmation" | "login" | "passwordHash"
+  "email" | "emailConfirmation" | "login" | "passwordHash" | "role"
 >;
+
+export async function backfillMissingRole(): Promise<number> {
+  const result = await UserModel.updateMany(
+    { role: { $exists: false } },
+    { $set: { role: ROLE.user } },
+  );
+  return result.modifiedCount;
+}
 
 export async function clearAll(): Promise<void> {
   await UserModel.deleteMany({});
@@ -38,6 +48,10 @@ export async function findByLoginOrEmail(loginOrEmail: string): Promise<null | U
   return UserModel.findOne({
     $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
   }).lean();
+}
+
+export async function findFirstByRole(role: UserRole): Promise<null | UserDoc> {
+  return UserModel.findOne({ role }).lean();
 }
 
 export async function findPage(
@@ -75,6 +89,10 @@ export async function updateEmailConfirmation(
   emailConfirmation: EmailConfirmation,
 ): Promise<void> {
   await UserModel.findByIdAndUpdate(userId, { emailConfirmation });
+}
+
+export async function updateRole(userId: string, role: UpdateUserRoleInput["role"]): Promise<void> {
+  await UserModel.findByIdAndUpdate(userId, { role });
 }
 
 function buildFilter(query: UsersQuery): Record<string, unknown> {

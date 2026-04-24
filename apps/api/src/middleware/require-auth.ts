@@ -5,14 +5,12 @@ import { UnauthorizedError } from "../lib/errors.js";
 import { verifyAccessToken } from "../lib/jwt.js";
 
 export async function requireAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
-  const authHeader = req.headers.authorization;
+  const token = req.headers.authorization?.match(/^Bearer\s+(\S+)\s*$/i)?.[1];
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!token) {
     next(new UnauthorizedError());
     return;
   }
-
-  const token = authHeader.slice(7);
 
   let userId: string;
   try {
@@ -32,6 +30,7 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
   req.user = {
     email: user.email,
     login: user.login,
+    role: user.role,
     userId: user._id.toHexString(),
   };
 

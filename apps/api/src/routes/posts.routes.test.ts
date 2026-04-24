@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { createApp } from "../app.js";
 import { CommentModel } from "../db/models/comment.model.js";
+import { createAdminAndLogin } from "../test/auth-helpers.js";
 
 const app = createApp();
 
@@ -39,8 +40,12 @@ async function createBlog(): Promise<{ id: string; name: string }> {
   return res.body as { id: string; name: string };
 }
 
-async function createUserViaApi(user: typeof validUser) {
-  const res = await request(app).post("/api/users").auth("admin", "qwerty").send(user);
+async function createUserViaHelper(user: typeof validUser) {
+  const adminToken = await createAdminAndLogin(app);
+  const res = await request(app)
+    .post("/api/users")
+    .set("authorization", `Bearer ${adminToken}`)
+    .send(user);
   return res.body as { id: string; login: string };
 }
 
@@ -387,7 +392,7 @@ describe("Posts API", () => {
       const postBody = await buildValidPost(blog.id);
       const created = await request(app).post("/api/posts").send(postBody);
       const postId: string = created.body.id;
-      const userData = await createUserViaApi(validUser);
+      const userData = await createUserViaHelper(validUser);
 
       for (let i = 0; i < 3; i++) {
         await CommentModel.create({
@@ -415,7 +420,7 @@ describe("Posts API", () => {
       const postBody = await buildValidPost(blog.id);
       const created = await request(app).post("/api/posts").send(postBody);
       const postId: string = created.body.id;
-      const userData = await createUserViaApi(validUser);
+      const userData = await createUserViaHelper(validUser);
 
       await CommentModel.create({
         commentatorInfo: {
@@ -442,7 +447,7 @@ describe("Posts API", () => {
       const postBody = await buildValidPost(blog.id);
       const created = await request(app).post("/api/posts").send(postBody);
       const postId: string = created.body.id;
-      const userData = await createUserViaApi(validUser);
+      const userData = await createUserViaHelper(validUser);
 
       const dates = [
         new Date("2026-01-01T00:00:00.000Z"),
@@ -473,7 +478,7 @@ describe("Posts API", () => {
       const postBody = await buildValidPost(blog.id);
       const created = await request(app).post("/api/posts").send(postBody);
       const postId: string = created.body.id;
-      const userData = await createUserViaApi(validUser);
+      const userData = await createUserViaHelper(validUser);
 
       const dates = [
         new Date("2026-01-01T00:00:00.000Z"),
@@ -504,7 +509,7 @@ describe("Posts API", () => {
       const postBody = await buildValidPost(blog.id);
       const created = await request(app).post("/api/posts").send(postBody);
       const postId: string = created.body.id;
-      const userData = await createUserViaApi(validUser);
+      const userData = await createUserViaHelper(validUser);
 
       const dates = [
         new Date("2026-01-01T00:00:00.000Z"),
@@ -558,7 +563,7 @@ describe("Posts API", () => {
       const postBody = await buildValidPost(blog.id);
       const created = await request(app).post("/api/posts").send(postBody);
       const postId: string = created.body.id;
-      const userData = await createUserViaApi(validUser);
+      const userData = await createUserViaHelper(validUser);
       const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
 
       const res = await request(app)
@@ -579,7 +584,7 @@ describe("Posts API", () => {
       const postBody = await buildValidPost(blog.id);
       const created = await request(app).post("/api/posts").send(postBody);
       const postId: string = created.body.id;
-      await createUserViaApi(validUser);
+      await createUserViaHelper(validUser);
       const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
 
       const res = await request(app)
@@ -598,7 +603,7 @@ describe("Posts API", () => {
       const postBody = await buildValidPost(blog.id);
       const created = await request(app).post("/api/posts").send(postBody);
       const postId: string = created.body.id;
-      await createUserViaApi(validUser);
+      await createUserViaHelper(validUser);
       const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
 
       const res = await request(app)
@@ -617,7 +622,7 @@ describe("Posts API", () => {
       const postBody = await buildValidPost(blog.id);
       const created = await request(app).post("/api/posts").send(postBody);
       const postId: string = created.body.id;
-      await createUserViaApi(validUser);
+      await createUserViaHelper(validUser);
       const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
 
       const res = await request(app)
@@ -661,7 +666,7 @@ describe("Posts API", () => {
     });
 
     it("returns 404 empty body when postId is a valid ObjectId that does not exist", async () => {
-      await createUserViaApi(validUser);
+      await createUserViaHelper(validUser);
       const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
 
       const res = await request(app)
@@ -674,7 +679,7 @@ describe("Posts API", () => {
     });
 
     it("returns 404 empty body when postId is malformed", async () => {
-      await createUserViaApi(validUser);
+      await createUserViaHelper(validUser);
       const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
 
       const res = await request(app)
@@ -691,7 +696,7 @@ describe("Posts API", () => {
       const postBody = await buildValidPost(blog.id);
       const created = await request(app).post("/api/posts").send(postBody);
       const postId: string = created.body.id;
-      await createUserViaApi(otherUser);
+      await createUserViaHelper(otherUser);
 
       const res = await request(app)
         .post(`/api/posts/${postId}/comments`)

@@ -3,8 +3,6 @@ import { z } from "zod";
 
 const envSchema = z
   .object({
-    BASIC_AUTH_PASSWORD: z.string().min(1).default("qwerty"),
-    BASIC_AUTH_USERNAME: z.string().min(1).default("admin"),
     CORS_ORIGIN: z.string().url().default("http://localhost:5173"),
     EMAIL_FROM: z.string().email().default("no-reply@example.com"),
     ENABLE_SWAGGER: z
@@ -12,10 +10,14 @@ const envSchema = z
       .default("true")
       .transform((value) => value === "true"),
     FRONTEND_URL: z.string().url().default("http://localhost:5173"),
-    JWT_EXPIRES_IN: z
+    JWT_ACCESS_EXPIRES_IN: z
       .string()
-      .regex(/^\d+[smhdwy]$/, 'JWT_EXPIRES_IN must look like "60s", "30m", "1h", "7d"')
+      .regex(/^\d+[smhdwy]$/, 'JWT_ACCESS_EXPIRES_IN must look like "60s", "30m", "1h", "7d"')
       .default("1h"),
+    JWT_REFRESH_EXPIRES_IN: z
+      .string()
+      .regex(/^\d+[smhdwy]$/, 'JWT_REFRESH_EXPIRES_IN must look like "60s", "30m", "1h", "7d"')
+      .default("2h"),
     JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
     LOG_LEVEL: z.enum(["debug", "error", "info", "warn"]).default("info"),
     MONGO_URI: z.string().min(1).default("mongodb://localhost:27017/monorepo_fullstack"),
@@ -25,15 +27,17 @@ const envSchema = z
     SMTP_PASS: z.string().default(""),
     SMTP_PORT: z.coerce.number().int().positive().default(2525),
     SMTP_USER: z.string().default(""),
+    SUPER_ADMIN_EMAIL: z.string().email().optional(),
+    SUPER_ADMIN_LOGIN: z.string().min(1).optional(),
+    SUPER_ADMIN_PASSWORD: z.string().min(6).optional(),
   })
   .transform((raw) => ({
-    basicAuthPassword: raw.BASIC_AUTH_PASSWORD,
-    basicAuthUsername: raw.BASIC_AUTH_USERNAME,
     corsOrigin: raw.CORS_ORIGIN,
     emailFrom: raw.EMAIL_FROM,
     enableSwagger: raw.ENABLE_SWAGGER,
     frontendUrl: raw.FRONTEND_URL,
-    jwtExpiresIn: raw.JWT_EXPIRES_IN,
+    jwtAccessExpiresIn: raw.JWT_ACCESS_EXPIRES_IN,
+    jwtRefreshExpiresIn: raw.JWT_REFRESH_EXPIRES_IN,
     jwtSecret: raw.JWT_SECRET,
     logLevel: raw.LOG_LEVEL,
     mongoUri: raw.MONGO_URI,
@@ -43,6 +47,9 @@ const envSchema = z
     smtpPass: raw.SMTP_PASS,
     smtpPort: raw.SMTP_PORT,
     smtpUser: raw.SMTP_USER,
+    superAdminEmail: raw.SUPER_ADMIN_EMAIL,
+    superAdminLogin: raw.SUPER_ADMIN_LOGIN,
+    superAdminPassword: raw.SUPER_ADMIN_PASSWORD,
   }));
 
 const parsed = envSchema.safeParse(process.env);

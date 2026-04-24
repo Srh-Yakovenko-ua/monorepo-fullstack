@@ -43,7 +43,13 @@
         "package.json",
         "tsconfig*.json"
       ],
-      "env": ["JWT_SECRET", "JWT_EXPIRES_IN", "FRONTEND_URL", "EMAIL_FROM"],
+      "env": [
+        "JWT_SECRET",
+        "JWT_ACCESS_EXPIRES_IN",
+        "JWT_REFRESH_EXPIRES_IN",
+        "FRONTEND_URL",
+        "EMAIL_FROM"
+      ],
       "outputs": ["coverage/**"]
     },
     "dev": {

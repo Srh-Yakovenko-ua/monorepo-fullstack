@@ -1,4 +1,5 @@
 import compression from "compression";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
@@ -27,7 +28,8 @@ export function createApp(): express.Express {
   app.use(requestLogger);
   app.use(helmet());
   app.use(compression());
-  app.use(cors({ origin: env.corsOrigin }));
+  app.use(cors({ credentials: true, origin: env.corsOrigin }));
+  app.use(cookieParser());
   app.use(express.json({ limit: "1mb" }));
 
   app.use("/api/health", healthRouter);

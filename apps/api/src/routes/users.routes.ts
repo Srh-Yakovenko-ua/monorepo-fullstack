@@ -1,17 +1,31 @@
-import { CreateUserInputSchema, UsersQuerySchema } from "@app/shared";
+import { CreateUserInputSchema, UpdateUserRoleInputSchema, UsersQuerySchema } from "@app/shared";
 import { Router } from "express";
 import { z } from "zod";
 
-import { createUser, deleteUser, listUsers } from "../controllers/users.controller.js";
+import {
+  createUser,
+  deleteUser,
+  listUsers,
+  updateUserRole,
+} from "../controllers/users.controller.js";
 import { apiErrorResultSchema, registerPaths, stringIdParam } from "../lib/openapi.js";
-import { basicAuth } from "../middleware/basic-auth.js";
+import { requireAdmin } from "../middleware/require-admin.js";
+import { requireAuth } from "../middleware/require-auth.js";
+import { requireSuperAdmin } from "../middleware/require-super-admin.js";
 import { validateBody, validateQuery } from "../middleware/validate.js";
 
 const router: Router = Router();
 
-router.get("/", basicAuth, validateQuery(UsersQuerySchema), listUsers);
-router.post("/", basicAuth, validateBody(CreateUserInputSchema), createUser);
-router.delete("/:id", basicAuth, deleteUser);
+router.get("/", requireAuth, requireAdmin, validateQuery(UsersQuerySchema), listUsers);
+router.post("/", requireAuth, requireAdmin, validateBody(CreateUserInputSchema), createUser);
+router.put(
+  "/:id/role",
+  requireAuth,
+  requireSuperAdmin,
+  validateBody(UpdateUserRoleInputSchema),
+  updateUserRole,
+);
+router.delete("/:id", requireAuth, requireAdmin, deleteUser);
 
 const userViewModelSchema = z.object({
   createdAt: z.iso.datetime(),
@@ -78,8 +92,9 @@ registerPaths({
           description: "Paginated list of users",
         },
         "401": { description: "Unauthorized" },
+        "403": { description: "Forbidden" },
       },
-      security: [{ basicAuth: [] }],
+      security: [{ bearerAuth: [] }],
       summary: "Get all users",
       tags: ["Users"],
     },
@@ -99,8 +114,9 @@ registerPaths({
           description: "Validation failed or duplicate login/email",
         },
         "401": { description: "Unauthorized" },
+        "403": { description: "Forbidden" },
       },
-      security: [{ basicAuth: [] }],
+      security: [{ bearerAuth: [] }],
       summary: "Create a user",
       tags: ["Users"],
     },
@@ -111,11 +127,40 @@ registerPaths({
       parameters: [stringIdParam],
       responses: {
         "204": { description: "User deleted" },
+        "400": { description: "Cannot delete super-admin" },
         "401": { description: "Unauthorized" },
+        "403": { description: "Forbidden" },
         "404": { description: "User not found" },
       },
-      security: [{ basicAuth: [] }],
+      security: [{ bearerAuth: [] }],
       summary: "Delete a user",
+      tags: ["Users"],
+    },
+  },
+  "/api/users/{id}/role": {
+    put: {
+      operationId: "updateUserRole",
+      parameters: [stringIdParam],
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: UpdateUserRoleInputSchema,
+          },
+        },
+        required: true,
+      },
+      responses: {
+        "204": { description: "Role updated" },
+        "400": {
+          content: { "application/json": { schema: apiErrorResultSchema } },
+          description: "Self-role change / target is super-admin / invalid body",
+        },
+        "401": { description: "Unauthorized" },
+        "403": { description: "Forbidden" },
+        "404": { description: "User not found" },
+      },
+      security: [{ bearerAuth: [] }],
+      summary: "Update user role (super-admin only)",
       tags: ["Users"],
     },
   },

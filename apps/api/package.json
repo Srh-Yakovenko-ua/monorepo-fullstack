@@ -15,6 +15,7 @@
     "@app/shared": "workspace:*",
     "bcryptjs": "catalog:",
     "compression": "catalog:",
+    "cookie-parser": "catalog:",
     "cors": "catalog:",
     "date-fns": "catalog:",
     "dotenv": "catalog:",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@types/compression": "catalog:",
+    "@types/cookie-parser": "catalog:",
     "@types/cors": "catalog:",
     "@types/express": "catalog:",
     "@types/nodemailer": "catalog:",

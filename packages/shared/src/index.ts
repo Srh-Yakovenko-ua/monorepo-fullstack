@@ -144,15 +144,29 @@ export const CreateUserInputSchema = z.object({
 export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 
 export const LoginInputSchema = z.object({
-  loginOrEmail: z.string().trim().min(1, "loginOrEmail is required"),
-  password: z.string().min(1, "password is required"),
+  loginOrEmail: z.string().trim().min(1, "loginOrEmail is required").max(100),
+  password: z.string().min(1, "password is required").max(72),
 });
 
 export type LoginInput = z.infer<typeof LoginInputSchema>;
 
 export type LoginSuccessViewModel = { accessToken: string };
 
-export type MeViewModel = { email: string; login: string; userId: string };
+export const USER_ROLES = ["superAdmin", "admin", "user"] as const;
+export type UserRole = (typeof USER_ROLES)[number];
+
+export const ROLE = {
+  admin: "admin",
+  superAdmin: "superAdmin",
+  user: "user",
+} as const satisfies Record<UserRole, UserRole>;
+
+export const UpdateUserRoleInputSchema = z.object({
+  role: z.enum([ROLE.admin, ROLE.user]),
+});
+export type MeViewModel = { email: string; login: string; role: UserRole; userId: string };
+
+export type UpdateUserRoleInput = z.infer<typeof UpdateUserRoleInputSchema>;
 
 export const RegistrationConfirmationInputSchema = z.object({
   code: z.string().min(1, "Code is required"),

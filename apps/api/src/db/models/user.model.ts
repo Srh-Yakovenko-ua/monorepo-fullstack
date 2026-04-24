@@ -1,5 +1,6 @@
 import type { Types } from "mongoose";
 
+import { USER_ROLES, type UserRole } from "@app/shared";
 import { model, Schema } from "mongoose";
 
 export interface EmailConfirmation {
@@ -15,7 +16,10 @@ export interface UserDoc {
   emailConfirmation: EmailConfirmation;
   login: string;
   passwordHash: string;
+  role: UserRole;
 }
+
+export type { UserRole };
 
 const emailConfirmationSchema = new Schema<EmailConfirmation>(
   {
@@ -37,6 +41,7 @@ const userSchema = new Schema<UserDoc>(
     },
     login: { required: true, type: String, unique: true },
     passwordHash: { required: true, type: String },
+    role: { default: "user", enum: USER_ROLES, required: true, type: String },
   },
   { timestamps: false, versionKey: false },
 );

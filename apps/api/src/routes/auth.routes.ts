@@ -3,13 +3,16 @@ import {
   LoginInputSchema,
   RegistrationConfirmationInputSchema,
   RegistrationEmailResendingInputSchema,
+  USER_ROLES,
 } from "@app/shared";
 import { Router } from "express";
 import { z } from "zod";
 
 import {
   login,
+  logout,
   me,
+  refreshToken,
   registration,
   registrationConfirmation,
   registrationEmailResending,
@@ -21,7 +24,9 @@ import { validateBody } from "../middleware/validate.js";
 const router: Router = Router();
 
 router.post("/login", validateBody(LoginInputSchema), login);
+router.post("/logout", logout);
 router.get("/me", requireAuth, me);
+router.post("/refresh-token", refreshToken);
 router.post("/registration", validateBody(CreateUserInputSchema), registration);
 router.post(
   "/registration-confirmation",
@@ -49,12 +54,31 @@ registerPaths({
               schema: z.object({ accessToken: z.string() }),
             },
           },
-          description: "Login successful",
+          description:
+            "Login successful. Returns accessToken in body and sets a refreshToken HttpOnly cookie.",
+          headers: {
+            "Set-Cookie": {
+              description: "refreshToken=<token>; Path=/; HttpOnly; SameSite=Strict",
+              schema: { type: "string" },
+            },
+          },
         },
         "400": { description: "Invalid request body" },
         "401": { description: "Invalid credentials" },
       },
       summary: "Log in with login/email and password",
+      tags: ["Auth"],
+    },
+  },
+  "/api/auth/logout": {
+    post: {
+      operationId: "logout",
+      responses: {
+        "204": { description: "Logged out. refreshToken cookie cleared." },
+        "401": { description: "No valid refreshToken cookie" },
+      },
+      security: [{ cookieAuth: [] }],
+      summary: "Revoke the current refreshToken and clear the cookie",
       tags: ["Auth"],
     },
   },
@@ -68,6 +92,7 @@ registerPaths({
               schema: z.object({
                 email: z.string(),
                 login: z.string(),
+                role: z.enum(USER_ROLES),
                 userId: z.string(),
               }),
             },
@@ -78,6 +103,32 @@ registerPaths({
       },
       security: [{ bearerAuth: [] }],
       summary: "Get current authenticated user",
+      tags: ["Auth"],
+    },
+  },
+  "/api/auth/refresh-token": {
+    post: {
+      operationId: "refreshToken",
+      responses: {
+        "200": {
+          content: {
+            "application/json": {
+              schema: z.object({ accessToken: z.string() }),
+            },
+          },
+          description:
+            "New access + refresh token pair issued. Previous refreshToken is revoked. New refreshToken set as HttpOnly cookie.",
+          headers: {
+            "Set-Cookie": {
+              description: "refreshToken=<token>; Path=/; HttpOnly; SameSite=Strict",
+              schema: { type: "string" },
+            },
+          },
+        },
+        "401": { description: "No valid refreshToken cookie or token is revoked/expired" },
+      },
+      security: [{ cookieAuth: [] }],
+      summary: "Generate a new pair of access + refresh tokens",
       tags: ["Auth"],
     },
   },

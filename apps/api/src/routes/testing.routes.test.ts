@@ -2,6 +2,7 @@ import request from "supertest";
 import { describe, expect, it } from "vitest";
 
 import { createApp } from "../app.js";
+import { createAdminAndLogin } from "../test/auth-helpers.js";
 
 const app = createApp();
 
@@ -14,7 +15,9 @@ describe("Testing API", () => {
     });
 
     it("clears all blogs, posts and videos", async () => {
-      await request(app).post("/api/blogs").send({
+      const adminToken = await createAdminAndLogin(app);
+
+      await request(app).post("/api/blogs").set("authorization", `Bearer ${adminToken}`).send({
         description: "desc",
         name: "Blog",
         websiteUrl: "https://example.com",
@@ -23,7 +26,7 @@ describe("Testing API", () => {
       const blogRes = await request(app).get("/api/blogs");
       const blogId: string = blogRes.body.items[0].id;
 
-      await request(app).post("/api/posts").send({
+      await request(app).post("/api/posts").set("authorization", `Bearer ${adminToken}`).send({
         blogId,
         content: "Content",
         shortDescription: "Short",
@@ -32,6 +35,7 @@ describe("Testing API", () => {
 
       await request(app)
         .post("/api/videos")
+        .set("authorization", `Bearer ${adminToken}`)
         .send({
           author: "Author",
           availableResolutions: ["P480"],

@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { createApp } from "../app.js";
 import { CommentModel } from "../db/models/comment.model.js";
+import { createAdminAndLogin } from "../test/auth-helpers.js";
 
 const app = createApp();
 
@@ -20,7 +21,11 @@ const otherUser = {
 };
 
 async function createUserViaApi(user: typeof validUser) {
-  const res = await request(app).post("/api/users").auth("admin", "qwerty").send(user);
+  const adminToken = await createAdminAndLogin(app);
+  const res = await request(app)
+    .post("/api/users")
+    .set("authorization", `Bearer ${adminToken}`)
+    .send(user);
   return res.body as { createdAt: string; email: string; id: string; login: string };
 }
 
@@ -50,15 +55,20 @@ async function seedComment({
 }
 
 async function seedPost() {
+  const adminToken = await createAdminAndLogin(app);
   const blogRes = await request(app)
     .post("/api/blogs")
+    .set("authorization", `Bearer ${adminToken}`)
     .send({ description: "Desc", name: "Blog", websiteUrl: "https://blog.example.com" });
-  const postRes = await request(app).post("/api/posts").send({
-    blogId: blogRes.body.id,
-    content: "Post content here",
-    shortDescription: "Short",
-    title: "Post Title",
-  });
+  const postRes = await request(app)
+    .post("/api/posts")
+    .set("authorization", `Bearer ${adminToken}`)
+    .send({
+      blogId: blogRes.body.id,
+      content: "Post content here",
+      shortDescription: "Short",
+      title: "Post Title",
+    });
   return postRes.body as { id: string };
 }
 
