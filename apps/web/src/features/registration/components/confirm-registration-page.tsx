@@ -1,11 +1,11 @@
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { ResendConfirmationDialog } from "@/features/registration/components/resend-confirmation-dialog";
+import { ModalId, modalObserver } from "@/features/modals";
 import { useConfirmRegistration } from "@/features/registration/hooks/use-confirm-registration";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { getErrorMessage } from "@/lib/api-errors";
@@ -23,7 +23,6 @@ export function ConfirmRegistrationPage() {
   const code = searchParams.get("code");
 
   const confirm = useConfirmRegistration();
-  const [resendOpen, setResendOpen] = useState(false);
 
   const status = deriveStatus({ code, confirm });
 
@@ -45,7 +44,7 @@ export function ConfirmRegistrationPage() {
   }, [confirm.isError, confirm.error, status, t]);
 
   function handleOpenResend() {
-    setResendOpen(true);
+    modalObserver.addModal(ModalId.ResendConfirmation, {});
   }
 
   return (
@@ -95,8 +94,6 @@ export function ConfirmRegistrationPage() {
           </div>
         )}
       </div>
-
-      <ResendConfirmationDialog onOpenChange={setResendOpen} open={resendOpen} />
     </main>
   );
 }

@@ -8,35 +8,36 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { modalObserver } from "@/features/modals/lib/modal-observer";
+import { ModalId, type ModalPayloads } from "@/features/modals/lib/modal-registry";
 
-type RegistrationSuccessDialogProps = {
-  email: string;
-  onOpenChange: (open: boolean) => void;
-  open: boolean;
+type Props = {
+  isOpen: boolean;
+  props: ModalPayloads[typeof ModalId.RegistrationSuccess];
 };
 
-export function RegistrationSuccessDialog({
-  email,
-  onOpenChange,
-  open,
-}: RegistrationSuccessDialogProps) {
+export function RegistrationSuccessDialog({ isOpen, props }: Props) {
   const { t } = useTranslation();
 
-  function handleOk() {
-    onOpenChange(false);
+  function handleClose() {
+    modalObserver.removeModal(ModalId.RegistrationSuccess);
+  }
+
+  function handleOpenChange(open: boolean) {
+    if (!open) handleClose();
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog onOpenChange={handleOpenChange} open={isOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("registration.successDialog.title")}</DialogTitle>
           <DialogDescription>
-            {t("registration.successDialog.description", { email })}
+            {t("registration.successDialog.description", { email: props.email })}
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end">
-          <Button onClick={handleOk}>{t("registration.successDialog.ok")}</Button>
+          <Button onClick={handleClose}>{t("registration.successDialog.ok")}</Button>
         </div>
       </DialogContent>
     </Dialog>

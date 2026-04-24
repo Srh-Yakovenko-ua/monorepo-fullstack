@@ -1,4 +1,4 @@
-import type { VideoResolution, VideoViewModel } from "@app/shared";
+import type { VideoResolution } from "@app/shared";
 import type { z } from "zod";
 
 import { CreateVideoInputSchema, UpdateVideoInputSchema, VIDEO_RESOLUTIONS } from "@app/shared";
@@ -14,35 +14,33 @@ import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { modalObserver } from "@/features/modals/lib/modal-observer";
+import { ModalId, type ModalPayloads } from "@/features/modals/lib/modal-registry";
 import { useCreateVideo, useUpdateVideo } from "@/features/videos/hooks/use-video-mutations";
 import { ApiError } from "@/lib/http-client";
 
 type CreateValues = z.infer<typeof CreateVideoInputSchema>;
-
 type EditValues = z.infer<typeof UpdateVideoInputSchema>;
-type VideoFormDialogProps =
-  | {
-      mode: "create";
-      onOpenChange: (open: boolean) => void;
-      open: boolean;
-      video?: undefined;
-    }
-  | {
-      mode: "edit";
-      onOpenChange: (open: boolean) => void;
-      open: boolean;
-      video: VideoViewModel;
-    };
 
-export function VideoFormDialog({ mode, onOpenChange, open, video }: VideoFormDialogProps) {
+type Props = {
+  isOpen: boolean;
+  props: ModalPayloads[typeof ModalId.VideoForm];
+};
+
+export function VideoFormDialog({ isOpen, props }: Props) {
   const { t } = useTranslation();
+  const mode = props.mode;
 
   function handleClose() {
-    onOpenChange(false);
+    modalObserver.removeModal(ModalId.VideoForm);
+  }
+
+  function handleOpenChange(open: boolean) {
+    if (!open) handleClose();
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog onOpenChange={handleOpenChange} open={isOpen}>
       <DialogContent
         aria-describedby={undefined}
         className="max-h-[90vh] gap-0 overflow-y-auto p-0 sm:max-w-md"
@@ -59,7 +57,7 @@ export function VideoFormDialog({ mode, onOpenChange, open, video }: VideoFormDi
         {mode === "create" ? (
           <CreateForm onClose={handleClose} />
         ) : (
-          <EditForm onClose={handleClose} video={video} />
+          <EditForm onClose={handleClose} video={props.video} />
         )}
       </DialogContent>
     </Dialog>
@@ -167,7 +165,13 @@ function CreateForm({ onClose }: { onClose: () => void }) {
   );
 }
 
-function EditForm({ onClose, video }: { onClose: () => void; video: VideoViewModel }) {
+function EditForm({
+  onClose,
+  video,
+}: {
+  onClose: () => void;
+  video: NonNullable<Extract<ModalPayloads[typeof ModalId.VideoForm], { mode: "edit" }>["video"]>;
+}) {
   const { t } = useTranslation();
   const updateVideo = useUpdateVideo(video.id);
   const isPending = updateVideo.isPending;

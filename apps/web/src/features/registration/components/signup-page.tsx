@@ -12,15 +12,12 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlreadyRegisteredDialog } from "@/features/registration/components/already-registered-dialog";
-import { RegistrationSuccessDialog } from "@/features/registration/components/registration-success-dialog";
-import { ResendConfirmationDialog } from "@/features/registration/components/resend-confirmation-dialog";
+import { ModalId, modalObserver } from "@/features/modals";
 import { useRegister } from "@/features/registration/hooks/use-register";
 import { useUserAuth } from "@/features/user-auth/hooks/use-user-auth";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { applyFieldErrors, hasFieldError, toastApiError } from "@/lib/api-errors";
 
-type AlreadyRegisteredField = "email" | "login";
 type SignupFormValues = z.infer<typeof CreateUserInputSchema>;
 
 export function SignupPage() {
@@ -31,11 +28,7 @@ export function SignupPage() {
   const register = useRegister();
 
   const [registeredEmail, setRegisteredEmail] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
   const [registrationSucceeded, setRegistrationSucceeded] = useState(false);
-  const [alreadyRegisteredField, setAlreadyRegisteredField] =
-    useState<AlreadyRegisteredField | null>(null);
-  const [resendOpen, setResendOpen] = useState(false);
 
   const form = useForm<SignupFormValues>({
     defaultValues: { email: "", login: "", password: "" },
@@ -53,15 +46,15 @@ export function SignupPage() {
       await register.mutateAsync(values);
       setRegisteredEmail(values.email);
       setRegistrationSucceeded(true);
-      setShowSuccess(true);
+      modalObserver.addModal(ModalId.RegistrationSuccess, { email: values.email });
     } catch (err) {
       if (applyFieldErrors(form, err)) {
         if (hasFieldError(err, "email")) {
-          setAlreadyRegisteredField("email");
+          modalObserver.addModal(ModalId.AlreadyRegistered, { field: "email" });
           return;
         }
         if (hasFieldError(err, "login")) {
-          setAlreadyRegisteredField("login");
+          modalObserver.addModal(ModalId.AlreadyRegistered, { field: "login" });
         }
         return;
       }
@@ -69,19 +62,9 @@ export function SignupPage() {
     }
   }
 
-  function handleSuccessDialogClose() {
-    setShowSuccess(false);
-  }
-
-  function handleAlreadyRegisteredClose() {
-    setAlreadyRegisteredField(null);
-  }
-
   function handleOpenResend() {
-    setResendOpen(true);
+    modalObserver.addModal(ModalId.ResendConfirmation, { initialEmail: registeredEmail });
   }
-
-  const showLinkSentBanner = registrationSucceeded && !showSuccess;
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
@@ -98,7 +81,7 @@ export function SignupPage() {
           </p>
         </div>
 
-        {showLinkSentBanner && (
+        {registrationSucceeded && (
           <div className="mb-4 rounded-lg border border-border/60 bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
             <Trans
               components={{
@@ -167,26 +150,6 @@ export function SignupPage() {
           </p>
         </form>
       </div>
-
-      <RegistrationSuccessDialog
-        email={registeredEmail}
-        onOpenChange={handleSuccessDialogClose}
-        open={showSuccess}
-      />
-
-      {alreadyRegisteredField !== null && (
-        <AlreadyRegisteredDialog
-          field={alreadyRegisteredField}
-          onOpenChange={handleAlreadyRegisteredClose}
-          open={true}
-        />
-      )}
-
-      <ResendConfirmationDialog
-        initialEmail={registeredEmail}
-        onOpenChange={setResendOpen}
-        open={resendOpen}
-      />
     </main>
   );
 }

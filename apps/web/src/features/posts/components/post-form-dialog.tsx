@@ -1,4 +1,3 @@
-import type { PostViewModel } from "@app/shared";
 import type { Path } from "react-hook-form";
 import type { z } from "zod";
 
@@ -16,22 +15,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BlogCombobox } from "@/features/blogs";
+import { modalObserver } from "@/features/modals/lib/modal-observer";
+import { ModalId, type ModalPayloads } from "@/features/modals/lib/modal-registry";
 import { useCreatePost, useUpdatePost } from "@/features/posts/hooks/use-post-mutations";
 import { ApiError } from "@/lib/http-client";
 
-type PostFormDialogProps =
-  | { mode: "create"; onOpenChange: (open: boolean) => void; open: boolean; post?: undefined }
-  | {
-      mode: "edit";
-      onOpenChange: (open: boolean) => void;
-      open: boolean;
-      post: PostViewModel;
-    };
-
 type PostFormValues = z.infer<typeof PostInputSchema>;
 
-export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialogProps) {
+type Props = {
+  isOpen: boolean;
+  props: ModalPayloads[typeof ModalId.PostForm];
+};
+
+export function PostFormDialog({ isOpen, props }: Props) {
   const { t } = useTranslation();
+  const post = props.mode === "edit" ? props.post : undefined;
+  const mode = props.mode;
+
   const createPost = useCreatePost();
   const updatePost = useUpdatePost(post?.id ?? "");
 
@@ -52,7 +52,7 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
   const contentValue = useWatch({ control: form.control, name: "content" });
 
   useEffect(() => {
-    if (!open) return;
+    if (!isOpen) return;
     form.reset(
       post
         ? {
@@ -63,9 +63,17 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
           }
         : { blogId: "", content: "", shortDescription: "", title: "" },
     );
-  }, [open, post, form]);
+  }, [isOpen, post, form]);
 
   const isPending = createPost.isPending || updatePost.isPending;
+
+  function handleClose() {
+    modalObserver.removeModal(ModalId.PostForm);
+  }
+
+  function handleOpenChange(open: boolean) {
+    if (!open) handleClose();
+  }
 
   async function onSubmit(values: PostFormValues) {
     try {
@@ -76,7 +84,7 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
         await updatePost.mutateAsync(values);
         toast.success(t("posts.toasts.updated"));
       }
-      onOpenChange(false);
+      handleClose();
       form.reset();
     } catch (err) {
       if (err instanceof ApiError && err.fieldErrors) {
@@ -91,7 +99,7 @@ export function PostFormDialog({ mode, onOpenChange, open, post }: PostFormDialo
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog onOpenChange={handleOpenChange} open={isOpen}>
       <DialogContent aria-describedby={undefined} className="gap-0 p-0 sm:max-w-md">
         <DialogHeader className="px-7 pt-7 pb-6">
           <DialogTitle

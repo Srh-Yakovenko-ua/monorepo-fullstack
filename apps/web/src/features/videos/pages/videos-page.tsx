@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModalId, modalObserver } from "@/features/modals";
-import { VideoFormDialog } from "@/features/videos/components/video-form-dialog";
 import { VideoViewDialog } from "@/features/videos/components/video-view-dialog";
 import { useDeleteVideo } from "@/features/videos/hooks/use-video-mutations";
 import { useVideos } from "@/features/videos/hooks/use-videos";
@@ -46,15 +45,17 @@ export function VideosPage() {
   usePageTitle(t("videos.list.title"));
   const { data, error, isError, isLoading } = useVideos();
   const deleteVideo = useDeleteVideo();
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editVideo, setEditVideo] = useState<null | VideoViewModel>(null);
   const [viewVideo, setViewVideo] = useState<null | VideoViewModel>(null);
 
   const videos = data ? [...data].slice(-MAX_PREVIEW).reverse() : [];
 
-  function openEdit(video: VideoViewModel) {
+  function handleOpenCreate() {
+    modalObserver.addModal(ModalId.VideoForm, { mode: "create" });
+  }
+
+  function handleEditVideo(video: VideoViewModel) {
     setViewVideo(null);
-    setEditVideo(video);
+    modalObserver.addModal(ModalId.VideoForm, { mode: "edit", video });
   }
 
   function openDeleteConfirm(video: VideoViewModel) {
@@ -75,14 +76,6 @@ export function VideosPage() {
     });
   }
 
-  function handleOpenCreate() {
-    setCreateOpen(true);
-  }
-
-  function handleEditFormOpenChange(open: boolean) {
-    if (!open) setEditVideo(null);
-  }
-
   function handleViewOpenChange(open: boolean) {
     if (!open) setViewVideo(null);
   }
@@ -92,7 +85,7 @@ export function VideosPage() {
   }
 
   function handleViewEdit() {
-    if (viewVideo) openEdit(viewVideo);
+    if (viewVideo) handleEditVideo(viewVideo);
   }
 
   return (
@@ -185,7 +178,7 @@ export function VideosPage() {
                 <VideoCard
                   key={video.id}
                   onDelete={openDeleteConfirm}
-                  onEdit={setEditVideo}
+                  onEdit={handleEditVideo}
                   onView={setViewVideo}
                   video={video}
                 />
@@ -194,17 +187,6 @@ export function VideosPage() {
           </motion.div>
         )}
       </section>
-
-      <VideoFormDialog mode="create" onOpenChange={setCreateOpen} open={createOpen} />
-
-      {editVideo && (
-        <VideoFormDialog
-          mode="edit"
-          onOpenChange={handleEditFormOpenChange}
-          open={!!editVideo}
-          video={editVideo}
-        />
-      )}
 
       {viewVideo && (
         <VideoViewDialog

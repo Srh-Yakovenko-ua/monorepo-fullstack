@@ -26,7 +26,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BlogFormDialog } from "@/features/blogs/components/blog-form-dialog";
 import { BlogViewDialog } from "@/features/blogs/components/blog-view-dialog";
 import { useDeleteBlog } from "@/features/blogs/hooks/use-blog-mutations";
 import { useInfiniteBlogs } from "@/features/blogs/hooks/use-blogs";
@@ -76,8 +75,6 @@ export function BlogsPage() {
   const { q: debouncedSearch, sort: sortValue } = filters;
   const [searchInput, setSearchInput] = useState(debouncedSearch);
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editBlog, setEditBlog] = useState<BlogViewModel | null>(null);
   const [viewBlog, setViewBlog] = useState<BlogViewModel | null>(null);
 
   const deleteBlog = useDeleteBlog();
@@ -132,9 +129,13 @@ export function BlogsPage() {
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
 
-  function openEdit(blog: BlogViewModel) {
+  function handleOpenCreate() {
+    modalObserver.addModal(ModalId.BlogForm, { mode: "create" });
+  }
+
+  function handleEditBlog(blog: BlogViewModel) {
     setViewBlog(null);
-    setEditBlog(blog);
+    modalObserver.addModal(ModalId.BlogForm, { blog, mode: "edit" });
   }
 
   function openDeleteConfirm(blog: BlogViewModel) {
@@ -172,14 +173,6 @@ export function BlogsPage() {
     void setFilters({ sort: DEFAULT_SORT });
   }
 
-  function handleOpenCreate() {
-    setCreateOpen(true);
-  }
-
-  function handleEditFormOpenChange(open: boolean) {
-    if (!open) setEditBlog(null);
-  }
-
   function handleViewOpenChange(open: boolean) {
     if (!open) setViewBlog(null);
   }
@@ -189,7 +182,7 @@ export function BlogsPage() {
   }
 
   function handleViewEdit() {
-    if (viewBlog) openEdit(viewBlog);
+    if (viewBlog) handleEditBlog(viewBlog);
   }
 
   function handleRetryLoadMore() {
@@ -323,7 +316,7 @@ export function BlogsPage() {
                   blog={blog}
                   key={blog.id}
                   onDelete={openDeleteConfirm}
-                  onEdit={setEditBlog}
+                  onEdit={handleEditBlog}
                   onView={setViewBlog}
                 />
               ))}
@@ -360,17 +353,6 @@ export function BlogsPage() {
 
         <div className="h-4" ref={sentinelRef} />
       </section>
-
-      <BlogFormDialog mode="create" onOpenChange={setCreateOpen} open={createOpen} />
-
-      {editBlog && (
-        <BlogFormDialog
-          blog={editBlog}
-          mode="edit"
-          onOpenChange={handleEditFormOpenChange}
-          open={!!editBlog}
-        />
-      )}
 
       {viewBlog && (
         <BlogViewDialog

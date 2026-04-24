@@ -4,7 +4,7 @@ import type { Variants } from "motion/react";
 import { BookOpen, FileText, MoreHorizontal, Plus } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { parseAsStringLiteral, useQueryStates } from "nuqs";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModalId, modalObserver } from "@/features/modals";
-import { PostFormDialog } from "@/features/posts/components/post-form-dialog";
 import { useDeletePost } from "@/features/posts/hooks/use-post-mutations";
 import { useInfinitePosts } from "@/features/posts/hooks/use-posts";
 import { usePageTitle } from "@/hooks/use-page-title";
@@ -70,8 +69,6 @@ export function PostsPage() {
     sort: parseAsStringLiteral(SORT_VALUES).withDefault(DEFAULT_SORT),
   });
   const { sort: sortValue } = filters;
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editPost, setEditPost] = useState<null | PostViewModel>(null);
 
   const deletePost = useDeletePost();
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -135,7 +132,7 @@ export function PostsPage() {
   }
 
   function handleOpenCreate() {
-    setCreateOpen(true);
+    modalObserver.addModal(ModalId.PostForm, { mode: "create" });
   }
 
   function handleSortChange(value: string) {
@@ -147,12 +144,12 @@ export function PostsPage() {
     void setFilters({ sort: DEFAULT_SORT });
   }
 
-  function handleEditFormOpenChange(open: boolean) {
-    if (!open) setEditPost(null);
-  }
-
   function handleRetryLoadMore() {
     void fetchNextPage();
+  }
+
+  function handleEditPost(post: PostViewModel) {
+    modalObserver.addModal(ModalId.PostForm, { mode: "edit", post });
   }
 
   return (
@@ -261,7 +258,7 @@ export function PostsPage() {
                 <PostCard
                   key={post.id}
                   onDelete={openDeleteConfirm}
-                  onEdit={setEditPost}
+                  onEdit={handleEditPost}
                   post={post}
                 />
               ))}
@@ -298,19 +295,6 @@ export function PostsPage() {
 
         <div className="h-4" ref={sentinelRef} />
       </section>
-
-      {createOpen && (
-        <PostFormDialog mode="create" onOpenChange={setCreateOpen} open={createOpen} />
-      )}
-
-      {editPost && (
-        <PostFormDialog
-          mode="edit"
-          onOpenChange={handleEditFormOpenChange}
-          open={!!editPost}
-          post={editPost}
-        />
-      )}
     </main>
   );
 }

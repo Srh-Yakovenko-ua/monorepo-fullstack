@@ -1,4 +1,3 @@
-import type { BlogViewModel } from "@app/shared";
 import type { Path } from "react-hook-form";
 import type { z } from "zod";
 
@@ -16,21 +15,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateBlog, useUpdateBlog } from "@/features/blogs/hooks/use-blog-mutations";
+import { modalObserver } from "@/features/modals/lib/modal-observer";
+import { ModalId, type ModalPayloads } from "@/features/modals/lib/modal-registry";
 import { ApiError } from "@/lib/http-client";
-
-type BlogFormDialogProps =
-  | {
-      blog: BlogViewModel;
-      mode: "edit";
-      onOpenChange: (open: boolean) => void;
-      open: boolean;
-    }
-  | { blog?: undefined; mode: "create"; onOpenChange: (open: boolean) => void; open: boolean };
 
 type BlogFormValues = z.infer<typeof BlogInputSchema>;
 
-export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialogProps) {
+type Props = {
+  isOpen: boolean;
+  props: ModalPayloads[typeof ModalId.BlogForm];
+};
+
+export function BlogFormDialog({ isOpen, props }: Props) {
   const { t } = useTranslation();
+  const blog = props.mode === "edit" ? props.blog : undefined;
+  const mode = props.mode;
+
   const createBlog = useCreateBlog();
   const updateBlog = useUpdateBlog(blog?.id ?? "");
 
@@ -43,12 +43,20 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
   const descriptionValue = useWatch({ control: form.control, name: "description" });
 
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       form.reset(blog ?? { description: "", name: "", websiteUrl: "" });
     }
-  }, [open, blog, form]);
+  }, [isOpen, blog, form]);
 
   const isPending = createBlog.isPending || updateBlog.isPending;
+
+  function handleClose() {
+    modalObserver.removeModal(ModalId.BlogForm);
+  }
+
+  function handleOpenChange(open: boolean) {
+    if (!open) handleClose();
+  }
 
   async function onSubmit(values: BlogFormValues) {
     try {
@@ -59,7 +67,7 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
         await updateBlog.mutateAsync(values);
         toast.success(t("blogs.toasts.updated"));
       }
-      onOpenChange(false);
+      handleClose();
       form.reset();
     } catch (err) {
       if (err instanceof ApiError && err.fieldErrors) {
@@ -74,7 +82,7 @@ export function BlogFormDialog({ blog, mode, onOpenChange, open }: BlogFormDialo
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog onOpenChange={handleOpenChange} open={isOpen}>
       <DialogContent aria-describedby={undefined} className="gap-0 p-0 sm:max-w-md">
         <DialogHeader className="px-7 pt-7 pb-6">
           <DialogTitle

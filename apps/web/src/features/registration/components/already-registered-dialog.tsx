@@ -8,41 +8,42 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { modalObserver } from "@/features/modals/lib/modal-observer";
+import { ModalId, type ModalPayloads } from "@/features/modals/lib/modal-registry";
 
-type AlreadyRegisteredDialogProps = {
-  field: "email" | "login";
-  onOpenChange: (open: boolean) => void;
-  open: boolean;
+type Props = {
+  isOpen: boolean;
+  props: ModalPayloads[typeof ModalId.AlreadyRegistered];
 };
 
-export function AlreadyRegisteredDialog({
-  field,
-  onOpenChange,
-  open,
-}: AlreadyRegisteredDialogProps) {
+export function AlreadyRegisteredDialog({ isOpen, props }: Props) {
   const { t } = useTranslation();
 
-  function handleOk() {
-    onOpenChange(false);
+  function handleClose() {
+    modalObserver.removeModal(ModalId.AlreadyRegistered);
+  }
+
+  function handleOpenChange(open: boolean) {
+    if (!open) handleClose();
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog onOpenChange={handleOpenChange} open={isOpen}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {field === "email"
+            {props.field === "email"
               ? t("registration.alreadyRegisteredDialog.title.email")
               : t("registration.alreadyRegisteredDialog.title.login")}
           </DialogTitle>
           <DialogDescription>
-            {field === "email"
+            {props.field === "email"
               ? t("registration.alreadyRegisteredDialog.description.email")
               : t("registration.alreadyRegisteredDialog.description.login")}
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end">
-          <Button onClick={handleOk}>{t("registration.successDialog.ok")}</Button>
+          <Button onClick={handleClose}>{t("registration.successDialog.ok")}</Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -34,7 +34,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ModalId, modalObserver } from "@/features/modals";
-import { UserFormDialog } from "@/features/users/components/user-form-dialog";
 import { useDeleteUser } from "@/features/users/hooks/use-user-mutations";
 import { useUsers } from "@/features/users/hooks/use-users";
 import { usePageTitle } from "@/hooks/use-page-title";
@@ -140,8 +139,6 @@ export function UsersPage() {
   const loginDebounceRef = useRef<null | ReturnType<typeof setTimeout>>(null);
   const emailDebounceRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
-  const [createOpen, setCreateOpen] = useState(false);
-
   const deleteUser = useDeleteUser();
 
   const selectedSort =
@@ -187,7 +184,7 @@ export function UsersPage() {
   }
 
   function handleOpenCreate() {
-    setCreateOpen(true);
+    modalObserver.addModal(ModalId.UserForm, {});
   }
 
   function handlePageChange(nextPage: number) {
@@ -419,8 +416,6 @@ export function UsersPage() {
           </div>
         )}
       </section>
-
-      <UserFormDialog onOpenChange={setCreateOpen} open={createOpen} />
     </main>
   );
 }

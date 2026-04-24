@@ -13,17 +13,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { modalObserver } from "@/features/modals/lib/modal-observer";
+import { ModalId, type ModalPayloads } from "@/features/modals/lib/modal-registry";
 import { useCreateUser } from "@/features/users/hooks/use-user-mutations";
 import { ApiError } from "@/lib/http-client";
 
-type UserFormDialogProps = {
-  onOpenChange: (open: boolean) => void;
-  open: boolean;
+type Props = {
+  isOpen: boolean;
+  props: ModalPayloads[typeof ModalId.UserForm];
 };
 
 type UserFormValues = z.infer<typeof CreateUserInputSchema>;
 
-export function UserFormDialog({ onOpenChange, open }: UserFormDialogProps) {
+export function UserFormDialog({ isOpen }: Props) {
   const { t } = useTranslation();
   const createUser = useCreateUser();
 
@@ -33,18 +35,26 @@ export function UserFormDialog({ onOpenChange, open }: UserFormDialogProps) {
   });
 
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       form.reset({ email: "", login: "", password: "" });
     }
-  }, [open, form]);
+  }, [isOpen, form]);
 
   const isPending = createUser.isPending;
+
+  function handleClose() {
+    modalObserver.removeModal(ModalId.UserForm);
+  }
+
+  function handleOpenChange(open: boolean) {
+    if (!open) handleClose();
+  }
 
   async function onSubmit(values: UserFormValues) {
     try {
       await createUser.mutateAsync(values);
       toast.success(t("users.toasts.created"));
-      onOpenChange(false);
+      handleClose();
       form.reset();
     } catch (err) {
       if (err instanceof ApiError && err.fieldErrors) {
@@ -59,7 +69,7 @@ export function UserFormDialog({ onOpenChange, open }: UserFormDialogProps) {
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog onOpenChange={handleOpenChange} open={isOpen}>
       <DialogContent aria-describedby={undefined} className="gap-0 p-0 sm:max-w-md">
         <DialogHeader className="px-7 pt-7 pb-6">
           <DialogTitle
