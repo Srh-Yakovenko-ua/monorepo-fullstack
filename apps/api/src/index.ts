@@ -3,7 +3,6 @@ import { env } from "./config/env.js";
 import { connectMongo, disconnectMongo } from "./db/mongo.js";
 import * as usersRepository from "./db/repositories/users.repository.js";
 import { createLogger } from "./lib/logger.js";
-import { ensureSuperAdminSeed } from "./services/bootstrap.service.js";
 
 const log = createLogger("startup");
 
@@ -46,8 +45,6 @@ async function runStartupTasks(): Promise<void> {
   if (backfilledCount > 0) {
     log.info({ count: backfilledCount }, "backfilled missing role field on users");
   }
-
-  await ensureSuperAdminSeed();
 }
 
 void main();

@@ -50,10 +50,6 @@ export async function findByLoginOrEmail(loginOrEmail: string): Promise<null | U
   }).lean();
 }
 
-export async function findFirstByRole(role: UserRole): Promise<null | UserDoc> {
-  return UserModel.findOne({ role }).lean();
-}
-
 export async function findPage(
   query: UsersQuery,
 ): Promise<{ items: UserDoc[]; totalCount: number }> {

@@ -27,9 +27,6 @@ const envSchema = z
     SMTP_PASS: z.string().default(""),
     SMTP_PORT: z.coerce.number().int().positive().default(2525),
     SMTP_USER: z.string().default(""),
-    SUPER_ADMIN_EMAIL: z.string().email().optional(),
-    SUPER_ADMIN_LOGIN: z.string().min(1).optional(),
-    SUPER_ADMIN_PASSWORD: z.string().min(6).optional(),
   })
   .transform((raw) => ({
     corsOrigin: raw.CORS_ORIGIN,
@@ -47,9 +44,6 @@ const envSchema = z
     smtpPass: raw.SMTP_PASS,
     smtpPort: raw.SMTP_PORT,
     smtpUser: raw.SMTP_USER,
-    superAdminEmail: raw.SUPER_ADMIN_EMAIL,
-    superAdminLogin: raw.SUPER_ADMIN_LOGIN,
-    superAdminPassword: raw.SUPER_ADMIN_PASSWORD,
   }));
 
 const parsed = envSchema.safeParse(process.env);
