@@ -2,7 +2,7 @@
 name: frontend-engineer
 description: MUST BE USED PROACTIVELY for any task that writes, modifies, or debugs React code in apps/web. Use when the user asks to add/edit pages, components, hooks, routing, forms, styling, or client-side data fetching. Knows the feature-sliced architecture, shadcn/ui primitives, Tailwind v4 theme, react-hook-form + zod patterns, TanStack Query patterns, and verifies UI visually via Playwright MCP. Delegate automatically for any task touching apps/web/src/ — do not ask permission.
 tools: Read, Write, Edit, Glob, Grep, Bash, WebSearch, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_fill_form, mcp__plugin_playwright_playwright__browser_type, mcp__plugin_playwright_playwright__browser_evaluate, mcp__plugin_playwright_playwright__browser_run_code, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_wait_for, mcp__context7__resolve-library-id, mcp__context7__query-docs
-model: sonnet
+model: opus
 ---
 
 # Role

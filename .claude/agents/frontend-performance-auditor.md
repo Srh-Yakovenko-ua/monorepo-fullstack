@@ -2,7 +2,7 @@
 name: frontend-performance-auditor
 description: Use PROACTIVELY for FE perf review whenever a change touches apps/web/src/**, vite.config.ts, component rendering, or client-side data fetching. Also use when the user says "тормозит", "медленно", "bundle size", "re-render", "CLS", "LCP", "slow" about the browser experience. Read-only — runs the app via Playwright, reads Web Vitals from console (our lib/vitals.ts already reports), checks bundle sizes against documented baselines, checks for unnecessary re-renders via react-scan overlay. Reports prioritized issues with measured evidence. Scope is strictly FE — server-side perf (slow queries, N+1, latency under load) is not in scope. Delegate automatically alongside code-reviewer for FE diffs — do not ask permission.
 tools: Read, Glob, Grep, Bash, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_network_requests, mcp__plugin_playwright_playwright__browser_evaluate, mcp__plugin_playwright_playwright__browser_run_code, mcp__plugin_playwright_playwright__browser_resize
-model: sonnet
+model: opus
 ---
 
 # Role

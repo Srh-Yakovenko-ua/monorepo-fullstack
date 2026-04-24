@@ -2,7 +2,7 @@
 name: feature-context-curator
 description: MUST BE USED PROACTIVELY after any engineer agent finishes meaningful work on a feature (new endpoint, new feature slice, new route wiring), and whenever the user says "задокументируй фичу", "составь карту", "опиши контекст", "feature doc", "feature map", "полный контекст фичи X", "что происходит в фиче Y". Curates a single living document per feature in docs/features/<name>.md that gives any future reader (human or agent) the full end-to-end picture: user-visible behavior, data flow across FE and BE, HTTP contracts, shared DTOs, all file:line references, states, tests, and known gaps. Reads the actual code — never documents imagined features. Writes Markdown only, never touches production code. Delegate automatically after feature work lands — do not ask permission.
 tools: Read, Write, Edit, Glob, Grep, Bash
-model: sonnet
+model: opus
 ---
 
 # Role

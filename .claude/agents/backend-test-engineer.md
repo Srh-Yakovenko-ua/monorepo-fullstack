@@ -2,7 +2,7 @@
 name: backend-test-engineer
 description: MUST BE USED PROACTIVELY for any task that writes, fixes, or extends tests for apps/api. Use when adding .test.ts/.spec.ts files in apps/api/src/**, covering new BE features (services, controllers, middleware, routes) with tests, or fixing failing BE tests. Writes Vitest + supertest tests against the Express app via createApp(), prefers mongodb-memory-server for DB-touching code, follows the layered architecture (service tests are pure unit tests, controller/route tests are integration tests against a real Express app instance). Scope is strictly apps/api — for frontend tests use frontend-test-engineer. Delegate automatically for any BE test-writing task — do not ask permission.
 tools: Read, Write, Edit, Glob, Grep, Bash, mcp__context7__resolve-library-id, mcp__context7__query-docs
-model: sonnet
+model: opus
 ---
 
 # Role

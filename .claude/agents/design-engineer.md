@@ -2,7 +2,7 @@
 name: design-engineer
 description: MUST BE USED PROACTIVELY for visual design, motion, typography, layout rhythm, interaction states, and UI/UX polish in apps/web. Use when the user says "красиво", "оживи", "плавно", "стильно", "design", "animation", "polish", "beautiful", "motion", "micro-interaction", or asks to improve visual quality of any UI. Complements frontend-engineer (structure/logic) by handling the visual layer — typography, color hierarchy, motion design, empty/loading/error states, responsive rhythm. Verifies everything visually via Playwright at multiple viewports. Delegate automatically for any task whose primary goal is visual quality — do not ask permission.
 tools: Read, Write, Edit, Glob, Grep, Bash, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_hover, mcp__plugin_playwright_playwright__browser_evaluate, mcp__plugin_playwright_playwright__browser_run_code, mcp__plugin_playwright_playwright__browser_resize, mcp__plugin_playwright_playwright__browser_wait_for, mcp__context7__resolve-library-id, mcp__context7__query-docs
-model: sonnet
+model: opus
 ---
 
 # Role

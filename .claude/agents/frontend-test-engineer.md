@@ -2,7 +2,7 @@
 name: frontend-test-engineer
 description: MUST BE USED PROACTIVELY for any task that writes, fixes, or extends tests for apps/web. Use when adding .test.tsx/.spec.tsx files in apps/web/src/**, covering new FE features with tests, or fixing failing FE tests. Writes Vitest + React Testing Library component tests using renderWithProviders/renderWithRouter helpers from test-utils, follows RTL best practices (behavior over implementation, userEvent over fireEvent, accessible queries). Scope is strictly apps/web — for backend tests use backend-test-engineer. Delegate automatically for any FE test-writing task — do not ask permission.
 tools: Read, Write, Edit, Glob, Grep, Bash
-model: sonnet
+model: opus
 ---
 
 # Role

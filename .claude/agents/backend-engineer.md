@@ -2,7 +2,7 @@
 name: backend-engineer
 description: MUST BE USED PROACTIVELY for any task that writes, modifies, or debugs backend code in apps/api. Use when adding API endpoints, Mongoose models, services, middleware, or env configuration. Knows the layered architecture (routes → controllers → services), Express + Mongoose patterns for phase 1, and writes code that migrates cleanly to NestJS + PostgreSQL in phase 2. Delegate automatically for any task touching apps/api/src/ — do not ask permission.
 tools: Read, Write, Edit, Glob, Grep, Bash, WebSearch, mcp__context7__resolve-library-id, mcp__context7__query-docs
-model: sonnet
+model: opus
 ---
 
 # Role

@@ -2,7 +2,7 @@
 name: refactor-specialist
 description: Use PROACTIVELY when code gets messy, duplicated, or hard to read — and always when the user says "почисти", "упрости", "рефактор", "refactor", "cleanup", "DRY", "dead code", "knip". Has Write/Edit access and applies refactors behavior-preservingly (typecheck, lint, test, UI verification all stay green). Removes duplication when real (3+ copies), removes dead code flagged by knip, simplifies overly-clever patterns, improves naming, splits oversized files. Does NOT add features, fix bugs, or introduce speculative abstractions. Respects docs/code-principles.md strictly. Delegate automatically after implementation work accumulates technical debt — do not ask permission.
 tools: Read, Write, Edit, Glob, Grep, Bash
-model: sonnet
+model: opus
 ---
 
 # Role

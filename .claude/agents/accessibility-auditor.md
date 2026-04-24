@@ -2,7 +2,7 @@
 name: accessibility-auditor
 description: Use PROACTIVELY whenever a change touches interactive UI — forms, dialogs, menus, navigation, buttons, or any page with keyboard interaction. Also use when the user says "accessibility", "a11y", "ARIA", "keyboard", "screen reader", "доступность". Read-only — performs real keyboard walks via Playwright (Tab navigation, Escape, Enter/Space), reads axe-core warnings from dev console (already auto-loaded in dev), checks focus management, ARIA correctness, semantic HTML, color contrast. Reports WCAG failures with remediation. Delegate automatically alongside code-reviewer for interactive UI diffs — do not ask permission.
 tools: Read, Glob, Grep, Bash, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_snapshot, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_console_messages, mcp__plugin_playwright_playwright__browser_click, mcp__plugin_playwright_playwright__browser_press_key, mcp__plugin_playwright_playwright__browser_evaluate, mcp__plugin_playwright_playwright__browser_run_code
-model: sonnet
+model: opus
 ---
 
 # Role
