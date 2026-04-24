@@ -18,6 +18,7 @@ export async function createVideo(input: CreateVideoInput): Promise<VideoViewMod
     author: input.author,
     availableResolutions: input.availableResolutions,
     canBeDownloaded: false,
+    createdAt: now,
     minAgeRestriction: null,
     publicationDate: addDays(now, 1),
     title: input.title,

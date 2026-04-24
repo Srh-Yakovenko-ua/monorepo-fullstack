@@ -2,7 +2,7 @@ import type { VideoDoc } from "../models/video.model.js";
 
 import { VideoModel } from "../models/video.model.js";
 
-export type VideoCreateInput = Omit<VideoDoc, "createdAt">;
+export type VideoCreateInput = Omit<VideoDoc, "createdAt"> & { createdAt?: Date };
 export type VideoUpdateInput = Omit<VideoDoc, "_id" | "createdAt">;
 
 export async function clearAll(): Promise<void> {
