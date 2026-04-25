@@ -1,8 +1,9 @@
-import { Activity, BookOpen, FileText, Layers, LogOut, Users, Video } from "lucide-react";
+import { ROLE } from "@app/shared";
+import { Activity, BookOpen, FileText, Layers, Users, Video } from "lucide-react";
 import { motion } from "motion/react";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { useTranslation } from "react-i18next";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
+import { NavLink, Outlet, useLocation } from "react-router";
 
 import { LocalePicker } from "@/components/locale-picker";
 import { ThemePicker } from "@/components/theme-picker";
@@ -29,18 +30,24 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useAdminAuth } from "@/features/admin-auth";
 import { usePost } from "@/features/posts/hooks/use-post";
-import { UserMenu } from "@/features/user-auth";
+import { UserMenu, useUserAuth } from "@/features/user-auth";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
-  { icon: Activity, key: "health" as const, to: "/" },
-  { icon: BookOpen, key: "blogs" as const, to: "/blogs" },
-  { icon: FileText, key: "posts" as const, to: "/posts" },
-  { icon: Video, key: "videos" as const, to: "/videos" },
-  { icon: Users, key: "users" as const, to: "/users" },
-] as const;
+type NavItem = {
+  icon: React.ElementType;
+  key: "blogs" | "health" | "posts" | "users" | "videos";
+  to: string;
+};
+
+const BASE_NAV_ITEMS: NavItem[] = [
+  { icon: Activity, key: "health", to: "/" },
+  { icon: BookOpen, key: "blogs", to: "/blogs" },
+  { icon: FileText, key: "posts", to: "/posts" },
+  { icon: Video, key: "videos", to: "/videos" },
+];
+
+const ADMIN_NAV_ITEM: NavItem = { icon: Users, key: "users", to: "/users" };
 
 export function AppShell() {
   return (
@@ -56,14 +63,12 @@ export function AppShell() {
 function AppSidebar() {
   const { t } = useTranslation();
   const { state } = useSidebar();
+  const { user } = useUserAuth();
   const collapsed = state === "collapsed";
-  const { isAuthed, signOut } = useAdminAuth();
-  const navigate = useNavigate();
 
-  function handleSignOut() {
-    signOut();
-    void navigate("/admin/login");
-  }
+  const isAdminOrSuperAdmin = user?.role === ROLE.admin || user?.role === ROLE.superAdmin;
+
+  const navItems = isAdminOrSuperAdmin ? [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM] : BASE_NAV_ITEMS;
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -89,7 +94,7 @@ function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {NAV_ITEMS.map(({ icon: Icon, key, to }) => (
+              {navItems.map(({ icon: Icon, key, to }) => (
                 <SidebarMenuItem key={key}>
                   <NavLink end={to === "/"} to={to}>
                     {({ isActive }) => (
@@ -139,17 +144,6 @@ function AppSidebar() {
           <ThemePicker />
           <LocalePicker />
           <UserMenu />
-          {isAuthed && (
-            <button
-              aria-label={t("actions.signOut")}
-              className="flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-              onClick={handleSignOut}
-              title={t("actions.signOut")}
-              type="button"
-            >
-              <LogOut className="size-4" />
-            </button>
-          )}
         </div>
       </SidebarFooter>
 

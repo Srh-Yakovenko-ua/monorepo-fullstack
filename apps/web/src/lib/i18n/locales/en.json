@@ -291,6 +291,7 @@
       "columns": {
         "username": "Username",
         "email": "Email",
+        "role": "Role",
         "id": "User ID",
         "createdAt": "Date added",
         "actions": "Actions"
@@ -312,7 +313,9 @@
       "created": "User created",
       "createFailed": "Failed to create user",
       "deleted": "User deleted",
-      "deleteFailed": "Failed to delete user"
+      "deleteFailed": "Failed to delete user",
+      "roleUpdated": "Role updated",
+      "roleUpdateFailed": "Failed to update role"
     },
     "delete": {
       "title": "Are you sure you want to delete this user?",

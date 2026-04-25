@@ -21,3 +21,11 @@ export function useDeleteUser() {
     },
   });
 }
+
+export function useUpdateUserRole() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: usersApi.updateRole,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: usersKeys.all }),
+  });
+}

@@ -1,10 +1,11 @@
+import type { LoginSuccessViewModel } from "@app/shared";
+
 import { z } from "zod";
 
-import { clearAdminAuth, getAdminAuthHeader } from "@/features/admin-auth/lib/admin-auth";
-import { useAdminAuthStore } from "@/features/admin-auth/store/admin-auth-store";
 import { getToken } from "@/features/user-auth/lib/token-storage";
 import { useUserAuthStore } from "@/features/user-auth/store/user-auth-store";
 import { env } from "@/lib/env";
+import { queryClient } from "@/lib/query-client";
 
 const fieldErrorSchema = z.object({
   field: z.string(),
@@ -15,11 +16,13 @@ const apiErrorBodySchema = z.object({
   errorsMessages: z.array(fieldErrorSchema),
 });
 
-export type AuthMode = "basic" | "jwt" | "none";
+export type AuthMode = "bearer" | "none";
 
 export type FieldError = z.infer<typeof fieldErrorSchema>;
 
 export type RequestOptions = RequestInit & { authMode?: AuthMode };
+
+type InternalRequestOptions = RequestOptions & { _skipRefresh?: boolean };
 
 export class ApiError extends Error {
   constructor(
@@ -32,14 +35,17 @@ export class ApiError extends Error {
   }
 }
 
-export async function request<T>(path: string, init?: RequestOptions): Promise<T> {
-  const { authMode = "jwt", ...fetchInit } = init ?? {};
-  const { header, mode } = resolveAuthHeader(authMode);
+let refreshPromise: null | Promise<string> = null;
 
-  const authHeaders: Record<string, string> = header ? { Authorization: header } : {};
+export async function request<T>(path: string, init?: InternalRequestOptions): Promise<T> {
+  const { _skipRefresh = false, authMode = "bearer", ...fetchInit } = init ?? {};
+
+  const token = authMode === "bearer" ? getToken() : null;
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
   const res = await fetch(`${env.VITE_API_BASE_URL}${path}`, {
     ...fetchInit,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...authHeaders,
@@ -47,8 +53,26 @@ export async function request<T>(path: string, init?: RequestOptions): Promise<T
     },
   });
 
-  if (res.status === 401 && header) {
-    clearAuthFor(mode);
+  if (
+    res.status === 401 &&
+    authMode === "bearer" &&
+    !_skipRefresh &&
+    path !== "/api/auth/refresh-token" &&
+    path !== "/api/auth/login"
+  ) {
+    try {
+      if (refreshPromise === null) {
+        refreshPromise = refreshAccessToken().finally(() => {
+          refreshPromise = null;
+        });
+      }
+      await refreshPromise;
+      return request<T>(path, { ...init, _skipRefresh: true });
+    } catch {
+      useUserAuthStore.getState().clearToken();
+      queryClient.clear();
+      throw new ApiError(401, "Unauthorized");
+    }
   }
 
   if (!res.ok) {
@@ -70,22 +94,12 @@ export async function request<T>(path: string, init?: RequestOptions): Promise<T
   return res.json() as Promise<T>;
 }
 
-function clearAuthFor(mode: AuthMode): void {
-  if (mode === "jwt") {
-    useUserAuthStore.getState().clearToken();
-    return;
-  }
-  if (mode === "basic") {
-    clearAdminAuth();
-    useAdminAuthStore.getState().setAuthed(false);
-  }
-}
-
-function resolveAuthHeader(authMode: AuthMode): { header: null | string; mode: AuthMode } {
-  if (authMode === "none") return { header: null, mode: "none" };
-  if (authMode === "basic") {
-    return { header: getAdminAuthHeader(), mode: "basic" };
-  }
-  const token = getToken();
-  return { header: token ? `Bearer ${token}` : null, mode: "jwt" };
+async function refreshAccessToken(): Promise<string> {
+  const data = await request<LoginSuccessViewModel>("/api/auth/refresh-token", {
+    _skipRefresh: true,
+    authMode: "none",
+    method: "POST",
+  });
+  useUserAuthStore.getState().setToken(data.accessToken);
+  return data.accessToken;
 }

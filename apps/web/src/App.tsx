@@ -1,7 +1,8 @@
+import { ROLE } from "@app/shared";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
-import { RequireAdminAuth } from "@/features/admin-auth";
 import { ModalsRoot } from "@/features/modals";
+import { RequireRole } from "@/features/user-auth";
 import { AppErrorBoundary } from "@/routes/error-boundary";
 import { AppShell } from "@/routes/layouts/app-shell";
 import { RootLayout } from "@/routes/layouts/root-layout";
@@ -52,9 +53,9 @@ const router = createBrowserRouter([
               return {
                 Component: function UsersRoute() {
                   return (
-                    <RequireAdminAuth>
+                    <RequireRole allow={[ROLE.admin, ROLE.superAdmin]}>
                       <UsersPage />
-                    </RequireAdminAuth>
+                    </RequireRole>
                   );
                 },
               };
@@ -72,14 +73,6 @@ const router = createBrowserRouter([
         element: <AppShell />,
         errorElement: <AppErrorBoundary />,
         path: "/",
-      },
-      {
-        lazy: async () => {
-          const { AdminLoginPage } =
-            await import("@/features/admin-auth/components/admin-login-page");
-          return { Component: AdminLoginPage };
-        },
-        path: "admin/login",
       },
       {
         lazy: async () => {

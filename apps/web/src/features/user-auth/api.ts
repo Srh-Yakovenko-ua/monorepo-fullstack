@@ -10,5 +10,17 @@ export const userAuthApi = {
       method: "POST",
     }),
 
-  me: () => request<MeViewModel>("/api/auth/me"),
+  logout: () =>
+    request<void>("/api/auth/logout", {
+      authMode: "none",
+      method: "POST",
+    }),
+
+  me: () => request<MeViewModel>("/api/auth/me", { authMode: "bearer" }),
+
+  refresh: () =>
+    request<LoginSuccessViewModel>("/api/auth/refresh-token", {
+      authMode: "none",
+      method: "POST",
+    }),
 };

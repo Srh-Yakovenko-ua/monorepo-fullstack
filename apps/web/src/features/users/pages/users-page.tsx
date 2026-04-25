@@ -1,5 +1,6 @@
-import type { UsersQuery, UserViewModel } from "@app/shared";
+import type { UpdateUserRoleInput, UsersQuery, UserViewModel } from "@app/shared";
 
+import { ROLE } from "@app/shared";
 import { ArrowDown, ArrowUp, ArrowUpDown, Copy, Plus, Search, Trash2, Users } from "lucide-react";
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
 import { useEffect, useRef, useState } from "react";
@@ -34,7 +35,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ModalId, modalObserver } from "@/features/modals";
-import { useDeleteUser } from "@/features/users/hooks/use-user-mutations";
+import { RoleBadge } from "@/features/user-auth/components/role-badge";
+import { useUserAuth } from "@/features/user-auth/hooks/use-user-auth";
+import { useDeleteUser, useUpdateUserRole } from "@/features/users/hooks/use-user-mutations";
 import { useUsers } from "@/features/users/hooks/use-users";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { formatTimestamp } from "@/lib/format";
@@ -116,14 +119,21 @@ type UsersPaginationProps = {
 };
 
 type UserTableRowProps = {
+  currentUserId: null | string;
+  isSuperAdmin: boolean;
   onCopyId: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onDeleteClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onRoleChange: (params: { role: UpdateUserRoleInput["role"]; userId: string }) => void;
+  roleChangePending: boolean;
   user: UserViewModel;
 };
 
 export function UsersPage() {
   const { t } = useTranslation();
   usePageTitle(t("users.list.title"));
+
+  const { user: currentUser } = useUserAuth();
+  const isSuperAdmin = currentUser?.role === ROLE.superAdmin;
 
   const [filters, setFilters] = useQueryStates({
     page: parseAsInteger.withDefault(1),
@@ -140,6 +150,7 @@ export function UsersPage() {
   const emailDebounceRef = useRef<null | ReturnType<typeof setTimeout>>(null);
 
   const deleteUser = useDeleteUser();
+  const updateUserRole = useUpdateUserRole();
 
   const selectedSort =
     USER_SORT_OPTIONS.find((option) => option.value === sortValue) ?? USER_SORT_OPTIONS[0];
@@ -227,6 +238,21 @@ export function UsersPage() {
     });
   }
 
+  async function handleRoleChange({
+    role,
+    userId,
+  }: {
+    role: UpdateUserRoleInput["role"];
+    userId: string;
+  }) {
+    try {
+      await updateUserRole.mutateAsync({ id: userId, role });
+      toast.success(t("users.toasts.roleUpdated"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("users.toasts.roleUpdateFailed"));
+    }
+  }
+
   useEffect(() => {
     return () => {
       if (loginDebounceRef.current) clearTimeout(loginDebounceRef.current);
@@ -251,6 +277,9 @@ export function UsersPage() {
           label={t("users.list.columns.email")}
           onSortClick={handleColumnSortClick}
         />
+        <TableHead className="h-12 px-4 font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase first:pl-6 last:pr-6">
+          {t("users.list.columns.role")}
+        </TableHead>
         <TableHead className="hidden h-12 px-4 font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase first:pl-6 last:pr-6 md:table-cell">
           {t("users.list.columns.id")}
         </TableHead>
@@ -333,6 +362,9 @@ export function UsersPage() {
                     <TableCell className="px-4 py-3">
                       <Skeleton className="h-4 w-40" />
                     </TableCell>
+                    <TableCell className="px-4 py-3">
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </TableCell>
                     <TableCell className="hidden px-4 py-3 md:table-cell">
                       <Skeleton className="h-4 w-32" />
                     </TableCell>
@@ -394,9 +426,13 @@ export function UsersPage() {
               <TableBody>
                 {users.map((user) => (
                   <UserTableRow
+                    currentUserId={currentUser?.userId ?? null}
+                    isSuperAdmin={isSuperAdmin}
                     key={user.id}
                     onCopyId={handleCopyId}
                     onDeleteClick={handleDeleteClick}
+                    onRoleChange={handleRoleChange}
+                    roleChangePending={updateUserRole.isPending}
                     user={user}
                   />
                 ))}
@@ -593,8 +629,26 @@ function UsersPagination({ currentPage, onPageChange, pagesCount }: UsersPaginat
   );
 }
 
-function UserTableRow({ onCopyId, onDeleteClick, user }: UserTableRowProps) {
+function UserTableRow({
+  currentUserId,
+  isSuperAdmin,
+  onCopyId,
+  onDeleteClick,
+  onRoleChange,
+  roleChangePending,
+  user,
+}: UserTableRowProps) {
   const { t } = useTranslation();
+
+  const isOwnRow = user.id === currentUserId;
+  const isTargetSuperAdmin = user.role === ROLE.superAdmin;
+  const canChangeRole = isSuperAdmin && !isOwnRow && !isTargetSuperAdmin;
+  const deleteDisabled = isTargetSuperAdmin;
+
+  function handleRoleSelectChange(value: string) {
+    if (value !== ROLE.admin && value !== ROLE.user) return;
+    void onRoleChange({ role: value, userId: user.id });
+  }
 
   return (
     <TableRow className="group/row h-14 animate-in duration-300 fill-mode-both fade-in hover:bg-muted/30">
@@ -603,6 +657,25 @@ function UserTableRow({ onCopyId, onDeleteClick, user }: UserTableRowProps) {
       </TableCell>
       <TableCell className="px-4 py-3 text-sm text-muted-foreground tabular-nums">
         {user.email}
+      </TableCell>
+      <TableCell className="px-4 py-3">
+        {canChangeRole ? (
+          <Select
+            disabled={roleChangePending}
+            onValueChange={handleRoleSelectChange}
+            value={user.role}
+          >
+            <SelectTrigger className="h-7 w-[110px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ROLE.user}>User</SelectItem>
+              <SelectItem value={ROLE.admin}>Admin</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : (
+          <RoleBadge role={user.role} />
+        )}
       </TableCell>
       <TableCell className="hidden px-4 py-3 md:table-cell">
         <div className="flex items-center gap-2">
@@ -630,10 +703,12 @@ function UserTableRow({ onCopyId, onDeleteClick, user }: UserTableRowProps) {
       <TableCell className="px-4 py-3 text-right last:pr-6">
         <button
           aria-label={t("users.delete.title", { login: user.login })}
-          className="inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive focus-visible:ring-2 focus-visible:ring-destructive/30 focus-visible:outline-none"
+          className="inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive focus-visible:ring-2 focus-visible:ring-destructive/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
           data-user-id={user.id}
           data-user-login={user.login}
+          disabled={deleteDisabled}
           onClick={onDeleteClick}
+          title={deleteDisabled ? "Cannot delete super-admin" : undefined}
           type="button"
         >
           <Trash2 className="size-4" />
