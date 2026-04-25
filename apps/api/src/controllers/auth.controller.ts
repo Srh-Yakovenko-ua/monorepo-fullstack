@@ -8,6 +8,8 @@ import type {
 } from "@app/shared";
 import type { CookieOptions, Request, Response } from "express";
 
+import { differenceInMilliseconds } from "date-fns";
+
 import { env } from "../config/env.js";
 import { UnauthorizedError } from "../lib/errors.js";
 import { HTTP_STATUS } from "../lib/http-status.js";
@@ -19,20 +21,23 @@ export async function login(
   req: Request<unknown, unknown, LoginInput>,
   res: Response<LoginSuccessViewModel>,
 ): Promise<void> {
-  const { accessToken, refreshExpiresAt, refreshToken } = await authService.login(req.body);
+  const { accessToken, refreshExpiresAt, refreshToken } = await authService.login(req.body, {
+    ip: req.ip ?? "",
+    userAgent: req.headers["user-agent"],
+  });
   res.cookie(
     REFRESH_TOKEN_COOKIE,
     refreshToken,
-    buildRefreshCookieOptions(refreshExpiresAt.getTime() - Date.now()),
+    buildRefreshCookieOptions(differenceInMilliseconds(refreshExpiresAt, new Date())),
   );
   res.status(HTTP_STATUS.OK).json({ accessToken });
 }
 
 export async function logout(req: Request, res: Response<void>): Promise<void> {
-  const token = req.cookies[REFRESH_TOKEN_COOKIE] as string | undefined;
-  if (!token) throw new UnauthorizedError();
+  const session = req.session;
+  if (!session) throw new UnauthorizedError();
 
-  await authService.logout(token);
+  await authService.logout({ deviceId: session.deviceId, userId: session.userId });
   res.clearCookie(REFRESH_TOKEN_COOKIE, { path: "/" });
   res.status(HTTP_STATUS.NO_CONTENT).send();
 }
@@ -49,18 +54,21 @@ export async function refreshToken(
   req: Request,
   res: Response<LoginSuccessViewModel>,
 ): Promise<void> {
-  const token = req.cookies[REFRESH_TOKEN_COOKIE] as string | undefined;
-  if (!token) throw new UnauthorizedError();
+  const session = req.session;
+  if (!session) throw new UnauthorizedError();
 
   const {
     accessToken,
     refreshExpiresAt,
     refreshToken: newRefreshToken,
-  } = await authService.refreshTokens(token);
+  } = await authService.refreshTokens(
+    { deviceId: session.deviceId, userId: session.userId },
+    { ip: req.ip ?? "", userAgent: req.headers["user-agent"] },
+  );
   res.cookie(
     REFRESH_TOKEN_COOKIE,
     newRefreshToken,
-    buildRefreshCookieOptions(refreshExpiresAt.getTime() - Date.now()),
+    buildRefreshCookieOptions(differenceInMilliseconds(refreshExpiresAt, new Date())),
   );
   res.status(HTTP_STATUS.OK).json({ accessToken });
 }

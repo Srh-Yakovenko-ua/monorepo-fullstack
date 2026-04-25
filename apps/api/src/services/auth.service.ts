@@ -9,14 +9,15 @@ import type {
 import { compare } from "bcryptjs";
 import { addHours, isAfter } from "date-fns";
 import { randomUUID } from "node:crypto";
+import { UAParser } from "ua-parser-js";
 
 import { env } from "../config/env.js";
-import * as refreshTokensRepository from "../db/repositories/refresh-tokens.repository.js";
+import * as sessionsRepository from "../db/repositories/sessions.repository.js";
 import * as usersRepository from "../db/repositories/users.repository.js";
 import { renderConfirmEmail } from "../lib/email-templates.js";
 import { BadRequestError, HttpError, UnauthorizedError } from "../lib/errors.js";
 import { HTTP_STATUS } from "../lib/http-status.js";
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../lib/jwt.js";
+import { signAccessToken, signRefreshToken } from "../lib/jwt.js";
 import { createLogger } from "../lib/logger.js";
 import { sendEmail } from "../lib/mailer.js";
 import * as usersService from "./users.service.js";
@@ -24,6 +25,12 @@ import * as usersService from "./users.service.js";
 const log = createLogger("auth.service");
 
 const CONFIRMATION_TTL_HOURS = 1;
+const FALLBACK_DEVICE_TITLE = "Unknown device";
+
+export type LoginContext = {
+  ip: string;
+  userAgent: string | undefined;
+};
 
 export type LoginResult = {
   accessToken: string;
@@ -73,7 +80,7 @@ export async function getCurrentUser(userId: string): Promise<MeViewModel> {
   };
 }
 
-export async function login(input: LoginInput): Promise<LoginResult> {
+export async function login(input: LoginInput, context: LoginContext): Promise<LoginResult> {
   const user = await usersRepository.findByLoginOrEmail(input.loginOrEmail);
   if (!user) throw new UnauthorizedError("Invalid login or password");
 
@@ -85,10 +92,23 @@ export async function login(input: LoginInput): Promise<LoginResult> {
   }
 
   const userId = user._id.toHexString();
+  const deviceId = randomUUID();
+  const title = parseDeviceTitle(context.userAgent);
+
   const [accessToken, refreshTokenResult] = await Promise.all([
     signAccessToken({ userId }),
-    signRefreshToken({ userId }),
+    signRefreshToken({ deviceId, userId }),
   ]);
+
+  await sessionsRepository.create({
+    deviceId,
+    expiresAt: refreshTokenResult.expiresAt,
+    ip: context.ip,
+    lastActiveAt: refreshTokenResult.issuedAt,
+    title,
+    tokenJti: refreshTokenResult.jti,
+    userId,
+  });
 
   return {
     accessToken,
@@ -97,17 +117,33 @@ export async function login(input: LoginInput): Promise<LoginResult> {
   };
 }
 
-export async function logout(currentRefreshToken: string): Promise<void> {
-  await consumeRefreshToken(currentRefreshToken);
+export async function logout({
+  deviceId,
+  userId,
+}: {
+  deviceId: string;
+  userId: string;
+}): Promise<void> {
+  await sessionsRepository.deleteByUserAndDevice({ deviceId, userId });
 }
 
-export async function refreshTokens(currentRefreshToken: string): Promise<RefreshResult> {
-  const { userId } = await consumeRefreshToken(currentRefreshToken);
-
+export async function refreshTokens(
+  { deviceId, userId }: { deviceId: string; userId: string },
+  context: LoginContext,
+): Promise<RefreshResult> {
   const [accessToken, refreshTokenResult] = await Promise.all([
     signAccessToken({ userId }),
-    signRefreshToken({ userId }),
+    signRefreshToken({ deviceId, userId }),
   ]);
+
+  await sessionsRepository.rotateSession({
+    deviceId,
+    expiresAt: refreshTokenResult.expiresAt,
+    ip: context.ip,
+    lastActiveAt: refreshTokenResult.issuedAt,
+    tokenJti: refreshTokenResult.jti,
+    userId,
+  });
 
   return {
     accessToken,
@@ -172,19 +208,20 @@ export async function resendConfirmationEmail({
   }
 }
 
-async function consumeRefreshToken(currentRefreshToken: string): Promise<{ userId: string }> {
-  const payload = await verifyRefreshToken(currentRefreshToken).catch(() => {
-    throw new UnauthorizedError();
-  });
+function formatNameVersion(name: string | undefined, version: string | undefined): string {
+  if (!name) return "";
+  return version ? `${name} ${version}` : name;
+}
 
-  const user = await usersRepository.findById(payload.userId);
-  if (!user) throw new UnauthorizedError();
+function parseDeviceTitle(userAgent: string | undefined): string {
+  if (!userAgent || userAgent.trim().length === 0) return FALLBACK_DEVICE_TITLE;
 
-  const revokedNow = await refreshTokensRepository.revokeOnce({
-    expiresAt: new Date(payload.exp * 1000),
-    jti: payload.jti,
-  });
-  if (!revokedNow) throw new UnauthorizedError();
+  const result = new UAParser(userAgent).getResult();
+  const browserPart = formatNameVersion(result.browser.name, result.browser.version);
+  const osPart = formatNameVersion(result.os.name, result.os.version);
 
-  return { userId: user._id.toHexString() };
+  if (!browserPart && !osPart) return FALLBACK_DEVICE_TITLE;
+  if (!osPart) return browserPart;
+  if (!browserPart) return osPart;
+  return `${browserPart} on ${osPart}`;
 }

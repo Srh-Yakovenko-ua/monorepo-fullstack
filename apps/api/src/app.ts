@@ -15,6 +15,7 @@ import { commentsRouter } from "./routes/comments.routes.js";
 import { docsRouter } from "./routes/docs.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { postsRouter } from "./routes/posts.routes.js";
+import { securityRouter } from "./routes/security.routes.js";
 import { testingRouter } from "./routes/testing.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
 import { videosRouter } from "./routes/videos.routes.js";
@@ -23,12 +24,24 @@ export function createApp(): express.Express {
   const app = express();
 
   app.disable("x-powered-by");
+  app.set("trust proxy", env.nodeEnv === "production" ? 1 : false);
 
   app.use(requestId);
   app.use(requestLogger);
   app.use(helmet());
   app.use(compression());
-  app.use(cors({ credentials: true, origin: env.corsOrigin }));
+  app.use(
+    cors({
+      credentials: true,
+      origin: (origin, cb) => {
+        if (!origin) {
+          cb(null, true);
+          return;
+        }
+        cb(null, env.corsOrigins.includes(origin));
+      },
+    }),
+  );
   app.use(cookieParser());
   app.use(express.json({ limit: "1mb" }));
 
@@ -37,6 +50,7 @@ export function createApp(): express.Express {
   app.use("/api/blogs", blogsRouter);
   app.use("/api/comments", commentsRouter);
   app.use("/api/posts", postsRouter);
+  app.use("/api/security/devices", securityRouter);
   app.use("/api/users", usersRouter);
   app.use("/api/videos", videosRouter);
 

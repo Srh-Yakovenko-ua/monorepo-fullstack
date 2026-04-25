@@ -3,7 +3,33 @@ import { z } from "zod";
 
 const envSchema = z
   .object({
-    CORS_ORIGIN: z.string().url().default("http://localhost:5173"),
+    CORS_ORIGINS: z
+      .string()
+      .default("http://localhost:5173")
+      .transform((value, ctx) => {
+        const items = value
+          .split(",")
+          .map((entry) => entry.trim())
+          .filter((entry) => entry.length > 0);
+        if (items.length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "CORS_ORIGINS must contain at least one origin",
+          });
+          return z.NEVER;
+        }
+        for (const item of items) {
+          const result = z.string().url().safeParse(item);
+          if (!result.success) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `CORS_ORIGINS contains invalid URL: ${item}`,
+            });
+            return z.NEVER;
+          }
+        }
+        return items;
+      }),
     EMAIL_FROM: z.string().email().default("no-reply@example.com"),
     ENABLE_SWAGGER: z
       .enum(["true", "false"])
@@ -29,7 +55,7 @@ const envSchema = z
     SMTP_USER: z.string().default(""),
   })
   .transform((raw) => ({
-    corsOrigin: raw.CORS_ORIGIN,
+    corsOrigins: raw.CORS_ORIGINS,
     emailFrom: raw.EMAIL_FROM,
     enableSwagger: raw.ENABLE_SWAGGER,
     frontendUrl: raw.FRONTEND_URL,

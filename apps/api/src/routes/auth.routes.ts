@@ -18,23 +18,27 @@ import {
   registrationEmailResending,
 } from "../controllers/auth.controller.js";
 import { apiErrorResultSchema, registerPaths } from "../lib/openapi.js";
+import { authRateLimit } from "../middleware/auth-rate-limit.js";
 import { requireAuth } from "../middleware/require-auth.js";
+import { requireRefreshSession } from "../middleware/require-refresh-session.js";
 import { validateBody } from "../middleware/validate.js";
 
 const router: Router = Router();
 
-router.post("/login", validateBody(LoginInputSchema), login);
-router.post("/logout", logout);
+router.post("/login", authRateLimit, validateBody(LoginInputSchema), login);
+router.post("/logout", requireRefreshSession, logout);
 router.get("/me", requireAuth, me);
-router.post("/refresh-token", refreshToken);
-router.post("/registration", validateBody(CreateUserInputSchema), registration);
+router.post("/refresh-token", requireRefreshSession, refreshToken);
+router.post("/registration", authRateLimit, validateBody(CreateUserInputSchema), registration);
 router.post(
   "/registration-confirmation",
+  authRateLimit,
   validateBody(RegistrationConfirmationInputSchema),
   registrationConfirmation,
 );
 router.post(
   "/registration-email-resending",
+  authRateLimit,
   validateBody(RegistrationEmailResendingInputSchema),
   registrationEmailResending,
 );
@@ -76,6 +80,7 @@ registerPaths({
       responses: {
         "204": { description: "Logged out. refreshToken cookie cleared." },
         "401": { description: "No valid refreshToken cookie" },
+        "403": { description: "Missing or invalid Origin/Referer header" },
       },
       security: [{ cookieAuth: [] }],
       summary: "Revoke the current refreshToken and clear the cookie",
@@ -126,6 +131,7 @@ registerPaths({
           },
         },
         "401": { description: "No valid refreshToken cookie or token is revoked/expired" },
+        "403": { description: "Missing or invalid Origin/Referer header" },
       },
       security: [{ cookieAuth: [] }],
       summary: "Generate a new pair of access + refresh tokens",

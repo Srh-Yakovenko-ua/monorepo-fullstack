@@ -44,6 +44,13 @@ export class NotFoundError extends HttpError {
   }
 }
 
+export class TooManyRequestsError extends HttpError {
+  constructor(message = "Too many requests", options?: { code?: string }) {
+    super(HTTP_STATUS.TOO_MANY_REQUESTS, message, { code: options?.code });
+    this.name = "TooManyRequestsError";
+  }
+}
+
 export class UnauthorizedError extends HttpError {
   constructor(message = "Unauthorized", options?: { code?: string }) {
     super(HTTP_STATUS.UNAUTHORIZED, message, { bodyless: true, code: options?.code });

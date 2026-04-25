@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     clearMocks: true,
     env: {
-      CORS_ORIGIN: "http://localhost:5173",
+      CORS_ORIGINS: "http://localhost:5173",
       JWT_ACCESS_EXPIRES_IN: "2m",
       JWT_REFRESH_EXPIRES_IN: "2m",
       JWT_SECRET: "test-secret-that-is-at-least-32-characters-long",

@@ -5,6 +5,7 @@ import { createApp } from "../app.js";
 import { createAdminAndLogin } from "../test/auth-helpers.js";
 
 const app = createApp();
+const TEST_ORIGIN = "http://localhost:5173";
 
 const validUser = {
   email: "john@example.dev",
@@ -220,7 +221,8 @@ describe("Auth API", () => {
 
       const res = await request(app)
         .post("/api/auth/refresh-token")
-        .set("Cookie", `refreshToken=${originalToken}`);
+        .set("Cookie", `refreshToken=${originalToken}`)
+        .set("Origin", TEST_ORIGIN);
 
       expect(res.status).toBe(200);
       expect(typeof res.body.accessToken).toBe("string");
@@ -234,7 +236,7 @@ describe("Auth API", () => {
     });
 
     it("returns 401 when no cookie is sent", async () => {
-      const res = await request(app).post("/api/auth/refresh-token");
+      const res = await request(app).post("/api/auth/refresh-token").set("Origin", TEST_ORIGIN);
 
       expect(res.status).toBe(401);
       expect(res.text).toBe("");
@@ -243,7 +245,8 @@ describe("Auth API", () => {
     it("returns 401 when cookie value is garbage", async () => {
       const res = await request(app)
         .post("/api/auth/refresh-token")
-        .set("Cookie", "refreshToken=garbage.token.value");
+        .set("Cookie", "refreshToken=garbage.token.value")
+        .set("Origin", TEST_ORIGIN);
 
       expect(res.status).toBe(401);
       expect(res.text).toBe("");
@@ -259,11 +262,13 @@ describe("Auth API", () => {
 
       await request(app)
         .post("/api/auth/refresh-token")
-        .set("Cookie", `refreshToken=${originalToken}`);
+        .set("Cookie", `refreshToken=${originalToken}`)
+        .set("Origin", TEST_ORIGIN);
 
       const replayRes = await request(app)
         .post("/api/auth/refresh-token")
-        .set("Cookie", `refreshToken=${originalToken}`);
+        .set("Cookie", `refreshToken=${originalToken}`)
+        .set("Origin", TEST_ORIGIN);
 
       expect(replayRes.status).toBe(401);
       expect(replayRes.text).toBe("");
@@ -281,7 +286,8 @@ describe("Auth API", () => {
 
       const res = await request(app)
         .post("/api/auth/logout")
-        .set("Cookie", `refreshToken=${token}`);
+        .set("Cookie", `refreshToken=${token}`)
+        .set("Origin", TEST_ORIGIN);
 
       expect(res.status).toBe(204);
       const setCookie = res.headers["set-cookie"] as string[] | undefined;
@@ -297,18 +303,22 @@ describe("Auth API", () => {
       });
       const token = extractRefreshToken(refreshCookieHeader);
 
-      await request(app).post("/api/auth/logout").set("Cookie", `refreshToken=${token}`);
+      await request(app)
+        .post("/api/auth/logout")
+        .set("Cookie", `refreshToken=${token}`)
+        .set("Origin", TEST_ORIGIN);
 
       const replayRes = await request(app)
         .post("/api/auth/refresh-token")
-        .set("Cookie", `refreshToken=${token}`);
+        .set("Cookie", `refreshToken=${token}`)
+        .set("Origin", TEST_ORIGIN);
 
       expect(replayRes.status).toBe(401);
       expect(replayRes.text).toBe("");
     });
 
     it("returns 401 when no cookie is sent", async () => {
-      const res = await request(app).post("/api/auth/logout");
+      const res = await request(app).post("/api/auth/logout").set("Origin", TEST_ORIGIN);
 
       expect(res.status).toBe(401);
       expect(res.text).toBe("");

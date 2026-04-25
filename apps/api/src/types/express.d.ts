@@ -4,6 +4,7 @@ declare global {
   namespace Express {
     interface Request {
       requestId: string;
+      session?: { deviceId: string; userId: string };
       user?: { email: string; login: string; role: UserRole; userId: string };
       validatedQuery?: unknown;
     }

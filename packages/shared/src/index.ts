@@ -148,6 +148,13 @@ export const LoginInputSchema = z.object({
   password: z.string().min(1, "password is required").max(72),
 });
 
+export type DeviceViewModel = {
+  deviceId: string;
+  ip: string;
+  lastActiveDate: string;
+  title: string;
+};
+
 export type LoginInput = z.infer<typeof LoginInputSchema>;
 
 export type LoginSuccessViewModel = { accessToken: string };
