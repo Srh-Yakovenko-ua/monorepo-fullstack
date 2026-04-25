@@ -1,4 +1,9 @@
-import { CreateUserInputSchema, UpdateUserRoleInputSchema, UsersQuerySchema } from "@app/shared";
+import {
+  CreateUserInputSchema,
+  UpdateUserRoleInputSchema,
+  USER_ROLES,
+  UsersQuerySchema,
+} from "@app/shared";
 import { Router } from "express";
 import { z } from "zod";
 
@@ -32,6 +37,7 @@ const userViewModelSchema = z.object({
   email: z.string(),
   id: z.string(),
   login: z.string(),
+  role: z.enum(USER_ROLES),
 });
 
 function paginatorSchema<T extends z.ZodTypeAny>(itemSchema: T) {

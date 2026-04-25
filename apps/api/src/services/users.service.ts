@@ -94,6 +94,7 @@ export function toUserView(doc: UserDoc): UserViewModel {
     email: doc.email,
     id: doc._id.toHexString(),
     login: doc.login,
+    role: doc.role,
   };
 }
 

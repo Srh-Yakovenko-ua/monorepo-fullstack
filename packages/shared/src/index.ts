@@ -210,6 +210,7 @@ export type UserViewModel = {
   email: string;
   id: string;
   login: string;
+  role: UserRole;
 };
 
 export const COMMENT_SORT_FIELDS = ["createdAt"] as const;
