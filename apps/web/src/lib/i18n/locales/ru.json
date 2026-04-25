@@ -298,7 +298,10 @@
       },
       "sortAriaLabel": "Сортировать по {{column}}",
       "idCopied": "ID пользователя скопирован",
-      "copyId": "Скопировать ID пользователя"
+      "copyId": "Скопировать ID пользователя",
+      "emailCopied": "Email скопирован",
+      "copyEmail": "Скопировать email",
+      "cannotDeleteSuperAdmin": "Супер-админа нельзя удалить"
     },
     "form": {
       "createTitle": "Добавить пользователя",

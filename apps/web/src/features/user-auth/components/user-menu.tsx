@@ -1,4 +1,4 @@
-import { LogIn, LogOut, User } from "lucide-react";
+import { LogIn, LogOut } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 
@@ -50,14 +50,11 @@ export function UserMenu() {
   }
 
   return (
-    <div className="flex items-center gap-1">
-      <div
-        aria-hidden
-        className="flex size-8 items-center justify-center rounded-md text-muted-foreground"
-      >
-        <User className="size-4" />
-      </div>
-      <RoleBadge role={user.role} />
+    <div className="flex items-center gap-1.5">
+      <RoleBadge
+        className="px-1.5 py-0 text-[10px] transition-opacity duration-200 group-data-[state=collapsed]:hidden group-data-[state=collapsed]:opacity-0"
+        role={user.role}
+      />
       <AlertDialog onOpenChange={setIsOpen} open={isOpen}>
         <AlertDialogTrigger asChild>
           <button

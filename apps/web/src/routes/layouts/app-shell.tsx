@@ -135,14 +135,8 @@ function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border/60 px-3 py-3">
-        <div
-          className={cn(
-            "flex items-center gap-1 transition-all duration-200",
-            collapsed && "flex-col",
-          )}
-        >
-          <ThemePicker />
-          <LocalePicker />
+        <div className="flex items-center justify-between gap-2 group-data-[state=collapsed]:flex-col group-data-[state=collapsed]:justify-center">
+          <SidebarTrigger className="size-8 cursor-pointer text-muted-foreground transition-colors duration-150 hover:text-foreground" />
           <UserMenu />
         </div>
       </SidebarFooter>
@@ -174,8 +168,13 @@ function ContentArea() {
         }}
       />
       <header className="sticky top-0 z-30 flex h-[var(--shell-header-height)] shrink-0 items-center gap-4 border-b border-border/50 bg-background/80 px-4 backdrop-blur-xl backdrop-saturate-150">
-        <SidebarTrigger className="size-8 cursor-pointer text-muted-foreground transition-colors duration-150 hover:text-foreground" />
-        <PageBreadcrumbs />
+        <div className="min-w-0 flex-1">
+          <PageBreadcrumbs />
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ThemePicker />
+          <LocalePicker />
+        </div>
       </header>
       <div className="relative z-10 flex flex-1 flex-col">
         <Outlet />

@@ -298,7 +298,10 @@
       },
       "sortAriaLabel": "Сортувати за {{column}}",
       "idCopied": "ID користувача скопійовано",
-      "copyId": "Скопіювати ID користувача"
+      "copyId": "Скопіювати ID користувача",
+      "emailCopied": "Email скопійовано",
+      "copyEmail": "Скопіювати email",
+      "cannotDeleteSuperAdmin": "Супер-адміна не можна видалити"
     },
     "form": {
       "createTitle": "Додати користувача",

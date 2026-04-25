@@ -34,6 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ModalId, modalObserver } from "@/features/modals";
 import { RoleBadge } from "@/features/user-auth/components/role-badge";
 import { useUserAuth } from "@/features/user-auth/hooks/use-user-auth";
@@ -121,6 +122,7 @@ type UsersPaginationProps = {
 type UserTableRowProps = {
   currentUserId: null | string;
   isSuperAdmin: boolean;
+  onCopyEmail: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onCopyId: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onDeleteClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onRoleChange: (params: { role: UpdateUserRoleInput["role"]; userId: string }) => void;
@@ -235,6 +237,14 @@ export function UsersPage() {
     if (!userId) return;
     void navigator.clipboard.writeText(userId).then(() => {
       toast.success(t("users.list.idCopied"));
+    });
+  }
+
+  function handleCopyEmail(e: React.MouseEvent<HTMLButtonElement>) {
+    const email = e.currentTarget.dataset.userEmail;
+    if (!email) return;
+    void navigator.clipboard.writeText(email).then(() => {
+      toast.success(t("users.list.emailCopied"));
     });
   }
 
@@ -429,6 +439,7 @@ export function UsersPage() {
                     currentUserId={currentUser?.userId ?? null}
                     isSuperAdmin={isSuperAdmin}
                     key={user.id}
+                    onCopyEmail={handleCopyEmail}
                     onCopyId={handleCopyId}
                     onDeleteClick={handleDeleteClick}
                     onRoleChange={handleRoleChange}
@@ -632,6 +643,7 @@ function UsersPagination({ currentPage, onPageChange, pagesCount }: UsersPaginat
 function UserTableRow({
   currentUserId,
   isSuperAdmin,
+  onCopyEmail,
   onCopyId,
   onDeleteClick,
   onRoleChange,
@@ -656,7 +668,18 @@ function UserTableRow({
         {user.login}
       </TableCell>
       <TableCell className="px-4 py-3 text-sm text-muted-foreground tabular-nums">
-        {user.email}
+        <div className="flex items-center gap-2">
+          <span>{user.email}</span>
+          <button
+            aria-label={t("users.list.copyEmail")}
+            className="cursor-pointer rounded-md p-1 text-muted-foreground/70 opacity-0 transition-all duration-150 group-hover/row:opacity-100 hover:bg-muted hover:text-primary focus-visible:opacity-100"
+            data-user-email={user.email}
+            onClick={onCopyEmail}
+            type="button"
+          >
+            <Copy className="size-3.5" />
+          </button>
+        </div>
       </TableCell>
       <TableCell className="px-4 py-3">
         {canChangeRole ? (
@@ -701,18 +724,34 @@ function UserTableRow({
         {formatTimestamp(user.createdAt)}
       </TableCell>
       <TableCell className="px-4 py-3 text-right last:pr-6">
-        <button
-          aria-label={t("users.delete.title", { login: user.login })}
-          className="inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive focus-visible:ring-2 focus-visible:ring-destructive/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
-          data-user-id={user.id}
-          data-user-login={user.login}
-          disabled={deleteDisabled}
-          onClick={onDeleteClick}
-          title={deleteDisabled ? "Cannot delete super-admin" : undefined}
-          type="button"
-        >
-          <Trash2 className="size-4" />
-        </button>
+        {deleteDisabled ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex">
+                <button
+                  aria-label={t("users.list.cannotDeleteSuperAdmin")}
+                  className="pointer-events-none inline-flex size-8 cursor-not-allowed items-center justify-center rounded-md text-muted-foreground opacity-40"
+                  disabled
+                  type="button"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>{t("users.list.cannotDeleteSuperAdmin")}</TooltipContent>
+          </Tooltip>
+        ) : (
+          <button
+            aria-label={t("users.delete.title", { login: user.login })}
+            className="inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive focus-visible:ring-2 focus-visible:ring-destructive/30 focus-visible:outline-none"
+            data-user-id={user.id}
+            data-user-login={user.login}
+            onClick={onDeleteClick}
+            type="button"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        )}
       </TableCell>
     </TableRow>
   );

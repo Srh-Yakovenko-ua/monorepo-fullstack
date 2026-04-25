@@ -5,6 +5,7 @@ import { ROLE } from "@app/shared";
 import { Badge } from "@/components/ui/badge";
 
 type RoleBadgeProps = {
+  className?: string;
   role: UserRole;
 };
 
@@ -20,6 +21,10 @@ const ROLE_VARIANT = {
   [ROLE.user]: "outline",
 } as const satisfies Record<UserRole, "default" | "outline" | "secondary">;
 
-export function RoleBadge({ role }: RoleBadgeProps) {
-  return <Badge variant={ROLE_VARIANT[role]}>{ROLE_LABEL[role]}</Badge>;
+export function RoleBadge({ className, role }: RoleBadgeProps) {
+  return (
+    <Badge className={className} variant={ROLE_VARIANT[role]}>
+      {ROLE_LABEL[role]}
+    </Badge>
+  );
 }

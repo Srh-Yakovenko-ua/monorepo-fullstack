@@ -7,14 +7,28 @@ export function AppErrorBoundary() {
   const error = useRouteError();
 
   const isRouteError = isRouteErrorResponse(error);
-  const status = isRouteError ? error.status : 500;
-  const statusText = isRouteError ? error.statusText : "Internal error";
+  const isJsError = !isRouteError && error instanceof Error;
+
+  const statusLabel = isRouteError
+    ? `Error · ${error.status}`
+    : isJsError
+      ? "Error · Client"
+      : "Error";
+
+  const heading = isRouteError
+    ? error.statusText
+    : isJsError && error.name && error.name !== "Error"
+      ? error.name
+      : isJsError
+        ? "Application error"
+        : "Something went wrong";
+
   const message =
     isRouteError && error.data
       ? typeof error.data === "string"
         ? error.data
         : JSON.stringify(error.data)
-      : error instanceof Error
+      : isJsError
         ? error.message
         : "Something went wrong while rendering the page.";
 
@@ -53,11 +67,11 @@ export function AppErrorBoundary() {
 
         <section className="mt-20 flex-1 md:mt-28 lg:mt-32">
           <p className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground uppercase">
-            Error · {status}
+            {statusLabel}
           </p>
 
           <h1 className="mt-6 font-display text-[clamp(2rem,4vw,3.5rem)] leading-[0.86] font-semibold tracking-[-0.035em]">
-            {statusText}
+            {heading}
             <span className="text-error">.</span>
           </h1>
 

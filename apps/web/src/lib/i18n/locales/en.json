@@ -298,7 +298,10 @@
       },
       "sortAriaLabel": "Sort by {{column}}",
       "idCopied": "User ID copied",
-      "copyId": "Copy user ID"
+      "copyId": "Copy user ID",
+      "emailCopied": "Email copied",
+      "copyEmail": "Copy email",
+      "cannotDeleteSuperAdmin": "Cannot delete super-admin"
     },
     "form": {
       "createTitle": "Add user",
