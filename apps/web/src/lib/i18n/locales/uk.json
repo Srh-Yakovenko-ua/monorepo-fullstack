@@ -12,7 +12,6 @@
     "fixFormErrors": "Виправте помилки у формі"
   },
   "nav": {
-    "health": "Health",
     "blogs": "Блоги",
     "posts": "Пости",
     "videos": "Відео",
@@ -26,7 +25,6 @@
   "breadcrumbs": {
     "blogs": "Блоги",
     "posts": "Пости",
-    "health": "Health",
     "videos": "Відео",
     "users": "Користувачі"
   },
@@ -36,37 +34,6 @@
     "delete": "Видалити",
     "menu": "Більше дій",
     "signOut": "Вийти"
-  },
-  "health": {
-    "systemStatus": "System status",
-    "headline": {
-      "unreachable": "Unreachable",
-      "connecting": "Connecting",
-      "operational": "Operational",
-      "degraded": "Degraded",
-      "down": "Down"
-    },
-    "description": {
-      "error": "API на localhost:4000 не відповідає. {{message}}.",
-      "ok": "Всі системи працюють нормально. Express-сервіс онлайн та приймає запити на порту 4000.",
-      "connecting": "Очікування першого heartbeat від Express-сервісу."
-    },
-    "metrics": {
-      "uptime": "Uptime",
-      "lastHeartbeat": "Last heartbeat",
-      "environment": "Environment"
-    },
-    "actions": {
-      "pinging": "Pinging",
-      "pingAgain": "Ping again",
-      "openConfirmModal": "Open confirm modal"
-    },
-    "footer": "Express + MongoDB · phase 1",
-    "modal": {
-      "title": "Delete this item?",
-      "description": "This action cannot be undone.",
-      "confirmLabel": "Delete"
-    }
   },
   "notFound": {
     "eyebrow": "Error · 404",

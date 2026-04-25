@@ -12,7 +12,6 @@
     "fixFormErrors": "Please fix the errors in the form"
   },
   "nav": {
-    "health": "Health",
     "blogs": "Blogs",
     "posts": "Posts",
     "videos": "Videos",
@@ -26,7 +25,6 @@
   "breadcrumbs": {
     "blogs": "Blogs",
     "posts": "Posts",
-    "health": "Health",
     "videos": "Videos",
     "users": "Users"
   },
@@ -36,37 +34,6 @@
     "delete": "Delete",
     "menu": "More actions",
     "signOut": "Sign out"
-  },
-  "health": {
-    "systemStatus": "System status",
-    "headline": {
-      "unreachable": "Unreachable",
-      "connecting": "Connecting",
-      "operational": "Operational",
-      "degraded": "Degraded",
-      "down": "Down"
-    },
-    "description": {
-      "error": "The API at localhost:4000 did not respond. {{message}}.",
-      "ok": "All systems are responding normally. The Express service is online and accepting requests on port 4000.",
-      "connecting": "Waiting for the first heartbeat from the Express service."
-    },
-    "metrics": {
-      "uptime": "Uptime",
-      "lastHeartbeat": "Last heartbeat",
-      "environment": "Environment"
-    },
-    "actions": {
-      "pinging": "Pinging",
-      "pingAgain": "Ping again",
-      "openConfirmModal": "Open confirm modal"
-    },
-    "footer": "Express + MongoDB · phase 1",
-    "modal": {
-      "title": "Delete this item?",
-      "description": "This action cannot be undone.",
-      "confirmLabel": "Delete"
-    }
   },
   "notFound": {
     "eyebrow": "Error · 404",

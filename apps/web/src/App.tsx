@@ -1,5 +1,5 @@
 import { ROLE } from "@app/shared";
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 
 import { ModalsRoot } from "@/features/modals";
 import { RequireRole } from "@/features/user-auth";
@@ -13,11 +13,8 @@ const router = createBrowserRouter([
       {
         children: [
           {
+            element: <Navigate replace to="/blogs" />,
             index: true,
-            lazy: async () => {
-              const { HealthPage } = await import("@/features/health/pages/health-page");
-              return { Component: HealthPage };
-            },
           },
           {
             lazy: async () => {

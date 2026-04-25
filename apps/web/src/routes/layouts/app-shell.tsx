@@ -1,5 +1,5 @@
 import { ROLE } from "@app/shared";
-import { Activity, BookOpen, FileText, Layers, Users, Video } from "lucide-react";
+import { BookOpen, FileText, Layers, Users, Video } from "lucide-react";
 import { motion } from "motion/react";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
 import { useTranslation } from "react-i18next";
@@ -36,12 +36,11 @@ import { cn } from "@/lib/utils";
 
 type NavItem = {
   icon: React.ElementType;
-  key: "blogs" | "health" | "posts" | "users" | "videos";
+  key: "blogs" | "posts" | "users" | "videos";
   to: string;
 };
 
 const BASE_NAV_ITEMS: NavItem[] = [
-  { icon: Activity, key: "health", to: "/" },
   { icon: BookOpen, key: "blogs", to: "/blogs" },
   { icon: FileText, key: "posts", to: "/posts" },
   { icon: Video, key: "videos", to: "/videos" },
@@ -189,21 +188,7 @@ function PageBreadcrumbs() {
 
   const segments = location.pathname.split("/").filter(Boolean);
 
-  if (segments.length === 0) {
-    return (
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbPage className="font-mono text-[11px] tracking-[0.14em] uppercase">
-              {t("breadcrumbs.health")}
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-    );
-  }
-
-  const first = segments[0];
+  const first = segments[0] ?? "";
   const second = segments[1];
   const sectionLabel =
     first === "blogs"
@@ -212,9 +197,7 @@ function PageBreadcrumbs() {
         ? t("breadcrumbs.posts")
         : first === "videos"
           ? t("breadcrumbs.videos")
-          : first === "users"
-            ? t("breadcrumbs.users")
-            : t("breadcrumbs.health");
+          : t("breadcrumbs.users");
 
   const sectionTo = `/${first}`;
 
