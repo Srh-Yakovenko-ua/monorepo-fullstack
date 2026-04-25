@@ -122,8 +122,6 @@ type UsersPaginationProps = {
 type UserTableRowProps = {
   currentUserId: null | string;
   isSuperAdmin: boolean;
-  onCopyEmail: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  onCopyId: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onDeleteClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onRoleChange: (params: { role: UpdateUserRoleInput["role"]; userId: string }) => void;
   roleChangePending: boolean;
@@ -229,22 +227,6 @@ export function UsersPage() {
       },
       title: t("users.delete.title", { login: userLogin }),
       tone: "destructive",
-    });
-  }
-
-  function handleCopyId(e: React.MouseEvent<HTMLButtonElement>) {
-    const userId = e.currentTarget.dataset.userId;
-    if (!userId) return;
-    void navigator.clipboard.writeText(userId).then(() => {
-      toast.success(t("users.list.idCopied"));
-    });
-  }
-
-  function handleCopyEmail(e: React.MouseEvent<HTMLButtonElement>) {
-    const email = e.currentTarget.dataset.userEmail;
-    if (!email) return;
-    void navigator.clipboard.writeText(email).then(() => {
-      toast.success(t("users.list.emailCopied"));
     });
   }
 
@@ -439,8 +421,6 @@ export function UsersPage() {
                     currentUserId={currentUser?.userId ?? null}
                     isSuperAdmin={isSuperAdmin}
                     key={user.id}
-                    onCopyEmail={handleCopyEmail}
-                    onCopyId={handleCopyId}
                     onDeleteClick={handleDeleteClick}
                     onRoleChange={handleRoleChange}
                     roleChangePending={updateUserRole.isPending}
@@ -500,6 +480,31 @@ const ARIA_SORT = {
 } as const;
 
 type AriaSort = (typeof ARIA_SORT)[keyof typeof ARIA_SORT];
+
+type CopyButtonProps = {
+  ariaLabel: string;
+  toastMessage: string;
+  value: string;
+};
+
+function CopyButton({ ariaLabel, toastMessage, value }: CopyButtonProps) {
+  function handleClick() {
+    void navigator.clipboard.writeText(value).then(() => {
+      toast.success(toastMessage);
+    });
+  }
+
+  return (
+    <button
+      aria-label={ariaLabel}
+      className="cursor-pointer rounded-md p-1 text-muted-foreground/70 opacity-0 transition-all duration-150 group-hover/row:opacity-100 hover:bg-muted hover:text-primary focus-visible:opacity-100"
+      onClick={handleClick}
+      type="button"
+    >
+      <Copy className="size-3.5" />
+    </button>
+  );
+}
 
 function getNextSortForColumn(column: SortableColumn, currentSort: UserSortValue): UserSortValue {
   if (column === COLUMN.login) {
@@ -643,8 +648,6 @@ function UsersPagination({ currentPage, onPageChange, pagesCount }: UsersPaginat
 function UserTableRow({
   currentUserId,
   isSuperAdmin,
-  onCopyEmail,
-  onCopyId,
   onDeleteClick,
   onRoleChange,
   roleChangePending,
@@ -670,15 +673,11 @@ function UserTableRow({
       <TableCell className="px-4 py-3 text-sm text-muted-foreground tabular-nums">
         <div className="flex items-center gap-2">
           <span>{user.email}</span>
-          <button
-            aria-label={t("users.list.copyEmail")}
-            className="cursor-pointer rounded-md p-1 text-muted-foreground/70 opacity-0 transition-all duration-150 group-hover/row:opacity-100 hover:bg-muted hover:text-primary focus-visible:opacity-100"
-            data-user-email={user.email}
-            onClick={onCopyEmail}
-            type="button"
-          >
-            <Copy className="size-3.5" />
-          </button>
+          <CopyButton
+            ariaLabel={t("users.list.copyEmail")}
+            toastMessage={t("users.list.emailCopied")}
+            value={user.email}
+          />
         </div>
       </TableCell>
       <TableCell className="px-4 py-3">
@@ -709,15 +708,11 @@ function UserTableRow({
           >
             {truncateUserId(user.id)}
           </span>
-          <button
-            aria-label={t("users.list.copyId")}
-            className="cursor-pointer rounded-md p-1 text-muted-foreground/70 opacity-0 transition-all duration-150 group-hover/row:opacity-100 hover:bg-muted hover:text-primary focus-visible:opacity-100"
-            data-user-id={user.id}
-            onClick={onCopyId}
-            type="button"
-          >
-            <Copy className="size-3.5" />
-          </button>
+          <CopyButton
+            ariaLabel={t("users.list.copyId")}
+            toastMessage={t("users.list.idCopied")}
+            value={user.id}
+          />
         </div>
       </TableCell>
       <TableCell className="hidden px-4 py-3 text-sm text-muted-foreground tabular-nums lg:table-cell">
