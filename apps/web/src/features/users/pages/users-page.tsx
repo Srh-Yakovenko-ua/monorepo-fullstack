@@ -495,14 +495,15 @@ function CopyButton({ ariaLabel, toastMessage, value }: CopyButtonProps) {
   }
 
   return (
-    <button
+    <Button
       aria-label={ariaLabel}
-      className="cursor-pointer rounded-md p-1 text-muted-foreground/70 opacity-0 transition-all duration-150 group-hover/row:opacity-100 hover:bg-muted hover:text-primary focus-visible:opacity-100"
+      className="text-muted-foreground/70 opacity-0 group-hover/row:opacity-100 hover:text-primary focus-visible:opacity-100"
       onClick={handleClick}
-      type="button"
+      size="icon-xs"
+      variant="ghost"
     >
-      <Copy className="size-3.5" />
-    </button>
+      <Copy />
+    </Button>
   );
 }
 
@@ -723,29 +724,31 @@ function UserTableRow({
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="inline-flex">
-                <button
+                <Button
                   aria-label={t("users.list.cannotDeleteSuperAdmin")}
-                  className="pointer-events-none inline-flex size-8 cursor-not-allowed items-center justify-center rounded-md text-muted-foreground opacity-40"
+                  className="text-muted-foreground"
                   disabled
-                  type="button"
+                  size="icon"
+                  variant="ghost"
                 >
-                  <Trash2 className="size-4" />
-                </button>
+                  <Trash2 />
+                </Button>
               </span>
             </TooltipTrigger>
             <TooltipContent>{t("users.list.cannotDeleteSuperAdmin")}</TooltipContent>
           </Tooltip>
         ) : (
-          <button
+          <Button
             aria-label={t("users.delete.title", { login: user.login })}
-            className="inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive focus-visible:ring-2 focus-visible:ring-destructive/30 focus-visible:outline-none"
+            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive focus-visible:ring-destructive/30"
             data-user-id={user.id}
             data-user-login={user.login}
             onClick={onDeleteClick}
-            type="button"
+            size="icon"
+            variant="ghost"
           >
-            <Trash2 className="size-4" />
-          </button>
+            <Trash2 />
+          </Button>
         )}
       </TableCell>
     </TableRow>

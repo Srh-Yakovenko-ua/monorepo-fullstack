@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { RoleBadge } from "@/features/user-auth/components/role-badge";
 import { useUserAuth } from "@/features/user-auth/hooks/use-user-auth";
 
@@ -24,14 +25,16 @@ export function UserMenu() {
 
   if (!isAuthed || !user) {
     return (
-      <NavLink
-        aria-label="Sign in"
-        className="flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-        title="Sign in"
-        to="/login"
+      <Button
+        asChild
+        className="text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+        size="icon"
+        variant="ghost"
       >
-        <LogIn className="size-4" />
-      </NavLink>
+        <NavLink aria-label="Sign in" title="Sign in" to="/login">
+          <LogIn />
+        </NavLink>
+      </Button>
     );
   }
 
@@ -57,14 +60,15 @@ export function UserMenu() {
       />
       <AlertDialog onOpenChange={setIsOpen} open={isOpen}>
         <AlertDialogTrigger asChild>
-          <button
+          <Button
             aria-label="Sign out user"
-            className="flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            className="text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            size="icon"
             title={`Sign out ${user.login}`}
-            type="button"
+            variant="ghost"
           >
-            <LogOut className="size-4" />
-          </button>
+            <LogOut />
+          </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
