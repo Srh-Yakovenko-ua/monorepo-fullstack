@@ -197,7 +197,9 @@ function PageBreadcrumbs() {
         ? t("breadcrumbs.posts")
         : first === "videos"
           ? t("breadcrumbs.videos")
-          : t("breadcrumbs.users");
+          : first === "devices"
+            ? t("breadcrumbs.devices")
+            : t("breadcrumbs.users");
 
   const sectionTo = `/${first}`;
 

@@ -26,7 +26,8 @@
     "blogs": "Блоги",
     "posts": "Посты",
     "videos": "Видео",
-    "users": "Пользователи"
+    "users": "Пользователи",
+    "devices": "Девайсы"
   },
   "actions": {
     "open": "Открыть",
@@ -236,6 +237,17 @@
   "localePicker": {
     "ariaLabel": "Язык интерфейса"
   },
+  "userMenu": {
+    "openLabel": "Открыть меню",
+    "activeDevices": "Активные девайсы",
+    "signOut": "Выйти",
+    "signOutConfirm": {
+      "title": "Выход из аккаунта",
+      "description": "Точно выйти из аккаунта {{email}}?",
+      "cancel": "Отмена",
+      "confirm": "Выйти"
+    }
+  },
   "users": {
     "list": {
       "title": "Пользователи",
@@ -291,6 +303,31 @@
       "title": "Удалить пользователя?",
       "description": "Это действие необратимо. Пользователь будет удалён навсегда.",
       "confirmLabel": "Удалить"
+    }
+  },
+  "devices": {
+    "title": "Активные девайсы",
+    "description": "Сессии, в которых вы сейчас авторизованы",
+    "terminateAll": "Завершить другие сессии",
+    "terminateAllConfirmTitle": "Завершить все другие сессии?",
+    "terminateAllConfirmDescription": "Все другие активные сессии будут завершены. Текущая сессия останется активной.",
+    "terminateOne": "Выйти из {{title}}",
+    "terminateOneConfirmTitle": "Завершить эту сессию?",
+    "terminateOneConfirmDescription": "Сессия на «{{title}}» будет завершена.",
+    "empty": "Нет активных сессий",
+    "cancel": "Отмена",
+    "confirm": "Завершить",
+    "columns": {
+      "name": "Устройство",
+      "ip": "IP-адрес",
+      "lastActive": "Последняя активность",
+      "actions": "Действия"
+    },
+    "currentDevice": "Этот девайс",
+    "currentDeviceTooltip": "Используйте «Выйти» в меню, чтобы завершить текущую сессию",
+    "error": {
+      "title": "Не удалось загрузить устройства",
+      "retry": "Повторить"
     }
   },
   "admin": {

@@ -61,6 +61,22 @@ const router = createBrowserRouter([
           },
           {
             lazy: async () => {
+              const { DevicesPage } = await import("@/features/security/pages/devices-page");
+              const { RequireAuth: Auth } = await import("@/features/user-auth");
+              return {
+                Component: function DevicesRoute() {
+                  return (
+                    <Auth>
+                      <DevicesPage />
+                    </Auth>
+                  );
+                },
+              };
+            },
+            path: "devices",
+          },
+          {
+            lazy: async () => {
               const { NotFoundPage } = await import("@/routes/not-found-page");
               return { Component: NotFoundPage };
             },

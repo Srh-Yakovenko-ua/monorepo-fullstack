@@ -26,7 +26,8 @@
     "blogs": "Blogs",
     "posts": "Posts",
     "videos": "Videos",
-    "users": "Users"
+    "users": "Users",
+    "devices": "Devices"
   },
   "actions": {
     "open": "Open",
@@ -236,6 +237,17 @@
   "localePicker": {
     "ariaLabel": "Language"
   },
+  "userMenu": {
+    "openLabel": "Open user menu",
+    "activeDevices": "Active devices",
+    "signOut": "Sign out",
+    "signOutConfirm": {
+      "title": "Log out",
+      "description": "Are you sure you want to log out of {{email}}?",
+      "cancel": "Cancel",
+      "confirm": "Log out"
+    }
+  },
   "users": {
     "list": {
       "title": "Users",
@@ -291,6 +303,31 @@
       "title": "Are you sure you want to delete this user?",
       "description": "This action cannot be undone. The user will be permanently deleted.",
       "confirmLabel": "Delete"
+    }
+  },
+  "devices": {
+    "title": "Active devices",
+    "description": "Sessions where you are currently signed in",
+    "terminateAll": "Terminate other sessions",
+    "terminateAllConfirmTitle": "Terminate all other sessions?",
+    "terminateAllConfirmDescription": "All other active sessions will be signed out. Your current session will remain active.",
+    "terminateOne": "Logout from {{title}}",
+    "terminateOneConfirmTitle": "Terminate this session?",
+    "terminateOneConfirmDescription": "The session on \"{{title}}\" will be signed out.",
+    "empty": "No active sessions",
+    "cancel": "Cancel",
+    "confirm": "Terminate",
+    "columns": {
+      "name": "Device",
+      "ip": "IP address",
+      "lastActive": "Last active",
+      "actions": "Actions"
+    },
+    "currentDevice": "This device",
+    "currentDeviceTooltip": "Use Sign out from the menu to log out from this device",
+    "error": {
+      "title": "Failed to load devices",
+      "retry": "Retry"
     }
   },
   "admin": {

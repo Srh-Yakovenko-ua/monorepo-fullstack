@@ -26,7 +26,8 @@
     "blogs": "Блоги",
     "posts": "Пости",
     "videos": "Відео",
-    "users": "Користувачі"
+    "users": "Користувачі",
+    "devices": "Девайси"
   },
   "actions": {
     "open": "Відкрити",
@@ -236,6 +237,17 @@
   "localePicker": {
     "ariaLabel": "Мова інтерфейсу"
   },
+  "userMenu": {
+    "openLabel": "Відкрити меню",
+    "activeDevices": "Активні девайси",
+    "signOut": "Вийти",
+    "signOutConfirm": {
+      "title": "Вихід з акаунту",
+      "description": "Точно вийти з акаунту {{email}}?",
+      "cancel": "Скасувати",
+      "confirm": "Вийти"
+    }
+  },
   "users": {
     "list": {
       "title": "Користувачі",
@@ -291,6 +303,31 @@
       "title": "Видалити користувача?",
       "description": "Цю дію неможливо скасувати. Користувача буде видалено назавжди.",
       "confirmLabel": "Видалити"
+    }
+  },
+  "devices": {
+    "title": "Активні девайси",
+    "description": "Сесії, в яких ви зараз авторизовані",
+    "terminateAll": "Завершити інші сесії",
+    "terminateAllConfirmTitle": "Завершити всі інші сесії?",
+    "terminateAllConfirmDescription": "Всі інші активні сесії будуть завершені. Поточна сесія залишиться активною.",
+    "terminateOne": "Вийти з {{title}}",
+    "terminateOneConfirmTitle": "Завершити цю сесію?",
+    "terminateOneConfirmDescription": "Сесію на «{{title}}» буде завершено.",
+    "empty": "Немає активних сесій",
+    "cancel": "Скасувати",
+    "confirm": "Завершити",
+    "columns": {
+      "name": "Пристрій",
+      "ip": "IP-адреса",
+      "lastActive": "Остання активність",
+      "actions": "Дії"
+    },
+    "currentDevice": "Цей пристрій",
+    "currentDeviceTooltip": "Використайте «Вийти» у меню, щоб завершити поточну сесію",
+    "error": {
+      "title": "Не вдалося завантажити пристрої",
+      "retry": "Повторити"
     }
   },
   "admin": {
