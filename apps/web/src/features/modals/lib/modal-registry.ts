@@ -7,9 +7,11 @@ export const ModalId = {
   AlreadyRegistered: "already-registered",
   BlogForm: "blog-form",
   Confirm: "confirm",
+  PasswordRecoverySuccess: "password-recovery-success",
   PostForm: "post-form",
   RegistrationSuccess: "registration-success",
   ResendConfirmation: "resend-confirmation",
+  ResendRecovery: "resend-recovery",
   UserForm: "user-form",
   VideoForm: "video-form",
 } as const;
@@ -28,9 +30,11 @@ export type ModalPayloads = {
     title: string;
     tone?: "default" | "destructive";
   };
+  [ModalId.PasswordRecoverySuccess]: Record<string, never>;
   [ModalId.PostForm]: { mode: "create" } | { mode: "edit"; post: PostViewModel };
   [ModalId.RegistrationSuccess]: { email: string };
   [ModalId.ResendConfirmation]: { initialEmail?: string };
+  [ModalId.ResendRecovery]: { initialEmail?: string };
   [ModalId.UserForm]: Record<string, never>;
   [ModalId.VideoForm]: { mode: "create" } | { mode: "edit"; video: VideoViewModel };
 };
@@ -59,6 +63,18 @@ const AlreadyRegisteredDialog = lazy(() =>
 const ResendConfirmationDialog = lazy(() =>
   import("@/features/registration/components/resend-confirmation-dialog").then((m) => ({
     default: m.ResendConfirmationDialog,
+  })),
+);
+
+const ResendRecoveryDialog = lazy(() =>
+  import("@/features/password-recovery/components/resend-recovery-dialog").then((m) => ({
+    default: m.ResendRecoveryDialog,
+  })),
+);
+
+const RecoverySuccessDialog = lazy(() =>
+  import("@/features/password-recovery/components/recovery-success-dialog").then((m) => ({
+    default: m.RecoverySuccessDialog,
   })),
 );
 
@@ -92,9 +108,11 @@ export const modalComponents: {
   [ModalId.AlreadyRegistered]: AlreadyRegisteredDialog,
   [ModalId.BlogForm]: BlogFormDialog,
   [ModalId.Confirm]: ConfirmModal,
+  [ModalId.PasswordRecoverySuccess]: RecoverySuccessDialog,
   [ModalId.PostForm]: PostFormDialog,
   [ModalId.RegistrationSuccess]: RegistrationSuccessDialog,
   [ModalId.ResendConfirmation]: ResendConfirmationDialog,
+  [ModalId.ResendRecovery]: ResendRecoveryDialog,
   [ModalId.UserForm]: UserFormDialog,
   [ModalId.VideoForm]: VideoFormDialog,
 };

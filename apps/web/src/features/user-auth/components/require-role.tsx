@@ -1,16 +1,14 @@
 import type { UserRole } from "@app/shared";
-import type { ReactNode } from "react";
 
-import { Navigate, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 
 import { useUserAuth } from "@/features/user-auth/hooks/use-user-auth";
 
 type Props = {
   allow: readonly UserRole[];
-  children: ReactNode;
 };
 
-export function RequireRole({ allow, children }: Props) {
+export function RequireRole({ allow }: Props) {
   const { isAuthed, isLoading, user } = useUserAuth();
   const location = useLocation();
 
@@ -31,5 +29,5 @@ export function RequireRole({ allow, children }: Props) {
   if (!allow.includes(user.role)) {
     return <Navigate replace to="/" />;
   }
-  return <>{children}</>;
+  return <Outlet />;
 }

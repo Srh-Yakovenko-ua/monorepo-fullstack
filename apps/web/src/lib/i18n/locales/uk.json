@@ -349,7 +349,45 @@
       "submit": "Увійти",
       "invalidCreds": "The password or the email or Username are incorrect. Try again, please",
       "noAccount": "Немає акаунту?",
-      "signUpLink": "Зареєструватись"
+      "signUpLink": "Зареєструватись",
+      "forgotPassword": "Forgot password"
+    }
+  },
+  "passwordRecovery": {
+    "request": {
+      "title": "Відновлення пароля",
+      "subtitle": "Blogger Platform · Скидання пароля",
+      "description": "Enter your email and we will send you further instruction",
+      "emailLabel": "Email",
+      "submit": "Send instruction",
+      "backToSignIn": "Back to Sign in",
+      "sentBanner": "We have sent a link to confirm your email to {{email}}"
+    },
+    "newPassword": {
+      "title": "Новий пароль",
+      "subtitle": "Blogger Platform · Створіть новий пароль",
+      "newPasswordLabel": "New password",
+      "confirmLabel": "Password confirmation",
+      "submit": "Create new password",
+      "errors": {
+        "mismatch": "Паролі мають збігатися",
+        "confirmRequired": "Підтвердіть пароль"
+      }
+    },
+    "expired": {
+      "message": "Looks like the verification link has expired. Not to worry, we can send the link again",
+      "resend": "Resend verification link"
+    },
+    "successDialog": {
+      "title": "Your new password has been saved successfully",
+      "ok": "Ok"
+    },
+    "resendDialog": {
+      "title": "Надіслати посилання знову",
+      "emailLabel": "Email",
+      "send": "Надіслати",
+      "cancel": "Скасувати",
+      "sentToast": "We have sent a link to confirm your email to {{email}}"
     }
   },
   "registration": {

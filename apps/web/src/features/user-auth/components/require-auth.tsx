@@ -1,14 +1,8 @@
-import type { ReactNode } from "react";
-
-import { Navigate, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 
 import { useUserAuth } from "@/features/user-auth/hooks/use-user-auth";
 
-type Props = {
-  children: ReactNode;
-};
-
-export function RequireAuth({ children }: Props) {
+export function RequireAuth() {
   const { isAuthed, isLoading } = useUserAuth();
   const location = useLocation();
 
@@ -26,5 +20,5 @@ export function RequireAuth({ children }: Props) {
   if (!isAuthed) {
     return <Navigate replace to={`/login?next=${encodeURIComponent(location.pathname)}`} />;
   }
-  return <>{children}</>;
+  return <Outlet />;
 }

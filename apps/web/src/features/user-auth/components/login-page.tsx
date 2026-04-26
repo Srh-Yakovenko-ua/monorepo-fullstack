@@ -100,6 +100,15 @@ export function UserLoginPage() {
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
+            <Link
+              className="font-medium text-primary underline underline-offset-2"
+              to="/password-recovery"
+            >
+              {t("userAuth.login.forgotPassword")}
+            </Link>
+          </p>
+
+          <p className="text-center text-sm text-muted-foreground">
             {t("userAuth.login.noAccount")}{" "}
             <Link className="font-medium text-primary underline underline-offset-2" to="/signup">
               {t("userAuth.login.signUpLink")}
