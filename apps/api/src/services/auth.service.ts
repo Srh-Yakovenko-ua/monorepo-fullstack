@@ -2,19 +2,21 @@ import type {
   CreateUserInput,
   LoginInput,
   MeViewModel,
+  NewPasswordInput,
+  PasswordRecoveryInput,
   RegistrationConfirmationInput,
   RegistrationEmailResendingInput,
 } from "@app/shared";
 
-import { compare } from "bcryptjs";
-import { addHours, isAfter } from "date-fns";
+import { compare, hash } from "bcryptjs";
+import { addHours, isAfter, subHours, subSeconds } from "date-fns";
 import { randomUUID } from "node:crypto";
 import { UAParser } from "ua-parser-js";
 
 import { env } from "../config/env.js";
 import * as sessionsRepository from "../db/repositories/sessions.repository.js";
 import * as usersRepository from "../db/repositories/users.repository.js";
-import { renderConfirmEmail } from "../lib/email-templates.js";
+import { renderConfirmEmail, renderPasswordRecoveryEmail } from "../lib/email-templates.js";
 import { BadRequestError, HttpError, UnauthorizedError } from "../lib/errors.js";
 import { HTTP_STATUS } from "../lib/http-status.js";
 import { signAccessToken, signRefreshToken } from "../lib/jwt.js";
@@ -25,6 +27,9 @@ import * as usersService from "./users.service.js";
 const log = createLogger("auth.service");
 
 const CONFIRMATION_TTL_HOURS = 1;
+const PASSWORD_RECOVERY_TTL_HOURS = 1;
+const PASSWORD_RECOVERY_THROTTLE_SECONDS = 60;
+const PASSWORD_HASH_SALT_ROUNDS = 10;
 const FALLBACK_DEVICE_TITLE = "Unknown device";
 
 export type LoginContext = {
@@ -43,6 +48,24 @@ export type RefreshResult = {
   refreshExpiresAt: Date;
   refreshToken: string;
 };
+
+export async function confirmPasswordRecovery({
+  newPassword,
+  recoveryCode,
+}: NewPasswordInput): Promise<void> {
+  const newPasswordHash = await hash(newPassword, PASSWORD_HASH_SALT_ROUNDS);
+  const updated = await usersRepository.atomicResetPassword({
+    newPasswordHash,
+    now: new Date(),
+    recoveryCode,
+  });
+
+  if (!updated) {
+    throw new BadRequestError("Password recovery failed", {
+      fields: [{ field: "recoveryCode", message: "Recovery code is invalid or expired" }],
+    });
+  }
+}
 
 export async function confirmRegistration({ code }: RegistrationConfirmationInput): Promise<void> {
   const user = await usersRepository.findByEmailConfirmationCode(code);
@@ -169,6 +192,30 @@ export async function register(input: CreateUserInput): Promise<void> {
   } catch (err) {
     log.error({ err, userId: user._id.toHexString() }, "Failed to send confirmation email");
   }
+}
+
+export async function requestPasswordRecovery({ email }: PasswordRecoveryInput): Promise<void> {
+  const user = await usersRepository.findByEmail(email);
+  if (!user) return;
+
+  const now = new Date();
+  const throttleCutoff = subSeconds(now, PASSWORD_RECOVERY_THROTTLE_SECONDS);
+  const lastIssuedAt = user.passwordRecovery.expiresAt
+    ? subHours(user.passwordRecovery.expiresAt, PASSWORD_RECOVERY_TTL_HOURS)
+    : null;
+  if (lastIssuedAt && isAfter(lastIssuedAt, throttleCutoff)) return;
+
+  const code = randomUUID();
+  const expiresAt = addHours(now, PASSWORD_RECOVERY_TTL_HOURS);
+  const userId = user._id.toHexString();
+  await usersRepository.setPasswordRecovery({ code, expiresAt, userId });
+
+  const recoveryLink = `${env.frontendUrl}/password-recovery?recoveryCode=${code}`;
+  const template = renderPasswordRecoveryEmail({ recoveryLink });
+
+  sendEmail({ ...template, to: user.email }).catch((err: unknown) => {
+    log.error({ err, userId }, "Failed to send password recovery email");
+  });
 }
 
 export async function resendConfirmationEmail({

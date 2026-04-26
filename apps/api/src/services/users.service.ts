@@ -36,6 +36,7 @@ export async function createUser(input: CreateUserInput): Promise<UserViewModel>
     emailConfirmation: { code: null, expiresAt: null, isConfirmed: true },
     login: input.login,
     passwordHash,
+    passwordRecovery: { code: null, expiresAt: null },
     role: ROLE.user,
   });
 
@@ -84,6 +85,7 @@ export async function registerUser(
     emailConfirmation,
     login: userInput.login,
     passwordHash,
+    passwordRecovery: { code: null, expiresAt: null },
     role: ROLE.user,
   });
 }

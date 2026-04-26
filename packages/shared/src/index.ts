@@ -125,10 +125,14 @@ export type PostViewModel = {
 export const USER_SORT_FIELDS = ["createdAt", "login", "email"] as const;
 export type UserSortField = (typeof USER_SORT_FIELDS)[number];
 
+const normalizedEmailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/, "Invalid email format");
+
 export const CreateUserInputSchema = z.object({
-  email: z
-    .string()
-    .regex(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, "Invalid email format"),
+  email: normalizedEmailSchema,
   login: z
     .string()
     .trim()
@@ -182,11 +186,23 @@ export const RegistrationConfirmationInputSchema = z.object({
 export type RegistrationConfirmationInput = z.infer<typeof RegistrationConfirmationInputSchema>;
 
 export const RegistrationEmailResendingInputSchema = z.object({
-  email: z
-    .string()
-    .regex(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, "Invalid email format"),
+  email: normalizedEmailSchema,
 });
 export type RegistrationEmailResendingInput = z.infer<typeof RegistrationEmailResendingInputSchema>;
+
+export const PasswordRecoveryInputSchema = z.object({
+  email: normalizedEmailSchema,
+});
+export type PasswordRecoveryInput = z.infer<typeof PasswordRecoveryInputSchema>;
+
+export const NewPasswordInputSchema = z.object({
+  newPassword: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .max(20, "Password must be at most 20 characters"),
+  recoveryCode: z.string().min(1, "Recovery code is required"),
+});
+export type NewPasswordInput = z.infer<typeof NewPasswordInputSchema>;
 
 export const CommentUpdateInputSchema = z.object({
   content: z.string().trim().min(20).max(300),

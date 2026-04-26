@@ -9,8 +9,30 @@ import { UserModel } from "../models/user.model.js";
 
 export type UserCreateInput = Pick<
   UserDoc,
-  "email" | "emailConfirmation" | "login" | "passwordHash" | "role"
+  "email" | "emailConfirmation" | "login" | "passwordHash" | "passwordRecovery" | "role"
 >;
+
+export async function atomicResetPassword({
+  newPasswordHash,
+  now,
+  recoveryCode,
+}: {
+  newPasswordHash: string;
+  now: Date;
+  recoveryCode: string;
+}): Promise<null | UserDoc> {
+  return UserModel.findOneAndUpdate(
+    {
+      "passwordRecovery.code": recoveryCode,
+      "passwordRecovery.expiresAt": { $gt: now },
+    },
+    {
+      $set: { passwordHash: newPasswordHash },
+      $unset: { "passwordRecovery.code": "", "passwordRecovery.expiresAt": "" },
+    },
+    { returnDocument: "after" },
+  ).lean();
+}
 
 export async function backfillMissingRole(): Promise<number> {
   const result = await UserModel.updateMany(
@@ -30,7 +52,7 @@ export async function create(input: UserCreateInput): Promise<UserDoc> {
 }
 
 export async function findByEmail(email: string): Promise<null | UserDoc> {
-  return UserModel.findOne({ email }).lean();
+  return UserModel.findOne({ email: email.trim().toLowerCase() }).lean();
 }
 
 export async function findByEmailConfirmationCode(code: string): Promise<null | UserDoc> {
@@ -79,6 +101,23 @@ export async function markEmailConfirmed(userId: string): Promise<void> {
 export async function remove(id: string): Promise<boolean> {
   const result = await UserModel.findByIdAndDelete(id);
   return result !== null;
+}
+
+export async function setPasswordRecovery({
+  code,
+  expiresAt,
+  userId,
+}: {
+  code: string;
+  expiresAt: Date;
+  userId: string;
+}): Promise<void> {
+  await UserModel.findByIdAndUpdate(userId, {
+    $set: {
+      "passwordRecovery.code": code,
+      "passwordRecovery.expiresAt": expiresAt,
+    },
+  });
 }
 
 export async function updateEmailConfirmation(

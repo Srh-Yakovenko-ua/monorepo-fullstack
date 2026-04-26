@@ -3,6 +3,8 @@ import type {
   LoginInput,
   LoginSuccessViewModel,
   MeViewModel,
+  NewPasswordInput,
+  PasswordRecoveryInput,
   RegistrationConfirmationInput,
   RegistrationEmailResendingInput,
 } from "@app/shared";
@@ -13,9 +15,11 @@ import { differenceInMilliseconds } from "date-fns";
 import { env } from "../config/env.js";
 import { UnauthorizedError } from "../lib/errors.js";
 import { HTTP_STATUS } from "../lib/http-status.js";
+import { createLogger } from "../lib/logger.js";
 import * as authService from "../services/auth.service.js";
 
 const REFRESH_TOKEN_COOKIE = "refreshToken";
+const log = createLogger("auth.controller");
 
 export async function login(
   req: Request<unknown, unknown, LoginInput>,
@@ -48,6 +52,25 @@ export async function me(req: Request, res: Response<MeViewModel>): Promise<void
 
   const result = await authService.getCurrentUser(user.userId);
   res.status(HTTP_STATUS.OK).json(result);
+}
+
+export async function newPassword(
+  req: Request<unknown, unknown, NewPasswordInput>,
+  res: Response,
+): Promise<void> {
+  await authService.confirmPasswordRecovery(req.body);
+  res.status(HTTP_STATUS.NO_CONTENT).send();
+}
+
+export async function passwordRecovery(
+  req: Request<unknown, unknown, PasswordRecoveryInput>,
+  res: Response,
+): Promise<void> {
+  const input = req.body;
+  res.status(HTTP_STATUS.NO_CONTENT).send();
+  authService.requestPasswordRecovery(input).catch((err: unknown) => {
+    log.error({ err }, "Password recovery request failed");
+  });
 }
 
 export async function refreshToken(

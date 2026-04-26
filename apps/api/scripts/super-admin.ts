@@ -52,6 +52,7 @@ async function createSuperAdmin({
     emailConfirmation: { code: null, expiresAt: null, isConfirmed: true },
     login,
     passwordHash,
+    passwordRecovery: { code: null, expiresAt: null },
     role: ROLE.superAdmin,
   });
 

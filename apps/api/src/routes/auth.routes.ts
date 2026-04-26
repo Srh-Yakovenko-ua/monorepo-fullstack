@@ -1,6 +1,8 @@
 import {
   CreateUserInputSchema,
   LoginInputSchema,
+  NewPasswordInputSchema,
+  PasswordRecoveryInputSchema,
   RegistrationConfirmationInputSchema,
   RegistrationEmailResendingInputSchema,
   USER_ROLES,
@@ -12,6 +14,8 @@ import {
   login,
   logout,
   me,
+  newPassword,
+  passwordRecovery,
   refreshToken,
   registration,
   registrationConfirmation,
@@ -42,6 +46,13 @@ router.post(
   validateBody(RegistrationEmailResendingInputSchema),
   registrationEmailResending,
 );
+router.post(
+  "/password-recovery",
+  authRateLimit,
+  validateBody(PasswordRecoveryInputSchema),
+  passwordRecovery,
+);
+router.post("/new-password", authRateLimit, validateBody(NewPasswordInputSchema), newPassword);
 
 registerPaths({
   "/api/auth/login": {
@@ -108,6 +119,48 @@ registerPaths({
       },
       security: [{ bearerAuth: [] }],
       summary: "Get current authenticated user",
+      tags: ["Auth"],
+    },
+  },
+  "/api/auth/new-password": {
+    post: {
+      description:
+        "Confirms a password recovery using the recoveryCode received by email and sets a new password. Recovery codes are single-use and expire in 1 hour.",
+      operationId: "newPassword",
+      requestBody: {
+        content: { "application/json": { schema: NewPasswordInputSchema } },
+        required: true,
+      },
+      responses: {
+        "204": { description: "Password updated successfully" },
+        "400": {
+          content: { "application/json": { schema: apiErrorResultSchema } },
+          description: "Invalid or expired recoveryCode, or invalid newPassword",
+        },
+        "429": { description: "Too many requests" },
+      },
+      summary: "Set a new password using a recovery code",
+      tags: ["Auth"],
+    },
+  },
+  "/api/auth/password-recovery": {
+    post: {
+      description:
+        "Always responds with 204 to prevent email enumeration: the response is identical whether or not the email belongs to a registered user. If the email is registered, a recovery code is generated and a reset link is emailed.",
+      operationId: "passwordRecovery",
+      requestBody: {
+        content: { "application/json": { schema: PasswordRecoveryInputSchema } },
+        required: true,
+      },
+      responses: {
+        "204": { description: "Password recovery email sent (or silently ignored)" },
+        "400": {
+          content: { "application/json": { schema: apiErrorResultSchema } },
+          description: "Invalid email format",
+        },
+        "429": { description: "Too many requests" },
+      },
+      summary: "Request a password recovery email",
       tags: ["Auth"],
     },
   },

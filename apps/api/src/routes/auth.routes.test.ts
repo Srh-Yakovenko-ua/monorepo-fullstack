@@ -1,8 +1,16 @@
 import request from "supertest";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createApp } from "../app.js";
+import { UserModel } from "../db/models/user.model.js";
+import { sendEmail } from "../lib/mailer.js";
 import { createAdminAndLogin } from "../test/auth-helpers.js";
+
+vi.mock("../lib/mailer.js", () => ({
+  sendEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
+const sendEmailMock = vi.mocked(sendEmail);
 
 const app = createApp();
 const TEST_ORIGIN = "http://localhost:5173";
@@ -37,6 +45,15 @@ async function loginAs({
   const setCookie = res.headers["set-cookie"] as string | string[] | undefined;
   const cookieHeader = Array.isArray(setCookie) ? (setCookie[0] ?? "") : (setCookie ?? "");
   return { accessToken: res.body.accessToken as string, refreshCookieHeader: cookieHeader };
+}
+
+async function waitFor<T>(probe: () => Promise<null | T | undefined>, attempts = 50): Promise<T> {
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const value = await probe();
+    if (value) return value;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error("waitFor timed out");
 }
 
 describe("Auth API", () => {
@@ -322,6 +339,224 @@ describe("Auth API", () => {
 
       expect(res.status).toBe(401);
       expect(res.text).toBe("");
+    });
+  });
+
+  describe("POST /api/auth/password-recovery", () => {
+    it("returns 204 and sends an email with a recoveryCode link for an existing email", async () => {
+      sendEmailMock.mockClear();
+      await createUserViaApi();
+
+      const res = await request(app)
+        .post("/api/auth/password-recovery")
+        .send({ email: validUser.email });
+
+      expect(res.status).toBe(204);
+      await waitFor(async () => sendEmailMock.mock.calls[0]);
+      expect(sendEmailMock).toHaveBeenCalledTimes(1);
+      const call = sendEmailMock.mock.calls[0]?.[0];
+      expect(call?.to).toBe(validUser.email);
+      expect(call?.subject).toMatch(/recovery/i);
+      expect(call?.html).toMatch(/recoveryCode=[0-9a-f-]{36}/);
+    });
+
+    it("returns 204 and does NOT send an email for an unknown email (anti-enumeration)", async () => {
+      sendEmailMock.mockClear();
+
+      const res = await request(app)
+        .post("/api/auth/password-recovery")
+        .send({ email: "ghost@nowhere.dev" });
+
+      expect(res.status).toBe(204);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(sendEmailMock).not.toHaveBeenCalled();
+    });
+
+    it("returns 204 even when sendEmail throws (errors are logged, not surfaced)", async () => {
+      sendEmailMock.mockClear();
+      sendEmailMock.mockRejectedValueOnce(new Error("smtp down"));
+      await createUserViaApi();
+
+      const res = await request(app)
+        .post("/api/auth/password-recovery")
+        .send({ email: validUser.email });
+
+      expect(res.status).toBe(204);
+      await waitFor(async () => sendEmailMock.mock.calls[0]);
+      expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("normalizes email casing so uppercase input still triggers the email", async () => {
+      sendEmailMock.mockClear();
+      await createUserViaApi();
+
+      const res = await request(app)
+        .post("/api/auth/password-recovery")
+        .send({ email: validUser.email.toUpperCase() });
+
+      expect(res.status).toBe(204);
+      await waitFor(async () => sendEmailMock.mock.calls[0]);
+      expect(sendEmailMock).toHaveBeenCalledTimes(1);
+      expect(sendEmailMock.mock.calls[0]?.[0]?.to).toBe(validUser.email);
+    });
+
+    it("throttles repeated requests for the same email within 60 seconds", async () => {
+      sendEmailMock.mockClear();
+      await createUserViaApi();
+
+      await request(app).post("/api/auth/password-recovery").send({ email: validUser.email });
+      await waitFor(async () => sendEmailMock.mock.calls[0]);
+      await request(app).post("/api/auth/password-recovery").send({ email: validUser.email });
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("returns 400 with errorsMessages on invalid email format", async () => {
+      const res = await request(app)
+        .post("/api/auth/password-recovery")
+        .send({ email: "not-an-email" });
+
+      expect(res.status).toBe(400);
+      expect(Array.isArray(res.body.errorsMessages)).toBe(true);
+      expect(res.body.errorsMessages[0]?.field).toBe("email");
+    });
+
+    it("overwrites a previous recoveryCode when called twice past the throttle window", async () => {
+      sendEmailMock.mockClear();
+      await createUserViaApi();
+
+      await request(app).post("/api/auth/password-recovery").send({ email: validUser.email });
+      const firstCode = await waitFor(async () => {
+        const u = await UserModel.findOne({ email: validUser.email }).lean();
+        return u?.passwordRecovery?.code ?? null;
+      });
+
+      await UserModel.updateOne(
+        { email: validUser.email },
+        { "passwordRecovery.expiresAt": new Date(Date.now() + 60 * 60 * 1000 - 5 * 60 * 1000) },
+      );
+
+      await request(app).post("/api/auth/password-recovery").send({ email: validUser.email });
+      const secondCode = await waitFor(async () => {
+        const u = await UserModel.findOne({ email: validUser.email }).lean();
+        const code = u?.passwordRecovery?.code;
+        return code && code !== firstCode ? code : null;
+      });
+
+      expect(firstCode).toBeTruthy();
+      expect(secondCode).toBeTruthy();
+      expect(secondCode).not.toBe(firstCode);
+    });
+  });
+
+  describe("POST /api/auth/new-password", () => {
+    async function requestRecoveryAndGetCode(email: string): Promise<string> {
+      await request(app).post("/api/auth/password-recovery").send({ email });
+      return waitFor(async () => {
+        const user = await UserModel.findOne({ email }).lean();
+        return user?.passwordRecovery?.code ?? null;
+      });
+    }
+
+    it("returns 204 and updates the password so old fails 401 and new succeeds 200", async () => {
+      sendEmailMock.mockClear();
+      await createUserViaApi();
+      const recoveryCode = await requestRecoveryAndGetCode(validUser.email);
+      const nextPassword = "newpass1";
+
+      const res = await request(app)
+        .post("/api/auth/new-password")
+        .send({ newPassword: nextPassword, recoveryCode });
+
+      expect(res.status).toBe(204);
+
+      const oldLogin = await request(app)
+        .post("/api/auth/login")
+        .send({ loginOrEmail: validUser.login, password: validUser.password });
+      expect(oldLogin.status).toBe(401);
+
+      const newLogin = await request(app)
+        .post("/api/auth/login")
+        .send({ loginOrEmail: validUser.login, password: nextPassword });
+      expect(newLogin.status).toBe(200);
+      expect(typeof newLogin.body.accessToken).toBe("string");
+    });
+
+    it("returns 400 with field=recoveryCode when recoveryCode is unknown", async () => {
+      const res = await request(app)
+        .post("/api/auth/new-password")
+        .send({ newPassword: "validpass1", recoveryCode: "this-code-does-not-exist" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.errorsMessages?.[0]?.field).toBe("recoveryCode");
+    });
+
+    it("returns 400 with field=recoveryCode when recoveryCode is expired", async () => {
+      sendEmailMock.mockClear();
+      await createUserViaApi();
+      const recoveryCode = await requestRecoveryAndGetCode(validUser.email);
+
+      await UserModel.updateOne(
+        { email: validUser.email },
+        { "passwordRecovery.expiresAt": new Date(Date.now() - 60_000) },
+      );
+
+      const res = await request(app)
+        .post("/api/auth/new-password")
+        .send({ newPassword: "newpass1", recoveryCode });
+
+      expect(res.status).toBe(400);
+      expect(res.body.errorsMessages?.[0]?.field).toBe("recoveryCode");
+    });
+
+    it("only one of two parallel new-password requests with the same code succeeds", async () => {
+      sendEmailMock.mockClear();
+      await createUserViaApi();
+      const recoveryCode = await requestRecoveryAndGetCode(validUser.email);
+
+      const responses = await Promise.all([
+        request(app)
+          .post("/api/auth/new-password")
+          .send({ newPassword: "racepass1", recoveryCode }),
+        request(app)
+          .post("/api/auth/new-password")
+          .send({ newPassword: "racepass1", recoveryCode }),
+      ]);
+
+      const successCount = responses.filter((r) => r.status === 204).length;
+      const failureCount = responses.filter((r) => r.status === 400).length;
+      expect(successCount).toBe(1);
+      expect(failureCount).toBe(1);
+      const failed = responses.find((r) => r.status === 400);
+      expect(failed?.body.errorsMessages?.[0]?.field).toBe("recoveryCode");
+    });
+
+    it("returns 400 when the same recoveryCode is reused after a successful reset", async () => {
+      sendEmailMock.mockClear();
+      await createUserViaApi();
+      const recoveryCode = await requestRecoveryAndGetCode(validUser.email);
+
+      const first = await request(app)
+        .post("/api/auth/new-password")
+        .send({ newPassword: "newpass1", recoveryCode });
+      expect(first.status).toBe(204);
+
+      const replay = await request(app)
+        .post("/api/auth/new-password")
+        .send({ newPassword: "anotherp1", recoveryCode });
+
+      expect(replay.status).toBe(400);
+      expect(replay.body.errorsMessages?.[0]?.field).toBe("recoveryCode");
+    });
+
+    it("returns 400 with field=newPassword when password is too short", async () => {
+      const res = await request(app)
+        .post("/api/auth/new-password")
+        .send({ newPassword: "ab", recoveryCode: "anything" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.errorsMessages?.[0]?.field).toBe("newPassword");
     });
   });
 });
