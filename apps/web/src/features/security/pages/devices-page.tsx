@@ -44,6 +44,50 @@ type DeviceRowProps = {
 
 type TerminateOneDialogState = { deviceId: string; open: true; title: string } | { open: false };
 
+export function DeviceRow({ device, isTerminatePending, onTerminateClick }: DeviceRowProps) {
+  const { t } = useTranslation();
+  const { absolute: absoluteTime, relative: relativeTime } = formatLastActive(
+    device.lastActiveDate,
+  );
+
+  return (
+    <TableRow className="h-14 animate-in duration-300 fill-mode-both fade-in hover:bg-muted/30">
+      <TableCell className="px-4 py-3 text-sm font-medium text-foreground first:pl-6">
+        <span className="flex items-center gap-2">
+          {device.title}
+          {device.isCurrent && (
+            <Badge className="bg-primary/10 text-primary" variant="outline">
+              {t("devices.currentDevice")}
+            </Badge>
+          )}
+        </span>
+      </TableCell>
+      <TableCell className="px-4 py-3 font-mono text-sm text-muted-foreground tabular-nums">
+        {device.ip}
+      </TableCell>
+      <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+        <span title={absoluteTime}>{relativeTime}</span>
+      </TableCell>
+      <TableCell className="px-4 py-3 text-right last:pr-6">
+        {!device.isCurrent && (
+          <Button
+            aria-label={t("devices.terminateOne", { title: device.title })}
+            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive focus-visible:ring-destructive/30"
+            data-device-id={device.deviceId}
+            data-device-title={device.title}
+            disabled={isTerminatePending}
+            onClick={onTerminateClick}
+            size="icon"
+            variant="ghost"
+          >
+            <LogOut />
+          </Button>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export function DevicesPage() {
   const { t } = useTranslation();
   usePageTitle(t("devices.title"));
@@ -281,49 +325,6 @@ export function DevicesPage() {
         </AlertDialogContent>
       </AlertDialog>
     </main>
-  );
-}
-
-function DeviceRow({ device, isTerminatePending, onTerminateClick }: DeviceRowProps) {
-  const { t } = useTranslation();
-  const { absolute: absoluteTime, relative: relativeTime } = formatLastActive(
-    device.lastActiveDate,
-  );
-
-  return (
-    <TableRow className="h-14 animate-in duration-300 fill-mode-both fade-in hover:bg-muted/30">
-      <TableCell className="px-4 py-3 text-sm font-medium text-foreground first:pl-6">
-        <span className="flex items-center gap-2">
-          {device.title}
-          {device.isCurrent && (
-            <Badge className="bg-primary/10 text-primary" variant="outline">
-              {t("devices.currentDevice")}
-            </Badge>
-          )}
-        </span>
-      </TableCell>
-      <TableCell className="px-4 py-3 font-mono text-sm text-muted-foreground tabular-nums">
-        {device.ip}
-      </TableCell>
-      <TableCell className="px-4 py-3 text-sm text-muted-foreground">
-        <span title={absoluteTime}>{relativeTime}</span>
-      </TableCell>
-      <TableCell className="px-4 py-3 text-right last:pr-6">
-        <Button
-          aria-label={t("devices.terminateOne", { title: device.title })}
-          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive focus-visible:ring-destructive/30"
-          data-device-id={device.deviceId}
-          data-device-title={device.title}
-          disabled={device.isCurrent || isTerminatePending}
-          onClick={onTerminateClick}
-          size="icon"
-          title={device.isCurrent ? t("devices.currentDeviceTooltip") : undefined}
-          variant="ghost"
-        >
-          <LogOut />
-        </Button>
-      </TableCell>
-    </TableRow>
   );
 }
 
