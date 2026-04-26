@@ -151,6 +151,7 @@ export const LoginInputSchema = z.object({
 export type DeviceViewModel = {
   deviceId: string;
   ip: string;
+  isCurrent: boolean;
   lastActiveDate: string;
   title: string;
 };

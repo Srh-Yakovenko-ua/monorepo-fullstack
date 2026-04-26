@@ -107,7 +107,29 @@ describe("Security devices API", () => {
         expect(typeof device.title).toBe("string");
         expect(typeof device.ip).toBe("string");
         expect(typeof device.lastActiveDate).toBe("string");
+        expect(typeof device.isCurrent).toBe("boolean");
       }
+    });
+
+    it("marks exactly one device as isCurrent for the requesting session", async () => {
+      await seedConfirmedUser(primaryUser);
+      const chrome = request.agent(app);
+      const safari = request.agent(app);
+      const firefox = request.agent(app);
+
+      await loginWithAgent(chrome, primaryUser, CHROME_UA);
+      await loginWithAgent(safari, primaryUser, SAFARI_UA);
+      await loginWithAgent(firefox, primaryUser, FIREFOX_UA);
+
+      const devicesFromChrome = await fetchDevices(chrome);
+      const currentDevices = devicesFromChrome.filter((device) => device.isCurrent);
+      expect(currentDevices).toHaveLength(1);
+      expect(currentDevices[0]?.title.toLowerCase()).toContain("chrome");
+
+      const devicesFromSafari = await fetchDevices(safari);
+      const currentFromSafari = devicesFromSafari.filter((device) => device.isCurrent);
+      expect(currentFromSafari).toHaveLength(1);
+      expect(currentFromSafari[0]?.title.toLowerCase()).toContain("safari");
     });
   });
 
@@ -269,6 +291,24 @@ describe("Security devices API", () => {
       expect(realRes.status).toBe(404);
       expect(fakeRes.status).toBe(404);
       expect(realRes.status).toBe(fakeRes.status);
+    });
+
+    it("returns 403 and does not delete the session when targeting the current device", async () => {
+      await seedConfirmedUser(primaryUser);
+      const chrome = request.agent(app);
+      await loginWithAgent(chrome, primaryUser, CHROME_UA);
+
+      const devices = await fetchDevices(chrome);
+      const currentDevice = devices.find((device) => device.isCurrent);
+      expect(currentDevice).toBeDefined();
+
+      const res = await chrome
+        .delete(`/api/security/devices/${currentDevice!.deviceId}`)
+        .set("Origin", TEST_ORIGIN);
+      expect(res.status).toBe(403);
+
+      const remaining = await fetchDevices(chrome);
+      expect(remaining.find((device) => device.deviceId === currentDevice!.deviceId)).toBeDefined();
     });
 
     it("returns 401 when no refreshToken cookie is sent", async () => {

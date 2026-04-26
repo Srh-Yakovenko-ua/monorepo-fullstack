@@ -18,6 +18,7 @@ router.delete("/:deviceId", requireRefreshSession, terminateDevice);
 const deviceViewModelSchema = z.object({
   deviceId: z.string(),
   ip: z.string(),
+  isCurrent: z.boolean(),
   lastActiveDate: z.iso.datetime(),
   title: z.string(),
 });
@@ -63,7 +64,10 @@ registerPaths({
       responses: {
         "204": { description: "Device session terminated" },
         "401": { description: "No valid refreshToken cookie" },
-        "403": { description: "Missing or invalid Origin/Referer header" },
+        "403": {
+          description:
+            "Missing or invalid Origin/Referer header, or attempting to terminate current session",
+        },
         "404": { description: "Device not found" },
       },
       security: [{ cookieAuth: [] }],

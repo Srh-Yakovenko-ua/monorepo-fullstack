@@ -14,7 +14,10 @@ export async function listActiveDevices(
   const session = req.session;
   if (!session) throw new UnauthorizedError();
 
-  const devices = await securityService.getActiveDevices(session.userId);
+  const devices = await securityService.getActiveDevices({
+    currentDeviceId: session.deviceId,
+    userId: session.userId,
+  });
   res.status(HTTP_STATUS.OK).json(devices);
 }
 
@@ -26,6 +29,7 @@ export async function terminateDevice(
   if (!session) throw new UnauthorizedError();
 
   await securityService.terminateDeviceById({
+    currentDeviceId: session.deviceId,
     targetDeviceId: req.params.deviceId,
     userId: session.userId,
   });
