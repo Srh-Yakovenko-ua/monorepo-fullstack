@@ -205,8 +205,8 @@ export type CommentViewModel = {
 export const UsersQuerySchema = z.object({
   pageNumber: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).default(10),
-  searchEmailTerm: z.string().optional(),
-  searchLoginTerm: z.string().optional(),
+  searchEmailTerm: z.string().max(100).optional(),
+  searchLoginTerm: z.string().max(100).optional(),
   sortBy: z.enum(USER_SORT_FIELDS).default("createdAt"),
   sortDirection: z.enum(["asc", "desc"]).default("desc"),
 });
@@ -248,7 +248,7 @@ export const PaginationQuerySchema = z.object({
 export const BlogsQuerySchema = z.object({
   pageNumber: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).default(10),
-  searchNameTerm: z.string().optional(),
+  searchNameTerm: z.string().max(100).optional(),
   sortBy: z.enum(BLOG_SORT_FIELDS).default("createdAt"),
   sortDirection: z.enum(["asc", "desc"]).default("desc"),
 });

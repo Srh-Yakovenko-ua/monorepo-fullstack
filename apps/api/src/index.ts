@@ -29,11 +29,32 @@ async function main(): Promise<void> {
     log.info({ port: env.port }, `api listening on http://localhost:${env.port}`);
   });
 
+  const SHUTDOWN_TIMEOUT_MS = 10_000;
+  let isShuttingDown = false;
+
   const shutdown = async (signal: string): Promise<void> => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
     log.info({ signal }, "shutting down");
-    server.close();
-    await disconnectMongo().catch(() => {});
-    process.exit(0);
+
+    const forceExit = setTimeout(() => {
+      log.error("graceful shutdown timeout, forcing exit");
+      process.exit(1);
+    }, SHUTDOWN_TIMEOUT_MS);
+    forceExit.unref();
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        server.close((err) => (err ? reject(err) : resolve()));
+      });
+      await disconnectMongo().catch(() => {});
+      clearTimeout(forceExit);
+      process.exit(0);
+    } catch (err) {
+      log.error({ err }, "error during shutdown");
+      clearTimeout(forceExit);
+      process.exit(1);
+    }
   };
 
   process.on("SIGINT", () => void shutdown("SIGINT"));

@@ -4,6 +4,7 @@ import { ROLE } from "@app/shared";
 
 import type { EmailConfirmation, UserDoc } from "../models/user.model.js";
 
+import { escapeRegExp } from "../../lib/regex.js";
 import { UserModel } from "../models/user.model.js";
 
 export type UserCreateInput = Pick<
@@ -104,18 +105,18 @@ function buildFilter(query: UsersQuery): Record<string, unknown> {
   if (hasLogin && hasEmail) {
     return {
       $or: [
-        { login: { $options: "i", $regex: searchLoginTerm } },
-        { email: { $options: "i", $regex: searchEmailTerm } },
+        { login: { $options: "i", $regex: escapeRegExp(searchLoginTerm) } },
+        { email: { $options: "i", $regex: escapeRegExp(searchEmailTerm) } },
       ],
     };
   }
 
   if (hasLogin) {
-    return { login: { $options: "i", $regex: searchLoginTerm } };
+    return { login: { $options: "i", $regex: escapeRegExp(searchLoginTerm) } };
   }
 
   if (hasEmail) {
-    return { email: { $options: "i", $regex: searchEmailTerm } };
+    return { email: { $options: "i", $regex: escapeRegExp(searchEmailTerm) } };
   }
 
   return {};

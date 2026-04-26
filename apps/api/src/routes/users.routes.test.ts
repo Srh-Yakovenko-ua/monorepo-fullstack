@@ -124,6 +124,18 @@ describe("Users API", () => {
       expect(res.body.items[0].login).toBe("charlie");
     });
 
+    it("treats regex metacharacters in searchLoginTerm as literal text", async () => {
+      const adminToken = await createAdminAndLogin(app);
+      await createUserViaApi(adminToken, { email: "alice@example.dev", login: "alice" });
+
+      const res = await request(app)
+        .get("/api/users?searchLoginTerm=*")
+        .set("authorization", `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.items).toHaveLength(0);
+    });
+
     it("OR-combines searchLoginTerm and searchEmailTerm", async () => {
       const adminToken = await createAdminAndLogin(app);
       await createUserViaApi(adminToken, { email: "eva@example.dev", login: "eva" });

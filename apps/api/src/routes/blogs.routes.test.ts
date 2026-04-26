@@ -141,6 +141,28 @@ describe("Blogs API", () => {
       expect(res.body.items).toHaveLength(2);
     });
 
+    it("treats regex metacharacters in searchNameTerm as literal text", async () => {
+      await request(app)
+        .post("/api/blogs")
+        .send({ ...validBlog, name: "Tech Blog" });
+
+      const wildcardRes = await request(app).get("/api/blogs?searchNameTerm=*");
+      expect(wildcardRes.status).toBe(200);
+      expect(wildcardRes.body.items).toHaveLength(0);
+
+      const charClassRes = await request(app).get(
+        `/api/blogs?searchNameTerm=${encodeURIComponent("[a-z]")}`,
+      );
+      expect(charClassRes.status).toBe(200);
+      expect(charClassRes.body.items).toHaveLength(0);
+    });
+
+    it("rejects searchNameTerm longer than 100 characters", async () => {
+      const longTerm = "a".repeat(101);
+      const res = await request(app).get(`/api/blogs?searchNameTerm=${longTerm}`);
+      expect(res.status).toBe(400);
+    });
+
     it("returns 400 for invalid sortBy field", async () => {
       const res = await request(app).get("/api/blogs?sortBy=invalid");
 

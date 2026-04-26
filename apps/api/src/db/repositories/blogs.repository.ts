@@ -2,6 +2,7 @@ import type { BlogsQuery } from "@app/shared";
 
 import type { BlogDoc } from "../models/blog.model.js";
 
+import { escapeRegExp } from "../../lib/regex.js";
 import { BlogModel } from "../models/blog.model.js";
 
 export type BlogCreateInput = Pick<BlogDoc, "description" | "name" | "websiteUrl">;
@@ -26,7 +27,7 @@ export async function findLookupPage(
 ): Promise<{ items: BlogLookupDoc[]; totalCount: number }> {
   const filter =
     query.searchNameTerm && query.searchNameTerm.length > 0
-      ? { name: { $options: "i", $regex: query.searchNameTerm } }
+      ? { name: { $options: "i", $regex: escapeRegExp(query.searchNameTerm) } }
       : {};
 
   const skip = (query.pageNumber - 1) * query.pageSize;
@@ -50,7 +51,7 @@ export async function findPage(
 ): Promise<{ items: BlogDoc[]; totalCount: number }> {
   const filter =
     query.searchNameTerm && query.searchNameTerm.length > 0
-      ? { name: { $options: "i", $regex: query.searchNameTerm } }
+      ? { name: { $options: "i", $regex: escapeRegExp(query.searchNameTerm) } }
       : {};
 
   const skip = (query.pageNumber - 1) * query.pageSize;

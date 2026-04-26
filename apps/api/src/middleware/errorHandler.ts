@@ -55,10 +55,28 @@ function formatZodError(error: ZodError): string {
   return error.issues.map((issue) => `${issue.path.join(".") || "_"}: ${issue.message}`).join("; ");
 }
 
+function fromBodyParserError(
+  err: Error & { message: string; status: number; type: string },
+): HttpError {
+  if (err.type === "entity.parse.failed") return new BadRequestError("Invalid JSON body");
+  if (err.type === "entity.too.large")
+    return new HttpError(HTTP_STATUS.PAYLOAD_TOO_LARGE, "Payload too large");
+  return new BadRequestError(err.message);
+}
+
+function isBodyParserError(
+  err: unknown,
+): err is Error & { message: string; status: number; type: string } {
+  return (
+    err instanceof Error && "type" in err && typeof (err as { type: unknown }).type === "string"
+  );
+}
+
 function toHttpError(err: unknown): HttpError {
   if (err instanceof HttpError) return err;
   if (err instanceof ZodError) return new ValidationError(formatZodError(err));
   if (err instanceof MongooseError.CastError) return new NotFoundError("Resource not found");
+  if (isBodyParserError(err)) return fromBodyParserError(err);
   if (err instanceof Error) return new HttpError(HTTP_STATUS.INTERNAL_SERVER_ERROR, err.message);
   return new HttpError(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Unknown error");
 }
