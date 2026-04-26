@@ -3,17 +3,11 @@ import type { RouteObject } from "react-router";
 import { ROLE } from "@app/shared";
 
 import { RequireRole } from "@/features/user-auth";
-import { lazyComponent } from "@/routes/lazy";
-import { ROUTES } from "@/routes/paths";
+import { usersRoutes } from "@/features/users/routes";
 
 export const roleProtectedRoutes: RouteObject[] = [
   {
-    children: [
-      {
-        lazy: lazyComponent(() => import("@/features/users/pages/users-page"), "UsersPage"),
-        path: ROUTES.USERS,
-      },
-    ],
+    children: [...usersRoutes],
     element: <RequireRole allow={[ROLE.admin, ROLE.superAdmin]} />,
   },
 ];

@@ -15,7 +15,6 @@
         "@tanstack/react-query-persist-client",
         "@tanstack/react-table",
         "@tanstack/react-virtual",
-        "date-fns",
         "input-otp",
         "nanoid",
         "react-day-picker",
@@ -23,9 +22,7 @@
         "superjson",
         "ts-pattern",
         "type-fest",
-        "vaul",
-        "zustand",
-        "@testing-library/user-event"
+        "vaul"
       ]
     },
     "apps/api": {
