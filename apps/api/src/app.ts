@@ -54,7 +54,7 @@ export function createApp(): express.Express {
   app.use("/api/users", usersRouter);
   app.use("/api/videos", videosRouter);
 
-  if (env.nodeEnv !== "production") {
+  if (env.nodeEnv !== "production" || env.enableTestingEndpoints) {
     app.use("/api/testing", testingRouter);
   }
 

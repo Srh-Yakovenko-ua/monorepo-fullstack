@@ -35,6 +35,10 @@ const envSchema = z
       .enum(["true", "false"])
       .default("true")
       .transform((value) => value === "true"),
+    ENABLE_TESTING_ENDPOINTS: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
     FRONTEND_URL: z.string().url().default("http://localhost:5173"),
     JWT_ACCESS_EXPIRES_IN: z
       .string()
@@ -58,6 +62,7 @@ const envSchema = z
     corsOrigins: raw.CORS_ORIGINS,
     emailFrom: raw.EMAIL_FROM,
     enableSwagger: raw.ENABLE_SWAGGER,
+    enableTestingEndpoints: raw.ENABLE_TESTING_ENDPOINTS,
     frontendUrl: raw.FRONTEND_URL,
     jwtAccessExpiresIn: raw.JWT_ACCESS_EXPIRES_IN,
     jwtRefreshExpiresIn: raw.JWT_REFRESH_EXPIRES_IN,
