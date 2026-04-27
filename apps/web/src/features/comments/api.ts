@@ -1,4 +1,4 @@
-import type { CommentViewModel, Paginator } from "@app/shared";
+import type { CommentViewModel, LikeInput, Paginator } from "@app/shared";
 
 import { request } from "@/lib/http-client";
 
@@ -29,6 +29,11 @@ export const commentsApi = {
     return request<Paginator<CommentViewModel>>(url.pathname + url.search);
   },
   remove: (commentId: string) => request<void>(`/api/comments/${commentId}`, { method: "DELETE" }),
+  setLikeStatus: ({ commentId, likeStatus }: LikeInput & { commentId: string }) =>
+    request<void>(`/api/comments/${commentId}/like-status`, {
+      body: JSON.stringify({ likeStatus }),
+      method: "PUT",
+    }),
   update: ({ commentId, content }: { commentId: string; content: string }) =>
     request<void>(`/api/comments/${commentId}`, {
       body: JSON.stringify({ content }),

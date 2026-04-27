@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CommentLikes } from "@/features/comments/components/comment-likes";
 import { EditCommentForm } from "@/features/comments/components/edit-comment-form";
 import { useDeleteComment } from "@/features/comments/hooks/use-comment-mutations";
 import { ModalId, modalObserver } from "@/features/modals";
@@ -154,16 +155,17 @@ export function CommentItem({ comment, currentUserId, isNew = false, postId }: P
               <EditCommentForm comment={comment} onDone={handleEditDone} postId={postId} />
             </motion.div>
           ) : (
-            <motion.p
+            <motion.div
               animate={{ opacity: 1, y: 0 }}
-              className="text-sm leading-relaxed text-foreground"
+              className="flex flex-col gap-2"
               exit={{ opacity: 0, y: 4 }}
               initial={{ opacity: 0, y: -4 }}
               key="view"
               transition={editSwitchTransition}
             >
-              {comment.content}
-            </motion.p>
+              <p className="text-sm leading-relaxed text-foreground">{comment.content}</p>
+              <CommentLikes commentId={comment.id} likesInfo={comment.likesInfo} postId={postId} />
+            </motion.div>
           )}
         </AnimatePresence>
       </motion.div>

@@ -183,7 +183,12 @@
       "updated": "Comment updated",
       "updateFailed": "Failed to update comment",
       "deleted": "Comment deleted",
-      "deleteFailed": "Failed to delete comment"
+      "deleteFailed": "Failed to delete comment",
+      "likeFailed": "Failed to update reaction"
+    },
+    "likes": {
+      "like": "Like",
+      "dislike": "Dislike"
     }
   },
   "videos": {
