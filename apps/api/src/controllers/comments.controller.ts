@@ -1,4 +1,4 @@
-import type { CommentUpdateInput, CommentViewModel, Paginator } from "@app/shared";
+import type { CommentUpdateInput, CommentViewModel, LikeInput, Paginator } from "@app/shared";
 import type { Request, Response } from "express";
 
 import { CommentsQuerySchema } from "@app/shared";
@@ -41,7 +41,10 @@ export async function getCommentById(
   req: Request<{ commentId: string }>,
   res: Response<CommentViewModel>,
 ): Promise<void> {
-  const result = await commentsService.getCommentById(req.params.commentId);
+  const result = await commentsService.getCommentById({
+    commentId: req.params.commentId,
+    currentUserId: req.viewerId,
+  });
   res.status(HTTP_STATUS.OK).json(result);
 }
 
@@ -50,8 +53,28 @@ export async function listPostComments(
   res: Response<Paginator<CommentViewModel>>,
 ): Promise<void> {
   const query = validatedQuery(req, CommentsQuerySchema);
-  const result = await commentsService.listPostComments({ postId: req.params.postId, query });
+  const result = await commentsService.listPostComments({
+    currentUserId: req.viewerId,
+    postId: req.params.postId,
+    query,
+  });
   res.status(HTTP_STATUS.OK).json(result);
+}
+
+export async function setLikeStatus(
+  req: Request<{ commentId: string }, unknown, LikeInput>,
+  res: Response<void>,
+): Promise<void> {
+  const user = req.user;
+  if (!user) throw new UnauthorizedError();
+
+  await commentsService.setLikeStatus({
+    commentId: req.params.commentId,
+    currentUserId: user.userId,
+    newStatus: req.body.likeStatus,
+  });
+
+  res.status(HTTP_STATUS.NO_CONTENT).send();
 }
 
 export async function updateComment(

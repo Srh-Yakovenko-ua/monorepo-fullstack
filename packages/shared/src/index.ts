@@ -211,11 +211,31 @@ export type CommentatorInfo = { userId: string; userLogin: string };
 
 export type CommentUpdateInput = z.infer<typeof CommentUpdateInputSchema>;
 
+export const LIKE_STATUSES = ["None", "Like", "Dislike"] as const;
+export type LikeStatus = (typeof LIKE_STATUSES)[number];
+
+export const PERSISTED_LIKE_STATUSES = ["Like", "Dislike"] as const;
+export type PersistedLikeStatus = (typeof PERSISTED_LIKE_STATUSES)[number];
+
+export const LikeInputSchema = z.object({
+  likeStatus: z.enum(LIKE_STATUSES, {
+    error: `likeStatus must be one of: ${LIKE_STATUSES.join(", ")}`,
+  }),
+});
 export type CommentViewModel = {
   commentatorInfo: CommentatorInfo;
   content: string;
   createdAt: string;
   id: string;
+  likesInfo: LikesInfoViewModel;
+};
+
+export type LikeInput = z.infer<typeof LikeInputSchema>;
+
+export type LikesInfoViewModel = {
+  dislikesCount: number;
+  likesCount: number;
+  myStatus: LikeStatus;
 };
 
 export const UsersQuerySchema = z.object({

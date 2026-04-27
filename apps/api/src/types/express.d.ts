@@ -7,6 +7,7 @@ declare global {
       session?: { deviceId: string; userId: string };
       user?: { email: string; login: string; role: UserRole; userId: string };
       validatedQuery?: unknown;
+      viewerId?: string;
     }
   }
 }

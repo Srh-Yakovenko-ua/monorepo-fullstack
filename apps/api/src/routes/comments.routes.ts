@@ -1,20 +1,23 @@
-import { CommentUpdateInputSchema } from "@app/shared";
+import { CommentUpdateInputSchema, LikeInputSchema } from "@app/shared";
 import { Router } from "express";
-import { z } from "zod";
 
 import {
   deleteComment,
   getCommentById,
+  setLikeStatus,
   updateComment,
 } from "../controllers/comments.controller.js";
 import { apiErrorResultSchema, registerPaths } from "../lib/openapi.js";
+import { optionalAuth } from "../middleware/optional-auth.js";
 import { requireAuth } from "../middleware/require-auth.js";
 import { validateBody } from "../middleware/validate.js";
+import { commentViewSchema } from "./_schemas/comment.openapi.js";
 
 const router: Router = Router();
 
-router.get("/:commentId", getCommentById);
+router.get("/:commentId", optionalAuth, getCommentById);
 router.put("/:commentId", requireAuth, validateBody(CommentUpdateInputSchema), updateComment);
+router.put("/:commentId/like-status", requireAuth, validateBody(LikeInputSchema), setLikeStatus);
 router.delete("/:commentId", requireAuth, deleteComment);
 
 const commentIdParam = {
@@ -23,16 +26,6 @@ const commentIdParam = {
   required: true,
   schema: { type: "string" as const },
 };
-
-const commentViewSchema = z.object({
-  commentatorInfo: z.object({
-    userId: z.string(),
-    userLogin: z.string(),
-  }),
-  content: z.string(),
-  createdAt: z.string(),
-  id: z.string(),
-});
 
 registerPaths({
   "/api/comments/{commentId}": {
@@ -81,6 +74,28 @@ registerPaths({
       },
       security: [{ bearerAuth: [] }],
       summary: "Update comment content",
+      tags: ["Comments"],
+    },
+  },
+  "/api/comments/{commentId}/like-status": {
+    put: {
+      operationId: "setCommentLikeStatus",
+      parameters: [commentIdParam],
+      requestBody: {
+        content: { "application/json": { schema: LikeInputSchema } },
+        required: true,
+      },
+      responses: {
+        "204": { description: "Like status updated" },
+        "400": {
+          content: { "application/json": { schema: apiErrorResultSchema } },
+          description: "Invalid request body",
+        },
+        "401": { description: "Unauthorized" },
+        "404": { description: "Comment not found" },
+      },
+      security: [{ bearerAuth: [] }],
+      summary: "Set like/dislike status for a comment",
       tags: ["Comments"],
     },
   },

@@ -6,6 +6,22 @@ import { type CommentDoc, CommentModel } from "../models/comment.model.js";
 
 export type CommentCreateInput = Pick<CommentDoc, "commentatorInfo" | "content" | "postId">;
 
+export async function applyCounterDelta({
+  commentId,
+  dislikesDelta,
+  likesDelta,
+}: {
+  commentId: string;
+  dislikesDelta: number;
+  likesDelta: number;
+}): Promise<void> {
+  if (likesDelta === 0 && dislikesDelta === 0) return;
+  await CommentModel.updateOne(
+    { _id: new Types.ObjectId(commentId) },
+    { $inc: { dislikesCount: dislikesDelta, likesCount: likesDelta } },
+  );
+}
+
 export async function clearAll(): Promise<void> {
   await CommentModel.deleteMany({});
 }

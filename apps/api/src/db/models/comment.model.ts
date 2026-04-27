@@ -5,6 +5,8 @@ export interface CommentDoc {
   commentatorInfo: { userId: Types.ObjectId; userLogin: string };
   content: string;
   createdAt: Date;
+  dislikesCount: number;
+  likesCount: number;
   postId: Types.ObjectId;
 }
 
@@ -16,6 +18,8 @@ const commentSchema = new Schema<CommentDoc>(
     },
     content: { required: true, type: String },
     createdAt: { default: Date.now, required: true, type: Date },
+    dislikesCount: { default: 0, required: true, type: Number },
+    likesCount: { default: 0, required: true, type: Number },
     postId: { ref: "Post", required: true, type: Schema.Types.ObjectId },
   },
   { timestamps: false, versionKey: false },

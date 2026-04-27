@@ -1,9 +1,16 @@
-import type { CommentsQuery, CommentUpdateInput, CommentViewModel, Paginator } from "@app/shared";
+import type {
+  CommentsQuery,
+  CommentUpdateInput,
+  CommentViewModel,
+  LikeStatus,
+  Paginator,
+} from "@app/shared";
 
 import { isValidObjectId, Types } from "mongoose";
 
 import type { CommentDoc } from "../db/models/comment.model.js";
 
+import * as commentLikesRepository from "../db/repositories/comment-likes.repository.js";
 import * as commentsRepository from "../db/repositories/comments.repository.js";
 import * as postsRepository from "../db/repositories/posts.repository.js";
 import { ForbiddenError, NotFoundError } from "../lib/errors.js";
@@ -11,6 +18,7 @@ import { buildPaginator } from "../lib/paginator.js";
 
 export async function clearAllComments(): Promise<void> {
   await commentsRepository.clearAll();
+  await commentLikesRepository.clearAll();
 }
 
 export async function createPostComment({
@@ -31,7 +39,7 @@ export async function createPostComment({
     content: input.content,
     postId: new Types.ObjectId(postId),
   });
-  return mapToView(doc);
+  return mapToView({ doc, myStatus: "None" });
 }
 
 export async function deleteComment({
@@ -48,28 +56,83 @@ export async function deleteComment({
   await commentsRepository.remove(commentId);
 }
 
-export async function getCommentById(commentId: string): Promise<CommentViewModel> {
+export async function getCommentById({
+  commentId,
+  currentUserId,
+}: {
+  commentId: string;
+  currentUserId?: string;
+}): Promise<CommentViewModel> {
   assertValidId(commentId);
   const doc = await commentsRepository.findById(commentId);
   if (!doc) throw new NotFoundError("Comment not found", { bodyless: true });
-  return mapToView(doc);
+  const myStatus = await resolveMyStatus({ commentId, currentUserId });
+  return mapToView({ doc, myStatus });
 }
 
 export async function listPostComments({
+  currentUserId,
   postId,
   query,
 }: {
+  currentUserId?: string;
   postId: string;
   query: CommentsQuery;
 }): Promise<Paginator<CommentViewModel>> {
   await assertPostExists(postId);
   const { items, totalCount } = await commentsRepository.findByPostId(postId, query);
+  const myStatusByCommentId =
+    currentUserId && items.length > 0
+      ? await commentLikesRepository.findByCommentIdsForUser({
+          commentIds: items.map((item) => item._id.toHexString()),
+          userId: currentUserId,
+        })
+      : new Map<string, LikeStatus>();
   return buildPaginator({
-    items: items.map(mapToView),
+    items: items.map((doc) =>
+      mapToView({
+        doc,
+        myStatus: myStatusByCommentId.get(doc._id.toHexString()) ?? "None",
+      }),
+    ),
     pageNumber: query.pageNumber,
     pageSize: query.pageSize,
     totalCount,
   });
+}
+
+export async function setLikeStatus({
+  commentId,
+  currentUserId,
+  newStatus,
+}: {
+  commentId: string;
+  currentUserId: string;
+  newStatus: LikeStatus;
+}): Promise<void> {
+  assertValidId(commentId);
+  const doc = await commentsRepository.findById(commentId);
+  if (!doc) throw new NotFoundError("Comment not found", { bodyless: true });
+
+  const previousPersistedStatus =
+    newStatus === "None"
+      ? await commentLikesRepository.deleteAndReturnPreviousStatus({
+          commentId,
+          userId: currentUserId,
+        })
+      : await commentLikesRepository.upsertAndReturnPreviousStatus({
+          commentId,
+          status: newStatus,
+          userId: currentUserId,
+        });
+
+  const previousStatus: LikeStatus = previousPersistedStatus ?? "None";
+  const { dislikesDelta, likesDelta } = computeCounterDelta({
+    currentStatus: previousStatus,
+    newStatus,
+  });
+
+  await commentsRepository.applyCounterDelta({ commentId, dislikesDelta, likesDelta });
 }
 
 export async function updateComment({
@@ -98,7 +161,19 @@ function assertValidId(id: string): void {
   if (!isValidObjectId(id)) throw new NotFoundError("Comment not found", { bodyless: true });
 }
 
-function mapToView(doc: CommentDoc): CommentViewModel {
+function computeCounterDelta({
+  currentStatus,
+  newStatus,
+}: {
+  currentStatus: LikeStatus;
+  newStatus: LikeStatus;
+}): { dislikesDelta: number; likesDelta: number } {
+  const likesDelta = (newStatus === "Like" ? 1 : 0) - (currentStatus === "Like" ? 1 : 0);
+  const dislikesDelta = (newStatus === "Dislike" ? 1 : 0) - (currentStatus === "Dislike" ? 1 : 0);
+  return { dislikesDelta, likesDelta };
+}
+
+function mapToView({ doc, myStatus }: { doc: CommentDoc; myStatus: LikeStatus }): CommentViewModel {
   return {
     commentatorInfo: {
       userId: doc.commentatorInfo.userId.toHexString(),
@@ -107,5 +182,22 @@ function mapToView(doc: CommentDoc): CommentViewModel {
     content: doc.content,
     createdAt: doc.createdAt.toISOString(),
     id: doc._id.toHexString(),
+    likesInfo: {
+      dislikesCount: doc.dislikesCount,
+      likesCount: doc.likesCount,
+      myStatus,
+    },
   };
+}
+
+async function resolveMyStatus({
+  commentId,
+  currentUserId,
+}: {
+  commentId: string;
+  currentUserId?: string;
+}): Promise<LikeStatus> {
+  if (!currentUserId) return "None";
+  const status = await commentLikesRepository.findOne({ commentId, userId: currentUserId });
+  return status ?? "None";
 }

@@ -16,8 +16,10 @@ import {
   updatePost,
 } from "../controllers/posts.controller.js";
 import { apiErrorResultSchema, registerPaths, stringIdParam } from "../lib/openapi.js";
+import { optionalAuth } from "../middleware/optional-auth.js";
 import { requireAuth } from "../middleware/require-auth.js";
 import { validateBody, validateQuery } from "../middleware/validate.js";
+import { commentViewSchema } from "./_schemas/comment.openapi.js";
 
 const router: Router = Router();
 
@@ -26,7 +28,7 @@ router.post("/", validateBody(PostInputSchema), createPost);
 router.get("/:id", getPost);
 router.put("/:id", validateBody(PostInputSchema), updatePost);
 router.delete("/:id", deletePost);
-router.get("/:postId/comments", validateQuery(CommentsQuerySchema), listPostComments);
+router.get("/:postId/comments", optionalAuth, validateQuery(CommentsQuerySchema), listPostComments);
 router.post(
   "/:postId/comments",
   requireAuth,
@@ -80,16 +82,6 @@ const paginationQueryParams = [
     schema: { default: "desc", enum: ["asc", "desc"], type: "string" as const },
   },
 ];
-
-const commentViewSchema = z.object({
-  commentatorInfo: z.object({
-    userId: z.string(),
-    userLogin: z.string(),
-  }),
-  content: z.string(),
-  createdAt: z.string(),
-  id: z.string(),
-});
 
 const postIdParam = {
   in: "path" as const,
