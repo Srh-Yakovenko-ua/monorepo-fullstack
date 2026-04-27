@@ -14,15 +14,15 @@ import {
   updateUserRole,
 } from "../controllers/users.controller.js";
 import { apiErrorResultSchema, registerPaths, stringIdParam } from "../lib/openapi.js";
-import { requireAdmin } from "../middleware/require-admin.js";
+import { requireAdminAuth } from "../middleware/require-admin-auth.js";
 import { requireAuth } from "../middleware/require-auth.js";
 import { requireSuperAdmin } from "../middleware/require-super-admin.js";
 import { validateBody, validateQuery } from "../middleware/validate.js";
 
 const router: Router = Router();
 
-router.get("/", requireAuth, requireAdmin, validateQuery(UsersQuerySchema), listUsers);
-router.post("/", requireAuth, requireAdmin, validateBody(CreateUserInputSchema), createUser);
+router.get("/", requireAdminAuth, validateQuery(UsersQuerySchema), listUsers);
+router.post("/", requireAdminAuth, validateBody(CreateUserInputSchema), createUser);
 router.put(
   "/:id/role",
   requireAuth,
@@ -30,7 +30,7 @@ router.put(
   validateBody(UpdateUserRoleInputSchema),
   updateUserRole,
 );
-router.delete("/:id", requireAuth, requireAdmin, deleteUser);
+router.delete("/:id", requireAdminAuth, deleteUser);
 
 const userViewModelSchema = z.object({
   createdAt: z.iso.datetime(),

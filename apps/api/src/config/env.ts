@@ -3,6 +3,8 @@ import { z } from "zod";
 
 const envSchema = z
   .object({
+    BASIC_AUTH_PASSWORD: z.string().default("qwerty"),
+    BASIC_AUTH_USER: z.string().default("admin"),
     CORS_ORIGINS: z
       .string()
       .default("http://localhost:5173")
@@ -59,6 +61,8 @@ const envSchema = z
     SMTP_USER: z.string().default(""),
   })
   .transform((raw) => ({
+    basicAuthPassword: raw.BASIC_AUTH_PASSWORD,
+    basicAuthUser: raw.BASIC_AUTH_USER,
     corsOrigins: raw.CORS_ORIGINS,
     emailFrom: raw.EMAIL_FROM,
     enableSwagger: raw.ENABLE_SWAGGER,
