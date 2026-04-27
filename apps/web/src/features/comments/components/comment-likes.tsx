@@ -1,5 +1,6 @@
 import type { LikesInfoViewModel, LikeStatus } from "@app/shared";
 
+import { LIKE_STATUS } from "@app/shared";
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -20,8 +21,8 @@ export function CommentLikes({ commentId, likesInfo, postId }: Props) {
   const { isAuthed } = useUserAuth();
   const setLikeStatus = useSetCommentLikeStatus({ postId });
 
-  const isLiked = likesInfo.myStatus === "Like";
-  const isDisliked = likesInfo.myStatus === "Dislike";
+  const isLiked = likesInfo.myStatus === LIKE_STATUS.Like;
+  const isDisliked = likesInfo.myStatus === LIKE_STATUS.Dislike;
 
   function applyStatus(nextStatus: LikeStatus) {
     if (likesInfo.myStatus === nextStatus) return;
@@ -36,11 +37,11 @@ export function CommentLikes({ commentId, likesInfo, postId }: Props) {
   }
 
   function handleLikeClick() {
-    applyStatus(isLiked ? "None" : "Like");
+    applyStatus(isLiked ? LIKE_STATUS.None : LIKE_STATUS.Like);
   }
 
   function handleDislikeClick() {
-    applyStatus(isDisliked ? "None" : "Dislike");
+    applyStatus(isDisliked ? LIKE_STATUS.None : LIKE_STATUS.Dislike);
   }
 
   return (

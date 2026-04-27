@@ -214,6 +214,12 @@ export type CommentUpdateInput = z.infer<typeof CommentUpdateInputSchema>;
 export const LIKE_STATUSES = ["None", "Like", "Dislike"] as const;
 export type LikeStatus = (typeof LIKE_STATUSES)[number];
 
+export const LIKE_STATUS = {
+  Dislike: "Dislike",
+  Like: "Like",
+  None: "None",
+} as const satisfies Record<string, LikeStatus>;
+
 export const PERSISTED_LIKE_STATUSES = ["Like", "Dislike"] as const;
 export type PersistedLikeStatus = (typeof PERSISTED_LIKE_STATUSES)[number];
 
