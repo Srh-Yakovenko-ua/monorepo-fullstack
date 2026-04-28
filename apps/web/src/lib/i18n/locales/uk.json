@@ -154,7 +154,13 @@
       "createError": "Не вдалося створити",
       "updateError": "Не вдалося оновити",
       "deleteError": "Не вдалося видалити",
-      "deleteFailed": "Не вдалося видалити пост"
+      "deleteFailed": "Не вдалося видалити пост",
+      "likeFailed": "Не вдалося оновити реакцію"
+    },
+    "likes": {
+      "like": "Лайк",
+      "dislike": "Дизлайк",
+      "newestLikes": "Останні лайки: {{logins}}"
     }
   },
   "comments": {

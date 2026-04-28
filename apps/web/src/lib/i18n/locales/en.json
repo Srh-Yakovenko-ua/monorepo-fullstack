@@ -154,7 +154,13 @@
       "createError": "Failed to create",
       "updateError": "Failed to update",
       "deleteError": "Failed to delete",
-      "deleteFailed": "Failed to delete post"
+      "deleteFailed": "Failed to delete post",
+      "likeFailed": "Failed to update reaction"
+    },
+    "likes": {
+      "like": "Like",
+      "dislike": "Dislike",
+      "newestLikes": "Newest likes: {{logins}}"
     }
   },
   "comments": {

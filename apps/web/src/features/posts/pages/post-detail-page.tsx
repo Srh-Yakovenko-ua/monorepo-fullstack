@@ -5,6 +5,7 @@ import { useParams } from "react-router";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { CommentsList, NewCommentForm } from "@/features/comments";
+import { PostLikes } from "@/features/posts/components/post-likes";
 import { usePost } from "@/features/posts/hooks/use-post";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { gradientFromString } from "@/lib/gradient-from-string";
@@ -89,6 +90,8 @@ export function PostDetailPage() {
           <span className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
             {t("posts.detail.createdAt")} · {formatPostDate(post.createdAt)}
           </span>
+
+          <PostLikes extendedLikesInfo={post.extendedLikesInfo} postId={post.id} />
         </div>
       </article>
 
@@ -129,6 +132,7 @@ function PostDetailSkeleton() {
           <Skeleton className="h-4 w-full rounded-sm" />
           <Skeleton className="h-4 w-5/6 rounded-sm" />
           <Skeleton className="h-20 w-full rounded-sm" />
+          <Skeleton className="h-8 w-32 rounded-sm" />
         </div>
       </div>
     </main>

@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModalId, modalObserver } from "@/features/modals";
+import { PostLikesDisplay } from "@/features/posts/components/post-likes-display";
 import { useDeletePost } from "@/features/posts/hooks/use-post-mutations";
 import { useInfinitePosts } from "@/features/posts/hooks/use-posts";
 import { usePageTitle } from "@/hooks/use-page-title";
@@ -382,12 +383,20 @@ function PostCard({
           </p>
         </div>
 
-        {post.blogName && (
-          <span className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
-            <BookOpen className="size-3 shrink-0" />
-            <span className="truncate">{post.blogName}</span>
-          </span>
-        )}
+        <div className="flex items-center justify-between gap-2">
+          {post.blogName ? (
+            <span className="flex items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
+              <BookOpen className="size-3 shrink-0" />
+              <span className="truncate">{post.blogName}</span>
+            </span>
+          ) : (
+            <span />
+          )}
+          <PostLikesDisplay
+            dislikesCount={post.extendedLikesInfo.dislikesCount}
+            likesCount={post.extendedLikesInfo.likesCount}
+          />
+        </div>
       </div>
     </motion.article>
   );

@@ -1,4 +1,4 @@
-import type { Paginator, PostInput, PostSortField, PostViewModel } from "@app/shared";
+import type { LikeInput, Paginator, PostInput, PostSortField, PostViewModel } from "@app/shared";
 
 import { request } from "@/lib/http-client";
 
@@ -32,6 +32,11 @@ export const postsApi = {
     return request<Paginator<PostViewModel>>(url.pathname + url.search);
   },
   remove: (id: string) => request<void>(`/api/posts/${id}`, { method: "DELETE" }),
+  setLikeStatus: ({ likeStatus, postId }: LikeInput & { postId: string }) =>
+    request<void>(`/api/posts/${postId}/like-status`, {
+      body: JSON.stringify({ likeStatus }),
+      method: "PUT",
+    }),
   update: (id: string, input: PostInput) =>
     request<void>(`/api/posts/${id}`, {
       body: JSON.stringify(input),
