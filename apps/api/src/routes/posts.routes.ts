@@ -1,6 +1,7 @@
 import {
   CommentsQuerySchema,
   CommentUpdateInputSchema,
+  LikeInputSchema,
   PaginationQuerySchema,
   PostInputSchema,
 } from "@app/shared";
@@ -13,6 +14,7 @@ import {
   deletePost,
   getPost,
   listPosts,
+  setLikeStatus,
   updatePost,
 } from "../controllers/posts.controller.js";
 import { apiErrorResultSchema, registerPaths, stringIdParam } from "../lib/openapi.js";
@@ -20,14 +22,16 @@ import { optionalAuth } from "../middleware/optional-auth.js";
 import { requireAuth } from "../middleware/require-auth.js";
 import { validateBody, validateQuery } from "../middleware/validate.js";
 import { commentViewSchema } from "./_schemas/comment.openapi.js";
+import { postViewSchema } from "./_schemas/post.openapi.js";
 
 const router: Router = Router();
 
-router.get("/", validateQuery(PaginationQuerySchema), listPosts);
+router.get("/", optionalAuth, validateQuery(PaginationQuerySchema), listPosts);
 router.post("/", validateBody(PostInputSchema), createPost);
-router.get("/:id", getPost);
+router.get("/:id", optionalAuth, getPost);
 router.put("/:id", validateBody(PostInputSchema), updatePost);
 router.delete("/:id", deletePost);
+router.put("/:postId/like-status", requireAuth, validateBody(LikeInputSchema), setLikeStatus);
 router.get("/:postId/comments", optionalAuth, validateQuery(CommentsQuerySchema), listPostComments);
 router.post(
   "/:postId/comments",
@@ -35,16 +39,6 @@ router.post(
   validateBody(CommentUpdateInputSchema),
   createPostComment,
 );
-
-const postViewModelSchema = z.object({
-  blogId: z.string(),
-  blogName: z.string(),
-  content: z.string(),
-  createdAt: z.iso.datetime(),
-  id: z.string(),
-  shortDescription: z.string(),
-  title: z.string(),
-});
 
 function paginatorSchema<T extends z.ZodTypeAny>(itemSchema: T) {
   return z.object({
@@ -152,6 +146,28 @@ registerPaths({
       tags: ["Comments"],
     },
   },
+  "/api/posts/{postId}/like-status": {
+    put: {
+      operationId: "setPostLikeStatus",
+      parameters: [postIdParam],
+      requestBody: {
+        content: { "application/json": { schema: LikeInputSchema } },
+        required: true,
+      },
+      responses: {
+        "204": { description: "Like status updated" },
+        "400": {
+          content: { "application/json": { schema: apiErrorResultSchema } },
+          description: "Invalid request body",
+        },
+        "401": { description: "Unauthorized" },
+        "404": { description: "Post not found" },
+      },
+      security: [{ bearerAuth: [] }],
+      summary: "Set like/dislike status for a post",
+      tags: ["Posts"],
+    },
+  },
 });
 
 registerPaths({
@@ -161,7 +177,7 @@ registerPaths({
       parameters: paginationQueryParams,
       responses: {
         "200": {
-          content: { "application/json": { schema: paginatorSchema(postViewModelSchema) } },
+          content: { "application/json": { schema: paginatorSchema(postViewSchema) } },
           description: "Paginated list of posts",
         },
         "400": {
@@ -180,7 +196,7 @@ registerPaths({
       },
       responses: {
         "201": {
-          content: { "application/json": { schema: postViewModelSchema } },
+          content: { "application/json": { schema: postViewSchema } },
           description: "Post created",
         },
         "400": {
@@ -208,7 +224,7 @@ registerPaths({
       parameters: [stringIdParam],
       responses: {
         "200": {
-          content: { "application/json": { schema: postViewModelSchema } },
+          content: { "application/json": { schema: postViewSchema } },
           description: "Post found",
         },
         "404": { description: "Post not found" },

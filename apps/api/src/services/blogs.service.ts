@@ -16,7 +16,7 @@ import * as blogsRepository from "../db/repositories/blogs.repository.js";
 import * as postsRepository from "../db/repositories/posts.repository.js";
 import { NotFoundError } from "../lib/errors.js";
 import { buildPaginator } from "../lib/paginator.js";
-import { toPostView } from "../services/posts.service.js";
+import { listPostsForBlog, toPostView } from "./posts.service.js";
 
 export async function clearAllBlogs(): Promise<void> {
   await blogsRepository.clearAll();
@@ -45,7 +45,7 @@ export async function createPostForBlog(
     shortDescription: input.shortDescription,
     title: input.title,
   });
-  return toPostView(doc);
+  return toPostView({ doc, myStatus: "None", newestLikes: [] });
 }
 
 export async function deleteBlog(id: string): Promise<void> {
@@ -79,20 +79,18 @@ export async function getBlogLookup(query: BlogsQuery): Promise<Paginator<BlogLo
   });
 }
 
-export async function getPostsByBlogId(
-  blogId: string,
-  query: PaginationQuery,
-): Promise<Paginator<PostViewModel>> {
+export async function getPostsByBlogId({
+  blogId,
+  currentUserId,
+  query,
+}: {
+  blogId: string;
+  currentUserId?: string;
+  query: PaginationQuery;
+}): Promise<Paginator<PostViewModel>> {
   const blog = await blogsRepository.findById(blogId);
   if (!blog) throw new NotFoundError(`Blog with id ${blogId} not found`);
-
-  const { items, totalCount } = await postsRepository.findPage({ ...query, blogId });
-  return buildPaginator({
-    items: items.map(toPostView),
-    pageNumber: query.pageNumber,
-    pageSize: query.pageSize,
-    totalCount,
-  });
+  return listPostsForBlog({ blogId, currentUserId, query });
 }
 
 export function toBlogLookupItem(doc: BlogLookupDoc): BlogLookupItem {

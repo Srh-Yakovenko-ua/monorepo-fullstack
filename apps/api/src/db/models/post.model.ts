@@ -8,6 +8,8 @@ export interface PostDoc {
   blogName: string;
   content: string;
   createdAt: Date;
+  dislikesCount: number;
+  likesCount: number;
   shortDescription: string;
   title: string;
 }
@@ -18,6 +20,8 @@ const postSchema = new Schema<PostDoc>(
     blogName: { required: true, type: String },
     content: { required: true, type: String },
     createdAt: { default: Date.now, required: true, type: Date },
+    dislikesCount: { default: 0, required: true, type: Number },
+    likesCount: { default: 0, required: true, type: Number },
     shortDescription: { required: true, type: String },
     title: { required: true, type: String },
   },

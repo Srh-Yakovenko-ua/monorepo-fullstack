@@ -49,7 +49,11 @@ export async function listBlogs(req: Request, res: Response): Promise<void> {
 
 export async function listPostsForBlog(req: Request<IdParams>, res: Response): Promise<void> {
   const query = validatedQuery(req, PaginationQuerySchema);
-  const page = await blogsService.getPostsByBlogId(req.params.id, query);
+  const page = await blogsService.getPostsByBlogId({
+    blogId: req.params.id,
+    currentUserId: req.viewerId,
+    query,
+  });
   res.status(HTTP_STATUS.OK).json(page);
 }
 

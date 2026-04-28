@@ -104,6 +104,19 @@ export type PostInput = z.infer<typeof PostInputSchema>;
 export const BlogScopedPostInputSchema = PostInputSchema.omit({ blogId: true });
 export type BlogScopedPostInput = z.infer<typeof BlogScopedPostInputSchema>;
 
+export type ExtendedLikesInfoViewModel = {
+  dislikesCount: number;
+  likesCount: number;
+  myStatus: LikeStatus;
+  newestLikes: NewestLikeViewModel[];
+};
+
+export type NewestLikeViewModel = {
+  addedAt: string;
+  login: string;
+  userId: string;
+};
+
 export type Paginator<T> = {
   items: T[];
   page: number;
@@ -117,6 +130,7 @@ export type PostViewModel = {
   blogName: string;
   content: string;
   createdAt: string;
+  extendedLikesInfo: ExtendedLikesInfoViewModel;
   id: string;
   shortDescription: string;
   title: string;

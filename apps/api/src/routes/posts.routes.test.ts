@@ -4,6 +4,8 @@ import { describe, expect, it } from "vitest";
 
 import { createApp } from "../app.js";
 import { CommentModel } from "../db/models/comment.model.js";
+import { PostLikeModel } from "../db/models/post-like.model.js";
+import { PostModel } from "../db/models/post.model.js";
 import { createAdminAndLogin } from "../test/auth-helpers.js";
 
 const app = createApp();
@@ -705,6 +707,310 @@ describe("Posts API", () => {
 
       expect(res.status).toBe(401);
       expect(res.text).toBe("");
+    });
+  });
+
+  describe("PUT /api/posts/:postId/like-status", () => {
+    it("returns 401 empty body when no token is sent", async () => {
+      const res = await request(app)
+        .put("/api/posts/507f1f77bcf86cd799439011/like-status")
+        .send({ likeStatus: "Like" });
+
+      expect(res.status).toBe(401);
+      expect(res.text).toBe("");
+    });
+
+    it("returns 401 empty body when token is garbage", async () => {
+      const res = await request(app)
+        .put("/api/posts/507f1f77bcf86cd799439011/like-status")
+        .set("authorization", "Bearer garbage.token.value")
+        .send({ likeStatus: "Like" });
+
+      expect(res.status).toBe(401);
+      expect(res.text).toBe("");
+    });
+
+    it("returns 404 empty body when postId is malformed", async () => {
+      await createUserViaHelper(validUser);
+      const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
+
+      const res = await request(app)
+        .put("/api/posts/not-a-valid-id/like-status")
+        .set("authorization", `Bearer ${token}`)
+        .send({ likeStatus: "Like" });
+
+      expect(res.status).toBe(404);
+      expect(res.text).toBe("");
+    });
+
+    it("returns 404 empty body when postId is a valid ObjectId that does not exist", async () => {
+      await createUserViaHelper(validUser);
+      const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
+
+      const res = await request(app)
+        .put("/api/posts/507f1f77bcf86cd799439011/like-status")
+        .set("authorization", `Bearer ${token}`)
+        .send({ likeStatus: "Like" });
+
+      expect(res.status).toBe(404);
+      expect(res.text).toBe("");
+    });
+
+    it("returns 400 with errorsMessages on field likeStatus when body is empty", async () => {
+      const blog = await createBlog();
+      const postBody = await buildValidPost(blog.id);
+      const created = await request(app).post("/api/posts").send(postBody);
+      const postId: string = created.body.id;
+      await createUserViaHelper(validUser);
+      const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
+
+      const res = await request(app)
+        .put(`/api/posts/${postId}/like-status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({});
+
+      expect(res.status).toBe(400);
+      expect(res.body.errorsMessages).toEqual(
+        expect.arrayContaining([expect.objectContaining({ field: "likeStatus" })]),
+      );
+    });
+
+    it("returns 400 with errorsMessages on field likeStatus when value is not in the enum", async () => {
+      const blog = await createBlog();
+      const postBody = await buildValidPost(blog.id);
+      const created = await request(app).post("/api/posts").send(postBody);
+      const postId: string = created.body.id;
+      await createUserViaHelper(validUser);
+      const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
+
+      const res = await request(app)
+        .put(`/api/posts/${postId}/like-status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ likeStatus: "Loved" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.errorsMessages).toEqual(
+        expect.arrayContaining([expect.objectContaining({ field: "likeStatus" })]),
+      );
+    });
+
+    it("returns 204 on a valid Like body and GET reflects updated extendedLikesInfo", async () => {
+      const blog = await createBlog();
+      const postBody = await buildValidPost(blog.id);
+      const created = await request(app).post("/api/posts").send(postBody);
+      const postId: string = created.body.id;
+      await createUserViaHelper(validUser);
+      const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
+
+      const putRes = await request(app)
+        .put(`/api/posts/${postId}/like-status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ likeStatus: "Like" });
+
+      expect(putRes.status).toBe(204);
+      expect(putRes.text).toBe("");
+
+      const getRes = await request(app)
+        .get(`/api/posts/${postId}`)
+        .set("authorization", `Bearer ${token}`);
+
+      expect(getRes.status).toBe(200);
+      expect(getRes.body.extendedLikesInfo).toMatchObject({
+        dislikesCount: 0,
+        likesCount: 1,
+        myStatus: "Like",
+      });
+      expect(getRes.body.extendedLikesInfo.newestLikes).toHaveLength(1);
+      expect(getRes.body.extendedLikesInfo.newestLikes[0].login).toBe(validUser.login);
+    });
+
+    it("Like → Dislike → None updates counters and myStatus at every step", async () => {
+      const blog = await createBlog();
+      const postBody = await buildValidPost(blog.id);
+      const created = await request(app).post("/api/posts").send(postBody);
+      const postId: string = created.body.id;
+      await createUserViaHelper(validUser);
+      const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
+
+      await request(app)
+        .put(`/api/posts/${postId}/like-status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ likeStatus: "Like" });
+      const afterLike = await request(app)
+        .get(`/api/posts/${postId}`)
+        .set("authorization", `Bearer ${token}`);
+      expect(afterLike.body.extendedLikesInfo).toMatchObject({
+        dislikesCount: 0,
+        likesCount: 1,
+        myStatus: "Like",
+      });
+
+      await request(app)
+        .put(`/api/posts/${postId}/like-status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ likeStatus: "Dislike" });
+      const afterDislike = await request(app)
+        .get(`/api/posts/${postId}`)
+        .set("authorization", `Bearer ${token}`);
+      expect(afterDislike.body.extendedLikesInfo).toMatchObject({
+        dislikesCount: 1,
+        likesCount: 0,
+        myStatus: "Dislike",
+      });
+      expect(afterDislike.body.extendedLikesInfo.newestLikes).toEqual([]);
+
+      await request(app)
+        .put(`/api/posts/${postId}/like-status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ likeStatus: "None" });
+      const afterNone = await request(app)
+        .get(`/api/posts/${postId}`)
+        .set("authorization", `Bearer ${token}`);
+      expect(afterNone.body.extendedLikesInfo).toMatchObject({
+        dislikesCount: 0,
+        likesCount: 0,
+        myStatus: "None",
+      });
+      expect(afterNone.body.extendedLikesInfo.newestLikes).toEqual([]);
+    });
+  });
+
+  describe("GET /api/posts and GET /api/posts/:id — extendedLikesInfo", () => {
+    it("anonymous GET /:id returns myStatus=None even when other users liked", async () => {
+      const blog = await createBlog();
+      const postBody = await buildValidPost(blog.id);
+      const created = await request(app).post("/api/posts").send(postBody);
+      const postId: string = created.body.id;
+      await createUserViaHelper(validUser);
+      const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
+
+      await request(app)
+        .put(`/api/posts/${postId}/like-status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ likeStatus: "Like" });
+
+      const res = await request(app).get(`/api/posts/${postId}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.extendedLikesInfo).toMatchObject({
+        likesCount: 1,
+        myStatus: "None",
+      });
+      expect(res.body.extendedLikesInfo.newestLikes).toHaveLength(1);
+    });
+
+    it("newestLikes is at most 3 items sorted by addedAt desc", async () => {
+      const blog = await createBlog();
+      const postBody = await buildValidPost(blog.id);
+      const created = await request(app).post("/api/posts").send(postBody);
+      const postId: string = created.body.id;
+
+      const baseTime = new Date("2026-01-01T00:00:00.000Z").valueOf();
+      const seededLikes = [
+        { addedAtMs: baseTime + 0, login: "user1" },
+        { addedAtMs: baseTime + 1000, login: "user2" },
+        { addedAtMs: baseTime + 2000, login: "user3" },
+        { addedAtMs: baseTime + 3000, login: "user4" },
+        { addedAtMs: baseTime + 4000, login: "user5" },
+      ];
+
+      for (const seed of seededLikes) {
+        await PostLikeModel.create({
+          createdAt: new Date(seed.addedAtMs),
+          postId: new mongoose.Types.ObjectId(postId),
+          status: "Like",
+          userId: new mongoose.Types.ObjectId(),
+          userLogin: seed.login,
+        });
+      }
+      await PostModel.updateOne(
+        { _id: new mongoose.Types.ObjectId(postId) },
+        { $set: { likesCount: seededLikes.length } },
+      );
+
+      const res = await request(app).get(`/api/posts/${postId}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.extendedLikesInfo.likesCount).toBe(5);
+      expect(res.body.extendedLikesInfo.newestLikes).toHaveLength(3);
+
+      const logins = (res.body.extendedLikesInfo.newestLikes as { login: string }[]).map(
+        (like) => like.login,
+      );
+      expect(logins).toEqual(["user5", "user4", "user3"]);
+
+      const timestamps = (res.body.extendedLikesInfo.newestLikes as { addedAt: string }[]).map(
+        (like) => new Date(like.addedAt).valueOf(),
+      );
+      expect(timestamps[0]).toBeGreaterThanOrEqual(timestamps[1] ?? 0);
+      expect(timestamps[1]).toBeGreaterThanOrEqual(timestamps[2] ?? 0);
+    });
+
+    it("GET /api/posts returns per-item myStatus matching the authenticated viewer", async () => {
+      const blog = await createBlog();
+      const likedRes = await request(app)
+        .post("/api/posts")
+        .send(await buildValidPost(blog.id));
+      const dislikedRes = await request(app)
+        .post("/api/posts")
+        .send(await buildValidPost(blog.id));
+      const untouchedRes = await request(app)
+        .post("/api/posts")
+        .send(await buildValidPost(blog.id));
+      const likedId: string = likedRes.body.id;
+      const dislikedId: string = dislikedRes.body.id;
+      const untouchedId: string = untouchedRes.body.id;
+
+      await createUserViaHelper(validUser);
+      const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
+
+      await request(app)
+        .put(`/api/posts/${likedId}/like-status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ likeStatus: "Like" });
+      await request(app)
+        .put(`/api/posts/${dislikedId}/like-status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ likeStatus: "Dislike" });
+
+      const res = await request(app).get("/api/posts").set("authorization", `Bearer ${token}`);
+
+      const byId = new Map(
+        (
+          res.body.items as {
+            extendedLikesInfo: { myStatus: string; newestLikes: unknown[] };
+            id: string;
+          }[]
+        ).map((item) => [item.id, item.extendedLikesInfo] as const),
+      );
+      expect(byId.get(likedId)?.myStatus).toBe("Like");
+      expect(byId.get(dislikedId)?.myStatus).toBe("Dislike");
+      expect(byId.get(untouchedId)?.myStatus).toBe("None");
+      expect(byId.get(untouchedId)?.newestLikes).toEqual([]);
+    });
+
+    it("GET /api/posts anonymously returns myStatus=None on every item", async () => {
+      const blog = await createBlog();
+      const created = await request(app)
+        .post("/api/posts")
+        .send(await buildValidPost(blog.id));
+      const postId: string = created.body.id;
+      await createUserViaHelper(validUser);
+      const token = await loginAs({ loginOrEmail: validUser.login, password: validUser.password });
+
+      await request(app)
+        .put(`/api/posts/${postId}/like-status`)
+        .set("authorization", `Bearer ${token}`)
+        .send({ likeStatus: "Like" });
+
+      const res = await request(app).get("/api/posts");
+
+      expect(res.status).toBe(200);
+      for (const item of res.body.items as {
+        extendedLikesInfo: { myStatus: string };
+      }[]) {
+        expect(item.extendedLikesInfo.myStatus).toBe("None");
+      }
     });
   });
 });

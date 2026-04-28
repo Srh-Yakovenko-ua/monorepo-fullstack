@@ -18,6 +18,7 @@ import {
   updateBlog,
 } from "../controllers/blogs.controller.js";
 import { apiErrorResultSchema, registerPaths, stringIdParam } from "../lib/openapi.js";
+import { optionalAuth } from "../middleware/optional-auth.js";
 import { validateBody, validateQuery } from "../middleware/validate.js";
 
 const router: Router = Router();
@@ -28,7 +29,7 @@ router.post("/", validateBody(BlogInputSchema), createBlog);
 router.get("/:id", getBlog);
 router.put("/:id", validateBody(BlogInputSchema), updateBlog);
 router.delete("/:id", deleteBlog);
-router.get("/:id/posts", validateQuery(PaginationQuerySchema), listPostsForBlog);
+router.get("/:id/posts", optionalAuth, validateQuery(PaginationQuerySchema), listPostsForBlog);
 router.post("/:id/posts", validateBody(BlogScopedPostInputSchema), createPostForBlog);
 
 const blogViewModelSchema = z.object({

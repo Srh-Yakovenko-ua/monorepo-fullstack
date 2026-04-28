@@ -1,8 +1,9 @@
-import type { PostInput, PostViewModel } from "@app/shared";
+import type { LikeInput, PostInput, PostViewModel } from "@app/shared";
 import type { Request, Response } from "express";
 
 import { PaginationQuerySchema } from "@app/shared";
 
+import { UnauthorizedError } from "../lib/errors.js";
 import { HTTP_STATUS } from "../lib/http-status.js";
 import { validatedQuery } from "../middleware/validate.js";
 import * as postsService from "../services/posts.service.js";
@@ -22,14 +23,34 @@ export async function deletePost(req: Request<IdParams>, res: Response<void>): P
 }
 
 export async function getPost(req: Request<IdParams>, res: Response<PostViewModel>): Promise<void> {
-  const post = await postsService.getPostById(req.params.id);
+  const post = await postsService.getPostById({
+    currentUserId: req.viewerId,
+    postId: req.params.id,
+  });
   res.status(HTTP_STATUS.OK).json(post);
 }
 
 export async function listPosts(req: Request, res: Response): Promise<void> {
   const query = validatedQuery(req, PaginationQuerySchema);
-  const page = await postsService.getAllPosts(query);
+  const page = await postsService.getAllPosts({ currentUserId: req.viewerId, query });
   res.status(HTTP_STATUS.OK).json(page);
+}
+
+export async function setLikeStatus(
+  req: Request<{ postId: string }, unknown, LikeInput>,
+  res: Response<void>,
+): Promise<void> {
+  const user = req.user;
+  if (!user) throw new UnauthorizedError();
+
+  await postsService.setLikeStatus({
+    currentUserId: user.userId,
+    currentUserLogin: user.login,
+    newStatus: req.body.likeStatus,
+    postId: req.params.postId,
+  });
+
+  res.status(HTTP_STATUS.NO_CONTENT).send();
 }
 
 export async function updatePost(req: PostUpdateReq, res: Response<void>): Promise<void> {

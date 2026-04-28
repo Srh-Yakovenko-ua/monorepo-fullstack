@@ -1,5 +1,7 @@
 import type { PaginationQuery } from "@app/shared";
 
+import { Types } from "mongoose";
+
 import type { PostDoc } from "../models/post.model.js";
 
 import { PostModel } from "../models/post.model.js";
@@ -10,6 +12,22 @@ export type PostCreateInput = Pick<
 >;
 export type PostFindPageQuery = PaginationQuery & { blogId?: string };
 export type PostUpdateInput = PostCreateInput;
+
+export async function applyCounterDelta({
+  dislikesDelta,
+  likesDelta,
+  postId,
+}: {
+  dislikesDelta: number;
+  likesDelta: number;
+  postId: string;
+}): Promise<void> {
+  if (likesDelta === 0 && dislikesDelta === 0) return;
+  await PostModel.updateOne(
+    { _id: new Types.ObjectId(postId) },
+    { $inc: { dislikesCount: dislikesDelta, likesCount: likesDelta } },
+  );
+}
 
 export async function clearAll(): Promise<void> {
   await PostModel.deleteMany({});
