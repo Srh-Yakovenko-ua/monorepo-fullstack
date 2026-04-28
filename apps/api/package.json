@@ -14,6 +14,9 @@
   },
   "dependencies": {
     "@app/shared": "workspace:*",
+    "@nestjs/common": "catalog:",
+    "@nestjs/core": "catalog:",
+    "@nestjs/platform-express": "catalog:",
     "bcryptjs": "catalog:",
     "compression": "catalog:",
     "cookie-parser": "catalog:",
@@ -28,6 +31,8 @@
     "nodemailer": "catalog:",
     "pino": "catalog:",
     "pino-http": "catalog:",
+    "reflect-metadata": "catalog:",
+    "rxjs": "catalog:",
     "ua-parser-js": "catalog:",
     "zod": "catalog:",
     "zod-openapi": "catalog:"
