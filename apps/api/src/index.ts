@@ -1,10 +1,17 @@
+import "reflect-metadata";
+import { NestFactory } from "@nestjs/core";
+import { ExpressAdapter, type NestExpressApplication } from "@nestjs/platform-express";
+
 import { createApp } from "./app.js";
+import { AppModule } from "./app.module.js";
 import { env } from "./config/env.js";
 import { connectMongo, disconnectMongo } from "./db/mongo.js";
+import * as postsRepository from "./db/repositories/posts.repository.js";
 import * as usersRepository from "./db/repositories/users.repository.js";
 import { createLogger } from "./lib/logger.js";
 
 const log = createLogger("startup");
+const SHUTDOWN_TIMEOUT_MS = 10_000;
 
 async function main(): Promise<void> {
   let mongoConnected = false;
@@ -24,12 +31,19 @@ async function main(): Promise<void> {
     }
   }
 
-  const app = createApp();
-  const server = app.listen(env.port, () => {
+  const expressApp = createApp();
+  const nestApp = await NestFactory.create<NestExpressApplication>(
+    AppModule,
+    new ExpressAdapter(expressApp),
+    { bodyParser: false, logger: false },
+  );
+
+  await nestApp.init();
+
+  const server = expressApp.listen(env.port, () => {
     log.info({ port: env.port }, `api listening on http://localhost:${env.port}`);
   });
 
-  const SHUTDOWN_TIMEOUT_MS = 10_000;
   let isShuttingDown = false;
 
   const shutdown = async (signal: string): Promise<void> => {
@@ -47,6 +61,7 @@ async function main(): Promise<void> {
       await new Promise<void>((resolve, reject) => {
         server.close((err) => (err ? reject(err) : resolve()));
       });
+      await nestApp.close().catch(() => {});
       await disconnectMongo().catch(() => {});
       clearTimeout(forceExit);
       process.exit(0);
@@ -62,9 +77,17 @@ async function main(): Promise<void> {
 }
 
 async function runStartupTasks(): Promise<void> {
-  const backfilledCount = await usersRepository.backfillMissingRole();
-  if (backfilledCount > 0) {
-    log.info({ count: backfilledCount }, "backfilled missing role field on users");
+  const backfilledRoleCount = await usersRepository.backfillMissingRole();
+  if (backfilledRoleCount > 0) {
+    log.info({ count: backfilledRoleCount }, "backfilled missing role field on users");
+  }
+
+  const backfilledLikeCounterCount = await postsRepository.backfillMissingLikeCounters();
+  if (backfilledLikeCounterCount > 0) {
+    log.info(
+      { count: backfilledLikeCounterCount },
+      "backfilled missing like/dislike counters on posts",
+    );
   }
 }
 

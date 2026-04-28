@@ -145,8 +145,8 @@ export function toPostView({
   newestLikes: NewestLikeViewModel[];
 }): PostViewModel {
   const extendedLikesInfo: ExtendedLikesInfoViewModel = {
-    dislikesCount: doc.dislikesCount,
-    likesCount: doc.likesCount,
+    dislikesCount: doc.dislikesCount ?? 0,
+    likesCount: doc.likesCount ?? 0,
     myStatus,
     newestLikes,
   };

@@ -29,6 +29,23 @@ export async function applyCounterDelta({
   );
 }
 
+export async function backfillMissingLikeCounters(): Promise<number> {
+  const result = await PostModel.updateMany(
+    {
+      $or: [{ dislikesCount: { $exists: false } }, { likesCount: { $exists: false } }],
+    },
+    [
+      {
+        $set: {
+          dislikesCount: { $ifNull: ["$dislikesCount", 0] },
+          likesCount: { $ifNull: ["$likesCount", 0] },
+        },
+      },
+    ],
+  );
+  return result.modifiedCount;
+}
+
 export async function clearAll(): Promise<void> {
   await PostModel.deleteMany({});
 }
