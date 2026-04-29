@@ -1,7 +1,7 @@
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express from "express";
+import express, { type Express } from "express";
 import helmet from "helmet";
 
 import { env } from "./config/env.js";
@@ -18,9 +18,16 @@ import { postsRouter } from "./routes/posts.routes.js";
 import { securityRouter } from "./routes/security.routes.js";
 import { testingRouter } from "./routes/testing.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
-import { videosRouter } from "./routes/videos.routes.js";
 
-export function createApp(): express.Express {
+export function applyTerminators(app: Express): void {
+  app.use((req, _res, next) => {
+    next(new NotFoundError(`Not found: ${req.method} ${req.path}`));
+  });
+
+  app.use(errorHandler);
+}
+
+export function buildExpressApp(): Express {
   const app = express();
 
   app.disable("x-powered-by");
@@ -52,7 +59,6 @@ export function createApp(): express.Express {
   app.use("/api/posts", postsRouter);
   app.use("/api/security/devices", securityRouter);
   app.use("/api/users", usersRouter);
-  app.use("/api/videos", videosRouter);
 
   if (env.nodeEnv !== "production" || env.enableTestingEndpoints) {
     app.use("/api/testing", testingRouter);
@@ -74,11 +80,11 @@ export function createApp(): express.Express {
     );
   }
 
-  app.use((req, _res, next) => {
-    next(new NotFoundError(`Not found: ${req.method} ${req.path}`));
-  });
+  return app;
+}
 
-  app.use(errorHandler);
-
+export function createApp(): Express {
+  const app = buildExpressApp();
+  applyTerminators(app);
   return app;
 }

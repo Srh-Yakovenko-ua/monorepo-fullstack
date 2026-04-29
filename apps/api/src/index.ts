@@ -1,9 +1,4 @@
-import "reflect-metadata";
-import { NestFactory } from "@nestjs/core";
-import { ExpressAdapter, type NestExpressApplication } from "@nestjs/platform-express";
-
-import { createApp } from "./app.js";
-import { AppModule } from "./app.module.js";
+import { createHybridApp } from "./bootstrap.js";
 import { env } from "./config/env.js";
 import { connectMongo, disconnectMongo } from "./db/mongo.js";
 import * as postsRepository from "./db/repositories/posts.repository.js";
@@ -31,14 +26,7 @@ async function main(): Promise<void> {
     }
   }
 
-  const expressApp = createApp();
-  const nestApp = await NestFactory.create<NestExpressApplication>(
-    AppModule,
-    new ExpressAdapter(expressApp),
-    { bodyParser: false, logger: false },
-  );
-
-  await nestApp.init();
+  const { expressApp, nestApp } = await createHybridApp();
 
   const server = expressApp.listen(env.port, () => {
     log.info({ port: env.port }, `api listening on http://localhost:${env.port}`);

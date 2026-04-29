@@ -1,10 +1,24 @@
-import request from "supertest";
-import { describe, expect, it } from "vitest";
+import type { Express } from "express";
 
-import { createApp } from "../app.js";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import type { HybridApp } from "../bootstrap.js";
+
+import { createHybridApp } from "../bootstrap.js";
 import { createAdminAndLogin } from "../test/auth-helpers.js";
 
-const app = createApp();
+let hybrid: HybridApp;
+let app: Express;
+
+beforeAll(async () => {
+  hybrid = await createHybridApp();
+  app = hybrid.expressApp;
+});
+
+afterAll(async () => {
+  await hybrid.nestApp.close();
+});
 
 describe("Testing API", () => {
   describe("DELETE /api/testing/all-data", () => {

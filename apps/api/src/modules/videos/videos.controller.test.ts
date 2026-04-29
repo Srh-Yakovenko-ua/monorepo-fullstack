@@ -1,9 +1,23 @@
+import type { Express } from "express";
+
 import request from "supertest";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { createApp } from "../app.js";
+import type { HybridApp } from "../../bootstrap.js";
 
-const app = createApp();
+import { createHybridApp } from "../../bootstrap.js";
+
+let hybrid: HybridApp;
+let app: Express;
+
+beforeAll(async () => {
+  hybrid = await createHybridApp();
+  app = hybrid.expressApp;
+});
+
+afterAll(async () => {
+  await hybrid.nestApp.close();
+});
 
 const validCreateBody = {
   author: "Author Name",
