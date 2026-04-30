@@ -42,6 +42,7 @@ export async function backfillMissingLikeCounters(): Promise<number> {
         },
       },
     ],
+    { updatePipeline: true },
   );
   return result.modifiedCount;
 }
