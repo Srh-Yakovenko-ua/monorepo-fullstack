@@ -15,6 +15,9 @@ catalog:
   "@nestjs/common": ^11.1.19
   "@nestjs/core": ^11.1.19
   "@nestjs/platform-express": ^11.1.19
+  "@nestjs/testing": ^11.1.19
+  "@swc-node/register": ^1.10.10
+  "@swc/core": ^1.10.0
   "@storybook/react": ^10.3.5
   "@storybook/react-vite": ^10.3.5
   "@tailwindcss/vite": ^4.2.2
@@ -30,7 +33,6 @@ catalog:
   "@total-typescript/ts-reset": ^0.6.1
   "@types/compression": ^1.8.1
   "@types/cookie-parser": ^1.4.9
-  "@types/cors": ^2.8.19
   "@types/express": ^5.0.6
   "@types/node": ^25.6.0
   "@types/nodemailer": ^6.4.17
@@ -47,7 +49,6 @@ catalog:
   cmdk: ^1.1.1
   compression: ^1.8.1
   cookie-parser: ^1.4.7
-  cors: ^2.8.6
   date-fns: ^4.1.0
   dotenv: ^17.4.1
   eslint: ^10.2.0
@@ -61,7 +62,6 @@ catalog:
   eslint-plugin-react-hooks: ^7.0.1
   eslint-plugin-react-refresh: ^0.5.2
   eslint-plugin-testing-library: ^7.16.2
-  express: ^5.2.1
   express-rate-limit: ^8.4.1
   globals: ^17.4.0
   happy-dom: ^20.8.9

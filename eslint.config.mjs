@@ -100,6 +100,13 @@ export default tseslint.config(
   },
 
   {
+    files: ["apps/api/src/modules/**/*.controller.ts"],
+    rules: {
+      "perfectionist/sort-classes": "off",
+    },
+  },
+
+  {
     files: ["apps/web/src/components/ui/**/*.{ts,tsx}"],
     rules: {
       "better-tailwindcss/no-conflicting-classes": "off",

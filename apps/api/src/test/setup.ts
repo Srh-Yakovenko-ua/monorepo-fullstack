@@ -2,7 +2,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
-import { resetAuthRateLimit } from "../middleware/auth-rate-limit.js";
+import { resetAuthRateLimit } from "../lib/guards/auth-rate-limit.guard.js";
 
 let mongoServer: MongoMemoryServer;
 

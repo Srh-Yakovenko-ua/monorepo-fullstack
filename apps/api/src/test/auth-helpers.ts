@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { INestApplication } from "@nestjs/common";
 
 import { hash } from "bcryptjs";
 import request from "supertest";
@@ -19,7 +19,7 @@ const SUPER_ADMIN_TEST_CREDENTIALS = {
   password: "superadminpass1",
 };
 
-export async function createAdminAndLogin(app: Express): Promise<string> {
+export async function createAdminAndLogin(app: INestApplication): Promise<string> {
   const existing = await UserModel.findOne({ login: ADMIN_TEST_CREDENTIALS.login });
 
   if (!existing) {
@@ -33,7 +33,7 @@ export async function createAdminAndLogin(app: Express): Promise<string> {
     });
   }
 
-  const res = await request(app).post("/api/auth/login").send({
+  const res = await request(app.getHttpServer()).post("/api/auth/login").send({
     loginOrEmail: ADMIN_TEST_CREDENTIALS.login,
     password: ADMIN_TEST_CREDENTIALS.password,
   });
@@ -42,7 +42,7 @@ export async function createAdminAndLogin(app: Express): Promise<string> {
 }
 
 export async function createSuperAdminAndLogin(
-  app: Express,
+  app: INestApplication,
 ): Promise<{ token: string; userId: string }> {
   const existing = await UserModel.findOne({ login: SUPER_ADMIN_TEST_CREDENTIALS.login });
 
@@ -61,7 +61,7 @@ export async function createSuperAdminAndLogin(
     userId = created._id.toHexString();
   }
 
-  const res = await request(app).post("/api/auth/login").send({
+  const res = await request(app.getHttpServer()).post("/api/auth/login").send({
     loginOrEmail: SUPER_ADMIN_TEST_CREDENTIALS.login,
     password: SUPER_ADMIN_TEST_CREDENTIALS.password,
   });
@@ -70,7 +70,7 @@ export async function createSuperAdminAndLogin(
 }
 
 export async function createUserAndLogin(
-  app: Express,
+  app: INestApplication,
   credentials: { email: string; login: string; password: string },
 ): Promise<string> {
   const passwordHash = await hash(credentials.password, BCRYPT_SALT_ROUNDS);
@@ -82,7 +82,7 @@ export async function createUserAndLogin(
     role: "user",
   });
 
-  const res = await request(app)
+  const res = await request(app.getHttpServer())
     .post("/api/auth/login")
     .send({ loginOrEmail: credentials.login, password: credentials.password });
 

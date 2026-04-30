@@ -1,22 +1,20 @@
-import type { Express } from "express";
+import type { INestApplication } from "@nestjs/common";
 
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import type { HybridApp } from "../../bootstrap.js";
+import { createTestApp } from "../../test/create-test-app.js";
 
-import { createHybridApp } from "../../bootstrap.js";
-
-let hybrid: HybridApp;
-let app: Express;
+let app: INestApplication;
+let server: ReturnType<INestApplication["getHttpServer"]>;
 
 beforeAll(async () => {
-  hybrid = await createHybridApp();
-  app = hybrid.expressApp;
+  app = await createTestApp();
+  server = app.getHttpServer();
 });
 
 afterAll(async () => {
-  await hybrid.nestApp.close();
+  await app.close();
 });
 
 const validCreateBody = {
@@ -28,16 +26,16 @@ const validCreateBody = {
 describe("Videos API", () => {
   describe("GET /api/videos", () => {
     it("returns empty array when no videos exist", async () => {
-      const res = await request(app).get("/api/videos");
+      const res = await request(server).get("/api/videos");
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual([]);
     });
 
     it("returns all videos after creating one", async () => {
-      await request(app).post("/api/videos").send(validCreateBody);
+      await request(server).post("/api/videos").send(validCreateBody);
 
-      const res = await request(app).get("/api/videos");
+      const res = await request(server).get("/api/videos");
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(1);
@@ -46,7 +44,7 @@ describe("Videos API", () => {
 
   describe("POST /api/videos", () => {
     it("creates a video and returns 201 with correct defaults", async () => {
-      const res = await request(app).post("/api/videos").send(validCreateBody);
+      const res = await request(server).post("/api/videos").send(validCreateBody);
 
       expect(res.status).toBe(201);
       expect(typeof res.body.id).toBe("number");
@@ -59,7 +57,7 @@ describe("Videos API", () => {
     });
 
     it("sets publicationDate 24 hours after createdAt", async () => {
-      const res = await request(app).post("/api/videos").send(validCreateBody);
+      const res = await request(server).post("/api/videos").send(validCreateBody);
 
       const createdMs = new Date(res.body.createdAt as string).getTime();
       const publicationMs = new Date(res.body.publicationDate as string).getTime();
@@ -68,7 +66,7 @@ describe("Videos API", () => {
     });
 
     it("returns 400 when title is empty", async () => {
-      const res = await request(app)
+      const res = await request(server)
         .post("/api/videos")
         .send({ ...validCreateBody, title: "" });
 
@@ -79,7 +77,7 @@ describe("Videos API", () => {
     });
 
     it("returns 400 when title exceeds 40 characters", async () => {
-      const res = await request(app)
+      const res = await request(server)
         .post("/api/videos")
         .send({ ...validCreateBody, title: "a".repeat(41) });
 
@@ -90,7 +88,7 @@ describe("Videos API", () => {
     });
 
     it("returns 400 when author is empty", async () => {
-      const res = await request(app)
+      const res = await request(server)
         .post("/api/videos")
         .send({ ...validCreateBody, author: "" });
 
@@ -101,7 +99,7 @@ describe("Videos API", () => {
     });
 
     it("returns 400 when author exceeds 20 characters", async () => {
-      const res = await request(app)
+      const res = await request(server)
         .post("/api/videos")
         .send({ ...validCreateBody, author: "a".repeat(21) });
 
@@ -112,7 +110,7 @@ describe("Videos API", () => {
     });
 
     it("returns 400 when availableResolutions is empty array", async () => {
-      const res = await request(app)
+      const res = await request(server)
         .post("/api/videos")
         .send({ ...validCreateBody, availableResolutions: [] });
 
@@ -123,7 +121,7 @@ describe("Videos API", () => {
     });
 
     it("returns 400 when availableResolutions contains invalid resolution", async () => {
-      const res = await request(app)
+      const res = await request(server)
         .post("/api/videos")
         .send({ ...validCreateBody, availableResolutions: ["P999"] });
 
@@ -136,10 +134,10 @@ describe("Videos API", () => {
 
   describe("GET /api/videos/:id", () => {
     it("returns the video by id", async () => {
-      const created = await request(app).post("/api/videos").send(validCreateBody);
+      const created = await request(server).post("/api/videos").send(validCreateBody);
       const id: number = created.body.id;
 
-      const res = await request(app).get(`/api/videos/${id}`);
+      const res = await request(server).get(`/api/videos/${id}`);
 
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(id);
@@ -147,7 +145,7 @@ describe("Videos API", () => {
     });
 
     it("returns 404 for unknown id", async () => {
-      const res = await request(app).get("/api/videos/999999999");
+      const res = await request(server).get("/api/videos/999999999");
 
       expect(res.status).toBe(404);
     });
@@ -155,12 +153,12 @@ describe("Videos API", () => {
 
   describe("PUT /api/videos/:id", () => {
     it("updates the video and returns 204", async () => {
-      const created = await request(app).post("/api/videos").send(validCreateBody);
+      const created = await request(server).post("/api/videos").send(validCreateBody);
       const id: number = created.body.id;
 
       const publicationDate = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
 
-      const res = await request(app)
+      const res = await request(server)
         .put(`/api/videos/${id}`)
         .send({
           author: "Updated Author",
@@ -175,10 +173,10 @@ describe("Videos API", () => {
     });
 
     it("returns 400 on validation failure", async () => {
-      const created = await request(app).post("/api/videos").send(validCreateBody);
+      const created = await request(server).post("/api/videos").send(validCreateBody);
       const id: number = created.body.id;
 
-      const res = await request(app)
+      const res = await request(server)
         .put(`/api/videos/${id}`)
         .send({
           author: "Author",
@@ -196,7 +194,7 @@ describe("Videos API", () => {
     });
 
     it("returns 404 for unknown id", async () => {
-      const res = await request(app)
+      const res = await request(server)
         .put("/api/videos/999999999")
         .send({
           author: "Author",
@@ -213,16 +211,16 @@ describe("Videos API", () => {
 
   describe("DELETE /api/videos/:id", () => {
     it("deletes the video and returns 204", async () => {
-      const created = await request(app).post("/api/videos").send(validCreateBody);
+      const created = await request(server).post("/api/videos").send(validCreateBody);
       const id: number = created.body.id;
 
-      const res = await request(app).delete(`/api/videos/${id}`);
+      const res = await request(server).delete(`/api/videos/${id}`);
 
       expect(res.status).toBe(204);
     });
 
     it("returns 404 for unknown id", async () => {
-      const res = await request(app).delete("/api/videos/999999999");
+      const res = await request(server).delete("/api/videos/999999999");
 
       expect(res.status).toBe(404);
     });

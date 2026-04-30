@@ -14,8 +14,8 @@ import {
 } from "@nestjs/common";
 
 import { NotFoundError } from "../../lib/errors.js";
+import { ZodBodyPipe } from "../../lib/pipes/zod-body.pipe.js";
 import { VideosService } from "./videos.service.js";
-import { ZodBodyPipe } from "./zod-body.pipe.js";
 
 @Controller("api/videos")
 export class VideosController {
