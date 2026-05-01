@@ -54,7 +54,7 @@ export async function request<T>(path: string, init?: InternalRequestOptions): P
   });
 
   if (
-    res.status === 401 &&
+    (res.status === 401 || res.status === 403) &&
     authMode === "bearer" &&
     !_skipRefresh &&
     path !== "/api/auth/refresh-token" &&
