@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type Locale, LOCALES } from "@/lib/i18n/schema";
+import { type Locale, LOCALES, LocaleSchema } from "@/lib/i18n/schema";
 import { useLocale } from "@/lib/i18n/use-locale";
 import { cn } from "@/lib/utils";
 
@@ -27,10 +27,12 @@ export function LocalePicker() {
   const { locale, setLocale } = useLocale();
   const { t } = useTranslation();
 
-  function handleLocaleSelect(e: Event) {
-    const target = e.currentTarget as HTMLElement;
-    const loc = target.dataset.locale as Locale | undefined;
-    if (loc) setLocale(loc);
+  function handleLocaleSelect(event: Event) {
+    const target = event.currentTarget;
+    if (!(target instanceof HTMLElement)) return;
+    const parsed = LocaleSchema.safeParse(target.dataset.locale);
+    if (!parsed.success) return;
+    setLocale(parsed.data);
   }
 
   return (

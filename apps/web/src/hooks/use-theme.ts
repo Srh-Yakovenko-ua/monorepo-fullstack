@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { z } from "zod";
 
 export type ResolvedTheme = "dark" | "light";
-export type Theme = "dark" | "light" | "system";
+
+export const ThemeSchema = z.enum(["dark", "light", "system"]);
+export type Theme = z.infer<typeof ThemeSchema>;
 
 const STORAGE_KEY = "monorepo-theme";
 const SYSTEM_QUERY = "(prefers-color-scheme: dark)";
@@ -37,9 +40,8 @@ function applyTheme(resolved: ResolvedTheme): void {
 
 function readStored(): Theme {
   if (typeof window === "undefined") return "system";
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored === "light" || stored === "dark" || stored === "system") return stored;
-  return "system";
+  const parsed = ThemeSchema.safeParse(window.localStorage.getItem(STORAGE_KEY));
+  return parsed.success ? parsed.data : "system";
 }
 
 function readSystemIsDark(): boolean {

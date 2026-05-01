@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type Theme, useTheme } from "@/hooks/use-theme";
+import { type Theme, ThemeSchema, useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 
 const OPTIONS: ReadonlyArray<{ Icon: typeof Sun; label: string; value: Theme }> = [
@@ -20,10 +20,12 @@ export function ThemePicker() {
   const { resolvedTheme, setTheme, theme } = useTheme();
   const TriggerIcon = resolvedTheme === "dark" ? Moon : Sun;
 
-  function handleThemeSelect(e: Event) {
-    const target = e.currentTarget as HTMLElement;
-    const value = target.dataset.theme as Theme | undefined;
-    if (value) setTheme(value);
+  function handleThemeSelect(event: Event) {
+    const target = event.currentTarget;
+    if (!(target instanceof HTMLElement)) return;
+    const parsed = ThemeSchema.safeParse(target.dataset.theme);
+    if (!parsed.success) return;
+    setTheme(parsed.data);
   }
 
   return (

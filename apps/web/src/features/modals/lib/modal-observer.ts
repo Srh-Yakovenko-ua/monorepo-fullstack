@@ -11,8 +11,6 @@ export type ModalEvent = {
   [K in ModalId]: { entry: ModalEntry<K> | undefined; id: K };
 }[ModalId];
 
-type ModalMap = { [K in ModalId]?: ModalEntry<K> };
-
 type ModalObserver = {
   addModal: <K extends ModalId>(id: K, props: ModalPayloads[K]) => void;
   closeAllModals: () => void;
@@ -27,77 +25,80 @@ type ModalObserver = {
   updateModalProps: <K extends ModalId>(id: K, patch: Partial<ModalPayloads[K]>) => void;
 };
 
+function buildEvent<K extends ModalId>(id: K, entry: ModalEntry<K> | undefined): ModalEvent {
+  return { entry, id } as ModalEvent;
+}
+
 function createModalObserver(): ModalObserver {
   const subscription = createSubscription<ModalEvent>();
+  const store = new Map<ModalId, ModalEntry>();
 
-  const mapper = new Proxy({} as ModalMap, {
-    set(target, prop, value) {
-      const id = prop as ModalId;
-      if (value === undefined) {
-        delete target[id];
-      } else {
-        (target as Record<string, unknown>)[id] = value;
-      }
-      subscription.emit({ entry: value, id } as ModalEvent);
-      return true;
-    },
-  });
+  function readEntry<K extends ModalId>(id: K): ModalEntry<K> | undefined {
+    const entry = store.get(id);
+    if (!entry) return undefined;
+    return entry as ModalEntry<K>;
+  }
+
+  function writeEntry<K extends ModalId>(id: K, entry: ModalEntry<K>): void {
+    store.set(id, entry);
+    subscription.emit(buildEvent(id, entry));
+  }
+
+  function clearEntry(id: ModalId): void {
+    if (!store.has(id)) return;
+    store.delete(id);
+    subscription.emit(buildEvent(id, undefined));
+  }
 
   const addModal: ModalObserver["addModal"] = (id, props) => {
-    const existing = mapper[id];
+    const existing = readEntry(id);
     if (existing) {
-      (mapper as Record<string, unknown>)[id] = { ...existing, isOpen: true };
+      writeEntry(id, { ...existing, isOpen: true });
     } else {
-      (mapper as Record<string, unknown>)[id] = { isOpen: true, props };
+      writeEntry(id, { isOpen: true, props });
     }
   };
 
   const openModal: ModalObserver["openModal"] = (id) => {
-    const current = mapper[id];
-    (mapper as Record<string, unknown>)[id] = { ...current, isOpen: true };
+    const current = readEntry(id);
+    if (!current) return;
+    writeEntry(id, { ...current, isOpen: true });
   };
 
   const removeModal: ModalObserver["removeModal"] = (id) => {
-    (mapper as Record<string, unknown>)[id] = undefined;
+    clearEntry(id);
   };
 
   const removeAllModals: ModalObserver["removeAllModals"] = () => {
-    (Object.keys(mapper) as ModalId[]).forEach((id) => {
-      (mapper as Record<string, unknown>)[id] = undefined;
-    });
+    const ids = Array.from(store.keys());
+    ids.forEach((id) => clearEntry(id));
   };
 
   const closeModal: ModalObserver["closeModal"] = (id) => {
-    (mapper as Record<string, unknown>)[id] = undefined;
+    clearEntry(id);
   };
 
   const closeAllModals: ModalObserver["closeAllModals"] = () => {
-    (Object.keys(mapper) as ModalId[]).forEach((id) => {
-      const current = mapper[id];
-      if (current?.isOpen) {
-        (mapper as Record<string, unknown>)[id] = { ...current, isOpen: false };
+    store.forEach((current, id) => {
+      if (current.isOpen) {
+        writeEntry(id, { ...current, isOpen: false });
       }
     });
   };
 
   const updateModalProps: ModalObserver["updateModalProps"] = (id, patch) => {
-    const current = mapper[id];
+    const current = readEntry(id);
     if (!current) return;
-    (mapper as Record<string, unknown>)[id] = {
-      ...current,
-      props: { ...current.props, ...patch },
-    };
+    writeEntry(id, { ...current, props: { ...current.props, ...patch } });
   };
 
   const replaceModalProps: ModalObserver["replaceModalProps"] = (id, props) => {
-    const current = mapper[id];
+    const current = readEntry(id);
     if (!current) return;
-    (mapper as Record<string, unknown>)[id] = { ...current, props };
+    writeEntry(id, { ...current, props });
   };
 
-  const findModal: ModalObserver["findModal"] = (id) => {
-    return mapper[id] as ModalEntry<typeof id> | undefined;
-  };
+  const findModal: ModalObserver["findModal"] = (id) => readEntry(id);
 
   return {
     addModal,
