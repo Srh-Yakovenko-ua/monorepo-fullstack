@@ -1,14 +1,15 @@
 let bootstrapPromise;
 
 async function bootstrap() {
-  const [{ createApp }, { connectMongo }] = await Promise.all([
-    import("../apps/api/dist/app.js"),
+  const [{ bootstrapNestApp }, { connectMongo }] = await Promise.all([
+    import("../apps/api/dist/bootstrap.js"),
     import("../apps/api/dist/db/mongo.js"),
   ]);
   connectMongo().catch((err) => {
     console.error("[api] mongo connect failed, DB routes will fail until it recovers", err);
   });
-  return createApp();
+  const app = await bootstrapNestApp();
+  return app.getHttpAdapter().getInstance();
 }
 
 export default async function handler(req, res) {
@@ -19,8 +20,8 @@ export default async function handler(req, res) {
         throw err;
       });
     }
-    const app = await bootstrapPromise;
-    app(req, res);
+    const expressApp = await bootstrapPromise;
+    expressApp(req, res);
   } catch (err) {
     console.error("[api] bootstrap failed", err);
     res.statusCode = 500;
