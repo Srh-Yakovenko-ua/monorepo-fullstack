@@ -1,10 +1,19 @@
 import mongoose from "mongoose";
 
-import { type CommentLikeDoc, CommentLikeSchema } from "../db/models/comment-like.model.js";
-import { type CommentDoc, CommentSchema } from "../db/models/comment.model.js";
-import { type PostLikeDoc, PostLikeSchema } from "../db/models/post-like.model.js";
-import { type PostDoc, PostSchema } from "../db/models/post.model.js";
-import { type UserDoc, UserSchema } from "../db/models/user.model.js";
+import {
+  type CommentLikeDoc,
+  CommentLikeSchema,
+} from "../modules/bloggers-platform/comments/domain/comment-like.entity.js";
+import {
+  type CommentDoc,
+  CommentSchema,
+} from "../modules/bloggers-platform/comments/domain/comment.entity.js";
+import {
+  type PostLikeDoc,
+  PostLikeSchema,
+} from "../modules/bloggers-platform/posts/domain/post-like.entity.js";
+import { type PostDoc, PostSchema } from "../modules/bloggers-platform/posts/domain/post.entity.js";
+import { type UserDoc, UserSchema } from "../modules/user-accounts/users/domain/user.entity.js";
 
 function ensureModel<T>(name: string, schema: mongoose.Schema): mongoose.Model<T> {
   const existing = mongoose.models[name];

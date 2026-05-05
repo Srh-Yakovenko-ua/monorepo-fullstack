@@ -1,6 +1,6 @@
 import { bootstrapNestApp } from "./bootstrap.js";
 import { env } from "./config/env.js";
-import { createLogger } from "./lib/logger.js";
+import { createLogger } from "./core/logger.js";
 
 const log = createLogger("startup");
 const SHUTDOWN_TIMEOUT_MS = 10_000;

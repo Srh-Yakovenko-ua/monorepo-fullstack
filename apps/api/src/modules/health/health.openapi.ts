@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { registerPaths } from "../../lib/openapi.js";
+import { registerPaths } from "../../core/openapi/openapi.js";
 
 export function registerHealthOpenApi(): void {
   registerPaths({

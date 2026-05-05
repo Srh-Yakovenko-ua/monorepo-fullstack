@@ -5,8 +5,8 @@ import { hash } from "bcryptjs";
 import { parseArgs } from "node:util";
 
 import { AppModule } from "../src/app.module.js";
-import { UsersRepository } from "../src/db/repositories/users.repository.js";
-import { createLogger } from "../src/lib/logger.js";
+import { createLogger } from "../src/core/logger.js";
+import { UsersRepository } from "../src/modules/user-accounts/users/infrastructure/users.repository.js";
 
 const log = createLogger("super-admin-script");
 

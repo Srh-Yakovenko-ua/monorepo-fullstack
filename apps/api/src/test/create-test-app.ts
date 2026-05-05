@@ -7,7 +7,7 @@ import { Test } from "@nestjs/testing";
 import cookieParser from "cookie-parser";
 
 import { AppModule } from "../app.module.js";
-import { HttpErrorFilter } from "../lib/http-error.filter.js";
+import { HttpErrorFilter } from "../core/exceptions/http-error.filter.js";
 
 const JSON_BODY_LIMIT = "1mb";
 

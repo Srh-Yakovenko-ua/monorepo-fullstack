@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
-import { resetAuthRateLimit } from "../lib/guards/auth-rate-limit.guard.js";
+import { resetAuthRateLimit } from "../core/guards/auth-rate-limit.guard.js";
 
 beforeAll(async () => {
   const uri = process.env.MONGO_URI;

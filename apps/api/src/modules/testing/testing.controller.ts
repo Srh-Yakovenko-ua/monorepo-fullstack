@@ -1,11 +1,11 @@
 import { Controller, Delete, HttpCode, HttpStatus } from "@nestjs/common";
 
-import { BlogsService } from "../blogs/blogs.service.js";
-import { CommentsService } from "../comments/comments.service.js";
-import { PostsService } from "../posts/posts.service.js";
-import { SecurityService } from "../security/security.service.js";
-import { UsersService } from "../users/users.service.js";
-import { VideosService } from "../videos/videos.service.js";
+import { BlogsService } from "../bloggers-platform/blogs/application/blogs.service.js";
+import { CommentsService } from "../bloggers-platform/comments/application/comments.service.js";
+import { PostsService } from "../bloggers-platform/posts/application/posts.service.js";
+import { SecurityService } from "../user-accounts/security/application/security.service.js";
+import { UsersService } from "../user-accounts/users/application/users.service.js";
+import { VideosService } from "../videos/application/videos.service.js";
 
 @Controller("api/testing")
 export class TestingController {

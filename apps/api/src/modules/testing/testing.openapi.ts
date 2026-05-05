@@ -1,4 +1,4 @@
-import { registerPaths } from "../../lib/openapi.js";
+import { registerPaths } from "../../core/openapi/openapi.js";
 
 export function registerTestingOpenApi(): void {
   registerPaths({

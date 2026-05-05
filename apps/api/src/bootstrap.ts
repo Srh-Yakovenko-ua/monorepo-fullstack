@@ -7,7 +7,7 @@ import helmet from "helmet";
 
 import { AppModule } from "./app.module.js";
 import { env } from "./config/env.js";
-import { HttpErrorFilter } from "./lib/http-error.filter.js";
+import { HttpErrorFilter } from "./core/exceptions/http-error.filter.js";
 
 const JSON_BODY_LIMIT = "1mb";
 

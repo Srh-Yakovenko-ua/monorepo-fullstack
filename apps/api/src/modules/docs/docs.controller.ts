@@ -2,7 +2,7 @@ import type { Response } from "express";
 
 import { Controller, Get, Header, Res } from "@nestjs/common";
 
-import { buildOpenApiDocument } from "../../lib/openapi.js";
+import { buildOpenApiDocument } from "../../core/openapi/openapi.js";
 
 const SWAGGER_UI_VERSION = "5.17.14";
 const SWAGGER_UI_CDN = `https://cdn.jsdelivr.net/npm/swagger-ui-dist@${SWAGGER_UI_VERSION}`;
