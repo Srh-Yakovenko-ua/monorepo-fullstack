@@ -8,7 +8,6 @@ import { CoreModule } from "./core/core.module.js";
 import { RequestIdMiddleware } from "./core/middleware/request-id.middleware.js";
 import { RequestLoggerMiddleware } from "./core/middleware/request-logger.middleware.js";
 import { BloggersPlatformModule } from "./modules/bloggers-platform/bloggers-platform.module.js";
-import { DocsModule } from "./modules/docs/docs.module.js";
 import { HealthModule } from "./modules/health/health.module.js";
 import { TestingModule } from "./modules/testing/testing.module.js";
 import { UserAccountsModule } from "./modules/user-accounts/user-accounts.module.js";
@@ -18,7 +17,6 @@ const featureModules = [BloggersPlatformModule, HealthModule, UserAccountsModule
 
 const optionalModules = [
   ...(env.nodeEnv !== "production" || env.enableTestingEndpoints ? [TestingModule] : []),
-  ...(env.enableSwagger ? [DocsModule] : []),
 ];
 
 @Module({

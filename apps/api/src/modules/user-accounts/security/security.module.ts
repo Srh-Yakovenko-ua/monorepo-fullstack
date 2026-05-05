@@ -2,12 +2,9 @@ import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 
 import { SecurityController } from "./api/security.controller.js";
-import { registerSecurityOpenApi } from "./api/security.openapi.js";
 import { SecurityService } from "./application/security.service.js";
 import { Session, SessionSchema } from "./domain/session.entity.js";
 import { SessionsRepository } from "./infrastructure/sessions.repository.js";
-
-registerSecurityOpenApi();
 
 @Module({
   controllers: [SecurityController],

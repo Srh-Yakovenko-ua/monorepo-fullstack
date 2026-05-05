@@ -2,12 +2,9 @@ import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 
 import { VideosController } from "./api/videos.controller.js";
-import { registerVideosOpenApi } from "./api/videos.openapi.js";
 import { VideosService } from "./application/videos.service.js";
 import { Video, VideoSchema } from "./domain/video.entity.js";
 import { VideosRepository } from "./infrastructure/videos.repository.js";
-
-registerVideosOpenApi();
 
 @Module({
   controllers: [VideosController],

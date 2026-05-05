@@ -1,9 +1,11 @@
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
 import { type NestExpressApplication } from "@nestjs/platform-express";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
+import { cleanupOpenApiDoc } from "nestjs-zod";
 
 import { AppModule } from "./app.module.js";
 import { env } from "./config/env.js";
@@ -34,6 +36,21 @@ export async function bootstrapNestApp(): Promise<NestExpressApplication> {
   app.use(cookieParser());
   app.useBodyParser("json", { limit: JSON_BODY_LIMIT });
   app.useGlobalFilters(new HttpErrorFilter());
+
+  if (env.enableSwagger) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle("monorepo-fullstack API")
+      .setDescription("REST API for the monorepo-fullstack project")
+      .setVersion("1.0")
+      .addBearerAuth({ bearerFormat: "JWT", scheme: "bearer", type: "http" })
+      .addBasicAuth()
+      .addCookieAuth("refreshToken")
+      .build();
+    const document = cleanupOpenApiDoc(SwaggerModule.createDocument(app, swaggerConfig));
+    SwaggerModule.setup("api/docs", app, document, {
+      jsonDocumentUrl: "api/docs/json",
+    });
+  }
 
   await app.init();
   return app;
