@@ -7,12 +7,8 @@ import helmet from "helmet";
 
 import { AppModule } from "./app.module.js";
 import { env } from "./config/env.js";
-import * as postsRepository from "./db/repositories/posts.repository.js";
-import * as usersRepository from "./db/repositories/users.repository.js";
 import { HttpErrorFilter } from "./lib/http-error.filter.js";
-import { createLogger } from "./lib/logger.js";
 
-const log = createLogger("bootstrap");
 const JSON_BODY_LIMIT = "1mb";
 
 export async function bootstrapNestApp(): Promise<NestExpressApplication> {
@@ -41,19 +37,4 @@ export async function bootstrapNestApp(): Promise<NestExpressApplication> {
 
   await app.init();
   return app;
-}
-
-export async function runStartupTasks(): Promise<void> {
-  const backfilledRoleCount = await usersRepository.backfillMissingRole();
-  if (backfilledRoleCount > 0) {
-    log.info({ count: backfilledRoleCount }, "backfilled missing role field on users");
-  }
-
-  const backfilledLikeCounterCount = await postsRepository.backfillMissingLikeCounters();
-  if (backfilledLikeCounterCount > 0) {
-    log.info(
-      { count: backfilledLikeCounterCount },
-      "backfilled missing like/dislike counters on posts",
-    );
-  }
 }

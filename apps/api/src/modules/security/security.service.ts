@@ -4,11 +4,17 @@ import { Injectable } from "@nestjs/common";
 
 import type { SessionDoc } from "../../db/models/session.model.js";
 
-import * as sessionsRepository from "../../db/repositories/sessions.repository.js";
+import { SessionsRepository } from "../../db/repositories/sessions.repository.js";
 import { ForbiddenError, NotFoundError } from "../../lib/errors.js";
 
 @Injectable()
 export class SecurityService {
+  constructor(private readonly sessionsRepository: SessionsRepository) {}
+
+  async clearAllSessions(): Promise<void> {
+    await this.sessionsRepository.clearAll();
+  }
+
   async getActiveDevices({
     currentDeviceId,
     userId,
@@ -16,7 +22,7 @@ export class SecurityService {
     currentDeviceId: string;
     userId: string;
   }): Promise<DeviceViewModel[]> {
-    const sessions = await sessionsRepository.findAllByUser(userId);
+    const sessions = await this.sessionsRepository.findAllByUser(userId);
     return sessions.map((doc) => toDeviceView(doc, currentDeviceId));
   }
 
@@ -33,12 +39,12 @@ export class SecurityService {
       throw new ForbiddenError("Cannot terminate current session, use sign-out instead");
     }
 
-    const session = await sessionsRepository.findByDeviceId(targetDeviceId);
+    const session = await this.sessionsRepository.findByDeviceId(targetDeviceId);
     if (!session || session.userId.toHexString() !== userId) {
       throw new NotFoundError(`Device ${targetDeviceId} not found`);
     }
 
-    await sessionsRepository.deleteByUserAndDevice({ deviceId: targetDeviceId, userId });
+    await this.sessionsRepository.deleteByUserAndDevice({ deviceId: targetDeviceId, userId });
   }
 
   async terminateOtherDevices({
@@ -48,7 +54,7 @@ export class SecurityService {
     currentDeviceId: string;
     userId: string;
   }): Promise<void> {
-    await sessionsRepository.deleteAllByUserExceptDevice({ currentDeviceId, userId });
+    await this.sessionsRepository.deleteAllByUserExceptDevice({ currentDeviceId, userId });
   }
 }
 

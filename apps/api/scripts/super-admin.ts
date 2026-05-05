@@ -1,9 +1,11 @@
+import "reflect-metadata";
 import { ROLE } from "@app/shared";
+import { NestFactory } from "@nestjs/core";
 import { hash } from "bcryptjs";
 import { parseArgs } from "node:util";
 
-import { connectMongo, disconnectMongo } from "../src/db/mongo.js";
-import * as usersRepository from "../src/db/repositories/users.repository.js";
+import { AppModule } from "../src/app.module.js";
+import { UsersRepository } from "../src/db/repositories/users.repository.js";
 import { createLogger } from "../src/lib/logger.js";
 
 const log = createLogger("super-admin-script");
@@ -22,10 +24,12 @@ async function createSuperAdmin({
   email,
   login,
   password,
+  usersRepository,
 }: {
   email: string | undefined;
   login: string;
   password: string | undefined;
+  usersRepository: UsersRepository;
 }): Promise<void> {
   if (!email || !password) {
     console.error("create mode requires --email and --password");
@@ -86,7 +90,8 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  await connectMongo();
+  const app = await NestFactory.createApplicationContext(AppModule, { logger: false });
+  const usersRepository = app.get(UsersRepository);
 
   try {
     if (action === "create") {
@@ -94,18 +99,29 @@ async function main(): Promise<void> {
         email: values.email,
         login: values.login,
         password: values.password,
+        usersRepository,
       });
     } else if (action === "promote") {
-      await promoteToSuperAdmin(values.login);
+      await promoteToSuperAdmin({ login: values.login, usersRepository });
     } else {
-      await setSuperAdminPassword({ login: values.login, password: values.password });
+      await setSuperAdminPassword({
+        login: values.login,
+        password: values.password,
+        usersRepository,
+      });
     }
   } finally {
-    await disconnectMongo();
+    await app.close();
   }
 }
 
-async function promoteToSuperAdmin(login: string): Promise<void> {
+async function promoteToSuperAdmin({
+  login,
+  usersRepository,
+}: {
+  login: string;
+  usersRepository: UsersRepository;
+}): Promise<void> {
   const user = await usersRepository.findByLogin(login);
   if (!user) {
     console.error(`User with login "${login}" not found`);
@@ -124,9 +140,11 @@ async function promoteToSuperAdmin(login: string): Promise<void> {
 async function setSuperAdminPassword({
   login,
   password,
+  usersRepository,
 }: {
   login: string;
   password: string | undefined;
+  usersRepository: UsersRepository;
 }): Promise<void> {
   if (!password) {
     console.error("set-password mode requires --password");

@@ -8,6 +8,7 @@ registerSecurityOpenApi();
 
 @Module({
   controllers: [SecurityController],
+  exports: [SecurityService],
   providers: [SecurityService],
 })
 export class SecurityModule {}

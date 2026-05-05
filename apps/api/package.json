@@ -16,6 +16,7 @@
     "@app/shared": "workspace:*",
     "@nestjs/common": "catalog:",
     "@nestjs/core": "catalog:",
+    "@nestjs/mongoose": "catalog:",
     "@nestjs/platform-express": "catalog:",
     "bcryptjs": "catalog:",
     "compression": "catalog:",

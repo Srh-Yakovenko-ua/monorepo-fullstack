@@ -6,7 +6,7 @@ import { Injectable } from "@nestjs/common";
 import { timingSafeEqual } from "node:crypto";
 
 import { env } from "../../config/env.js";
-import { resolveBearerUser } from "../auth.js";
+import { AuthHelper } from "../auth.js";
 import { ForbiddenError, UnauthorizedError } from "../errors.js";
 
 const BASIC_PREFIX = "Basic ";
@@ -14,6 +14,8 @@ const BEARER_PATTERN = /^Bearer\s+(\S+)\s*$/i;
 
 @Injectable()
 export class BasicAuthGuard implements CanActivate {
+  constructor(private readonly authHelper: AuthHelper) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const header = request.headers.authorization;
@@ -29,7 +31,7 @@ export class BasicAuthGuard implements CanActivate {
     const bearerToken = header.match(BEARER_PATTERN)?.[1];
     if (!bearerToken) throw new UnauthorizedError();
 
-    const user = await resolveBearerUser(bearerToken);
+    const user = await this.authHelper.resolveBearerUser(bearerToken);
     if (!user) throw new UnauthorizedError();
 
     if (user.role !== ROLE.admin && user.role !== ROLE.superAdmin) {

@@ -1,12 +1,24 @@
-import mongoose from "mongoose";
-import { describe, expect, it } from "vitest";
+import type { INestApplication } from "@nestjs/common";
 
-import { PostLikeModel } from "../../db/models/post-like.model.js";
-import { PostModel } from "../../db/models/post.model.js";
+import mongoose from "mongoose";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
 import { NotFoundError } from "../../lib/errors.js";
+import { createTestApp } from "../../test/create-test-app.js";
+import { PostLikeModel, PostModel } from "../../test/models.js";
 import { PostsService } from "./posts.service.js";
 
-const postsService = new PostsService();
+let app: INestApplication;
+let postsService: PostsService;
+
+beforeAll(async () => {
+  app = await createTestApp();
+  postsService = app.get(PostsService);
+});
+
+afterAll(async () => {
+  await app.close();
+});
 
 async function getLikeDoc({ postId, userId }: { postId: string; userId: string }) {
   return PostLikeModel.findOne({

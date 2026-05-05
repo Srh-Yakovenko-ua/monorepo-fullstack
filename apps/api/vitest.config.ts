@@ -17,6 +17,7 @@ export default defineConfig({
     },
     environment: "node",
     globals: false,
+    globalSetup: ["./src/test/global-setup.ts"],
     include: ["src/**/*.{test,spec}.ts"],
     maxWorkers: 1,
     minWorkers: 1,

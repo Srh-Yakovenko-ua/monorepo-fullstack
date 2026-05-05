@@ -15,8 +15,8 @@ import { randomUUID } from "node:crypto";
 import { UAParser } from "ua-parser-js";
 
 import { env } from "../../config/env.js";
-import * as sessionsRepository from "../../db/repositories/sessions.repository.js";
-import * as usersRepository from "../../db/repositories/users.repository.js";
+import { SessionsRepository } from "../../db/repositories/sessions.repository.js";
+import { UsersRepository } from "../../db/repositories/users.repository.js";
 import { renderConfirmEmail, renderPasswordRecoveryEmail } from "../../lib/email-templates.js";
 import { BadRequestError, HttpError, UnauthorizedError } from "../../lib/errors.js";
 import { HTTP_STATUS } from "../../lib/http-status.js";
@@ -52,11 +52,15 @@ export type RefreshResult = {
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly usersRepository: UsersRepository,
+    private readonly sessionsRepository: SessionsRepository,
+  ) {}
 
   async confirmPasswordRecovery({ newPassword, recoveryCode }: NewPasswordInput): Promise<void> {
     const newPasswordHash = await hash(newPassword, PASSWORD_HASH_SALT_ROUNDS);
-    const updated = await usersRepository.atomicResetPassword({
+    const updated = await this.usersRepository.atomicResetPassword({
       newPasswordHash,
       now: new Date(),
       recoveryCode,
@@ -70,7 +74,7 @@ export class AuthService {
   }
 
   async confirmRegistration({ code }: RegistrationConfirmationInput): Promise<void> {
-    const user = await usersRepository.findByEmailConfirmationCode(code);
+    const user = await this.usersRepository.findByEmailConfirmationCode(code);
 
     if (!user) {
       throw new BadRequestError("Confirmation failed", {
@@ -93,11 +97,11 @@ export class AuthService {
       });
     }
 
-    await usersRepository.markEmailConfirmed(user._id.toHexString());
+    await this.usersRepository.markEmailConfirmed(user._id.toHexString());
   }
 
   async getCurrentUser(userId: string): Promise<MeViewModel> {
-    const user = await usersRepository.findById(userId);
+    const user = await this.usersRepository.findById(userId);
     if (!user) throw new UnauthorizedError();
 
     return {
@@ -109,7 +113,7 @@ export class AuthService {
   }
 
   async login(input: LoginInput, context: LoginContext): Promise<LoginResult> {
-    const user = await usersRepository.findByLoginOrEmail(input.loginOrEmail);
+    const user = await this.usersRepository.findByLoginOrEmail(input.loginOrEmail);
     if (!user) throw new UnauthorizedError("Invalid login or password");
 
     const passwordMatches = await compare(input.password, user.passwordHash);
@@ -128,7 +132,7 @@ export class AuthService {
       signRefreshToken({ deviceId, userId }),
     ]);
 
-    await sessionsRepository.create({
+    await this.sessionsRepository.create({
       deviceId,
       expiresAt: refreshTokenResult.expiresAt,
       ip: context.ip,
@@ -146,7 +150,7 @@ export class AuthService {
   }
 
   async logout({ deviceId, userId }: { deviceId: string; userId: string }): Promise<void> {
-    await sessionsRepository.deleteByUserAndDevice({ deviceId, userId });
+    await this.sessionsRepository.deleteByUserAndDevice({ deviceId, userId });
   }
 
   async refreshTokens(
@@ -158,7 +162,7 @@ export class AuthService {
       signRefreshToken({ deviceId, userId }),
     ]);
 
-    await sessionsRepository.rotateSession({
+    await this.sessionsRepository.rotateSession({
       deviceId,
       expiresAt: refreshTokenResult.expiresAt,
       ip: context.ip,
@@ -194,7 +198,7 @@ export class AuthService {
   }
 
   async requestPasswordRecovery({ email }: PasswordRecoveryInput): Promise<void> {
-    const user = await usersRepository.findByEmail(email);
+    const user = await this.usersRepository.findByEmail(email);
     if (!user) return;
 
     const now = new Date();
@@ -207,7 +211,7 @@ export class AuthService {
     const code = randomUUID();
     const expiresAt = addHours(now, PASSWORD_RECOVERY_TTL_HOURS);
     const userId = user._id.toHexString();
-    await usersRepository.setPasswordRecovery({ code, expiresAt, userId });
+    await this.usersRepository.setPasswordRecovery({ code, expiresAt, userId });
 
     const recoveryLink = `${env.frontendUrl}/password-recovery?recoveryCode=${code}`;
     const template = renderPasswordRecoveryEmail({ recoveryLink });
@@ -218,7 +222,7 @@ export class AuthService {
   }
 
   async resendConfirmationEmail({ email }: RegistrationEmailResendingInput): Promise<void> {
-    const user = await usersRepository.findByEmail(email);
+    const user = await this.usersRepository.findByEmail(email);
 
     if (!user) {
       throw new BadRequestError("Resend failed", {
@@ -235,7 +239,7 @@ export class AuthService {
     const code = randomUUID();
     const expiresAt = addHours(new Date(), CONFIRMATION_TTL_HOURS);
 
-    await usersRepository.updateEmailConfirmation(user._id.toHexString(), {
+    await this.usersRepository.updateEmailConfirmation(user._id.toHexString(), {
       code,
       expiresAt,
       isConfirmed: false,

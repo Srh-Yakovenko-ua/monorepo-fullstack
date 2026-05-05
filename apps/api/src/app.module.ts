@@ -1,8 +1,10 @@
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 
 import { Module } from "@nestjs/common";
+import { MongooseModule } from "@nestjs/mongoose";
 
 import { env } from "./config/env.js";
+import { CoreModule } from "./core.module.js";
 import { RequestIdMiddleware } from "./lib/middleware/request-id.middleware.js";
 import { RequestLoggerMiddleware } from "./lib/middleware/request-logger.middleware.js";
 import { AuthModule } from "./modules/auth/auth.module.js";
@@ -33,7 +35,19 @@ const optionalModules = [
 ];
 
 @Module({
-  imports: [...featureModules, ...optionalModules],
+  imports: [
+    MongooseModule.forRootAsync({
+      useFactory: () => ({
+        lazyConnection: true,
+        retryAttempts: 0,
+        serverSelectionTimeoutMS: 3000,
+        uri: env.mongoUri,
+      }),
+    }),
+    CoreModule,
+    ...featureModules,
+    ...optionalModules,
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

@@ -4,11 +4,9 @@ import mongoose from "mongoose";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { CommentModel } from "../../db/models/comment.model.js";
-import { PostLikeModel } from "../../db/models/post-like.model.js";
-import { PostModel } from "../../db/models/post.model.js";
 import { createAdminAndLogin } from "../../test/auth-helpers.js";
 import { createTestApp } from "../../test/create-test-app.js";
+import { CommentModel, PostLikeModel, PostModel } from "../../test/models.js";
 
 let app: INestApplication;
 let server: ReturnType<INestApplication["getHttpServer"]>;

@@ -8,6 +8,7 @@ registerVideosOpenApi();
 
 @Module({
   controllers: [VideosController],
+  exports: [VideosService],
   providers: [VideosService],
 })
 export class VideosModule {}

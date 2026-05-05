@@ -3,10 +3,10 @@ import type { INestApplication } from "@nestjs/common";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { UserModel } from "../../db/models/user.model.js";
 import { sendEmail } from "../../lib/mailer.js";
 import { createAdminAndLogin } from "../../test/auth-helpers.js";
 import { createTestApp } from "../../test/create-test-app.js";
+import { UserModel } from "../../test/models.js";
 
 vi.mock("../../lib/mailer.js", () => ({
   sendEmail: vi.fn().mockResolvedValue(undefined),

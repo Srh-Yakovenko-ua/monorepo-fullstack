@@ -1,32 +1,39 @@
-import type { VideoDoc } from "../models/video.model.js";
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { type Model } from "mongoose";
 
-import { VideoModel } from "../models/video.model.js";
+import { Video, type VideoDoc } from "../models/video.model.js";
 
 export type VideoCreateInput = Omit<VideoDoc, "createdAt"> & { createdAt?: Date };
 export type VideoUpdateInput = Omit<VideoDoc, "_id" | "createdAt">;
 
-export async function clearAll(): Promise<void> {
-  await VideoModel.deleteMany({});
-}
+@Injectable()
+export class VideosRepository {
+  constructor(@InjectModel(Video.name) private readonly videoModel: Model<Video>) {}
 
-export async function create(input: VideoCreateInput): Promise<VideoDoc> {
-  const doc = await VideoModel.create(input);
-  return doc.toObject();
-}
+  async clearAll(): Promise<void> {
+    await this.videoModel.deleteMany({});
+  }
 
-export async function findAll(): Promise<VideoDoc[]> {
-  return VideoModel.find({}).lean();
-}
+  async create(input: VideoCreateInput): Promise<VideoDoc> {
+    const doc = await this.videoModel.create(input);
+    return doc.toObject();
+  }
 
-export async function findById(id: number): Promise<null | VideoDoc> {
-  return VideoModel.findById(id).lean();
-}
+  async findAll(): Promise<VideoDoc[]> {
+    return this.videoModel.find({}).lean();
+  }
 
-export async function remove(id: number): Promise<boolean> {
-  const result = await VideoModel.findByIdAndDelete(id);
-  return result !== null;
-}
+  async findById(id: number): Promise<null | VideoDoc> {
+    return this.videoModel.findById(id).lean();
+  }
 
-export async function update(id: number, patch: VideoUpdateInput): Promise<null | VideoDoc> {
-  return VideoModel.findByIdAndUpdate(id, patch, { returnDocument: "after" }).lean();
+  async remove(id: number): Promise<boolean> {
+    const result = await this.videoModel.findByIdAndDelete(id);
+    return result !== null;
+  }
+
+  async update(id: number, patch: VideoUpdateInput): Promise<null | VideoDoc> {
+    return this.videoModel.findByIdAndUpdate(id, patch, { returnDocument: "after" }).lean();
+  }
 }

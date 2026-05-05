@@ -1,7 +1,6 @@
-import type { Types } from "mongoose";
-
 import { USER_ROLES, type UserRole } from "@app/shared";
-import { model, Schema } from "mongoose";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { type Types } from "mongoose";
 
 export interface EmailConfirmation {
   code: null | string;
@@ -12,6 +11,65 @@ export interface EmailConfirmation {
 export interface PasswordRecovery {
   code: null | string;
   expiresAt: Date | null;
+}
+
+export type { UserRole };
+
+@Schema({ _id: false, versionKey: false })
+export class EmailConfirmationSubdoc {
+  @Prop({ default: null, type: String })
+  code!: null | string;
+
+  @Prop({ default: null, type: Date })
+  expiresAt!: Date | null;
+
+  @Prop({ default: true, required: true, type: Boolean })
+  isConfirmed!: boolean;
+}
+
+const EmailConfirmationSchema = SchemaFactory.createForClass(EmailConfirmationSubdoc);
+
+@Schema({ _id: false, versionKey: false })
+export class PasswordRecoverySubdoc {
+  @Prop({ default: null, type: String })
+  code!: null | string;
+
+  @Prop({ default: null, type: Date })
+  expiresAt!: Date | null;
+}
+
+const PasswordRecoverySchema = SchemaFactory.createForClass(PasswordRecoverySubdoc);
+
+@Schema({ timestamps: false, versionKey: false })
+export class User {
+  @Prop({ default: Date.now, required: true, type: Date })
+  createdAt!: Date;
+
+  @Prop({ required: true, type: String, unique: true })
+  email!: string;
+
+  @Prop({
+    default: () => ({ code: null, expiresAt: null, isConfirmed: true }),
+    required: true,
+    type: EmailConfirmationSchema,
+  })
+  emailConfirmation!: EmailConfirmationSubdoc;
+
+  @Prop({ required: true, type: String, unique: true })
+  login!: string;
+
+  @Prop({ required: true, type: String })
+  passwordHash!: string;
+
+  @Prop({
+    default: () => ({ code: null, expiresAt: null }),
+    required: true,
+    type: PasswordRecoverySchema,
+  })
+  passwordRecovery!: PasswordRecoverySubdoc;
+
+  @Prop({ default: "user", enum: USER_ROLES, required: true, type: String })
+  role!: UserRole;
 }
 
 export interface UserDoc {
@@ -25,47 +83,7 @@ export interface UserDoc {
   role: UserRole;
 }
 
-export type { UserRole };
+export const UserSchema = SchemaFactory.createForClass(User);
 
-const emailConfirmationSchema = new Schema<EmailConfirmation>(
-  {
-    code: { default: null, type: String },
-    expiresAt: { default: null, type: Date },
-    isConfirmed: { default: true, required: true, type: Boolean },
-  },
-  { _id: false, versionKey: false },
-);
-
-const passwordRecoverySchema = new Schema<PasswordRecovery>(
-  {
-    code: { default: null, type: String },
-    expiresAt: { default: null, type: Date },
-  },
-  { _id: false, versionKey: false },
-);
-
-const userSchema = new Schema<UserDoc>(
-  {
-    createdAt: { default: Date.now, required: true, type: Date },
-    email: { required: true, type: String, unique: true },
-    emailConfirmation: {
-      default: () => ({ code: null, expiresAt: null, isConfirmed: true }),
-      required: true,
-      type: emailConfirmationSchema,
-    },
-    login: { required: true, type: String, unique: true },
-    passwordHash: { required: true, type: String },
-    passwordRecovery: {
-      default: () => ({ code: null, expiresAt: null }),
-      required: true,
-      type: passwordRecoverySchema,
-    },
-    role: { default: "user", enum: USER_ROLES, required: true, type: String },
-  },
-  { timestamps: false, versionKey: false },
-);
-
-userSchema.index({ "passwordRecovery.code": 1 }, { sparse: true });
-userSchema.index({ "emailConfirmation.code": 1 }, { sparse: true });
-
-export const UserModel = model<UserDoc>("User", userSchema);
+UserSchema.index({ "passwordRecovery.code": 1 }, { sparse: true });
+UserSchema.index({ "emailConfirmation.code": 1 }, { sparse: true });

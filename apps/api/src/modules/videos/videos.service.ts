@@ -5,14 +5,20 @@ import { addDays, parseISO } from "date-fns";
 
 import type { VideoDoc } from "../../db/models/video.model.js";
 
-import * as videosRepository from "../../db/repositories/videos.repository.js";
+import { VideosRepository } from "../../db/repositories/videos.repository.js";
 import { NotFoundError } from "../../lib/errors.js";
 
 @Injectable()
 export class VideosService {
+  constructor(private readonly videosRepository: VideosRepository) {}
+
+  async clearAllVideos(): Promise<void> {
+    await this.videosRepository.clearAll();
+  }
+
   async createVideo(input: CreateVideoInput): Promise<VideoViewModel> {
     const now = new Date();
-    const doc = await videosRepository.create({
+    const doc = await this.videosRepository.create({
       _id: now.getTime(),
       author: input.author,
       availableResolutions: input.availableResolutions,
@@ -26,26 +32,26 @@ export class VideosService {
   }
 
   async deleteVideo(id: number): Promise<void> {
-    const removed = await videosRepository.remove(id);
+    const removed = await this.videosRepository.remove(id);
     if (!removed) throw new NotFoundError(`Video with id ${id} not found`);
   }
 
   async getAllVideos(): Promise<VideoViewModel[]> {
-    const docs = await videosRepository.findAll();
+    const docs = await this.videosRepository.findAll();
     return docs.map(toVideoView);
   }
 
   async getVideoById(id: number): Promise<VideoViewModel> {
-    const doc = await videosRepository.findById(id);
+    const doc = await this.videosRepository.findById(id);
     if (!doc) throw new NotFoundError(`Video with id ${id} not found`);
     return toVideoView(doc);
   }
 
   async updateVideo(id: number, input: UpdateVideoInput): Promise<void> {
-    const existing = await videosRepository.findById(id);
+    const existing = await this.videosRepository.findById(id);
     if (!existing) throw new NotFoundError(`Video with id ${id} not found`);
 
-    await videosRepository.update(id, {
+    await this.videosRepository.update(id, {
       author: input.author,
       availableResolutions: input.availableResolutions,
       canBeDownloaded: input.canBeDownloaded,

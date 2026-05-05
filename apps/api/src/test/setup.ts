@@ -1,23 +1,25 @@
-import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
 import { resetAuthRateLimit } from "../lib/guards/auth-rate-limit.guard.js";
 
-let mongoServer: MongoMemoryServer;
-
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  await mongoose.connect(mongoServer.getUri());
+  const uri = process.env.MONGO_URI;
+  if (!uri) throw new Error("MONGO_URI not set by globalSetup");
+  await mongoose.connect(uri);
 });
 
 afterAll(async () => {
   await mongoose.disconnect();
-  await mongoServer.stop();
 });
 
 afterEach(async () => {
-  const collections = mongoose.connection.collections;
-  await Promise.all(Object.values(collections).map((c) => c.deleteMany({})));
+  const db = mongoose.connection.db;
+  if (!db) {
+    await resetAuthRateLimit();
+    return;
+  }
+  const collections = await db.collections();
+  await Promise.all(collections.map((collection) => collection.deleteMany({})));
   await resetAuthRateLimit();
 });

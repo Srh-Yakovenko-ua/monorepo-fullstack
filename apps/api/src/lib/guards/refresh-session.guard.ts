@@ -4,7 +4,7 @@ import type { Request } from "express";
 import { Injectable } from "@nestjs/common";
 
 import { env } from "../../config/env.js";
-import * as sessionsRepository from "../../db/repositories/sessions.repository.js";
+import { SessionsRepository } from "../../db/repositories/sessions.repository.js";
 import { ForbiddenError, UnauthorizedError } from "../errors.js";
 import { verifyRefreshToken } from "../jwt.js";
 
@@ -14,6 +14,8 @@ type OriginCheckResult = { ok: false; reason: string } | { ok: true };
 
 @Injectable()
 export class RefreshSessionGuard implements CanActivate {
+  constructor(private readonly sessionsRepository: SessionsRepository) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
 
@@ -32,14 +34,14 @@ export class RefreshSessionGuard implements CanActivate {
       throw new UnauthorizedError();
     }
 
-    const session = await sessionsRepository.findByUserAndDevice({
+    const session = await this.sessionsRepository.findByUserAndDevice({
       deviceId: payload.deviceId,
       userId: payload.userId,
     });
     if (!session) throw new UnauthorizedError();
 
     if (session.tokenJti !== payload.jti) {
-      await sessionsRepository.deleteByUserAndDevice({
+      await this.sessionsRepository.deleteByUserAndDevice({
         deviceId: payload.deviceId,
         userId: payload.userId,
       });

@@ -5,13 +5,13 @@ import mongoose from "mongoose";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { UserModel } from "../../db/models/user.model.js";
 import {
   createAdminAndLogin,
   createSuperAdminAndLogin,
   createUserAndLogin,
 } from "../../test/auth-helpers.js";
 import { createTestApp } from "../../test/create-test-app.js";
+import { UserModel } from "../../test/models.js";
 
 let app: INestApplication;
 let server: ReturnType<INestApplication["getHttpServer"]>;

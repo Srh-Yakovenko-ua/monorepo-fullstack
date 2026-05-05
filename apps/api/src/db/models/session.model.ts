@@ -1,4 +1,29 @@
-import { model, Schema, type Types } from "mongoose";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Schema as MongooseSchema, type Types } from "mongoose";
+
+@Schema({ timestamps: false, versionKey: false })
+export class Session {
+  @Prop({ required: true, type: String })
+  deviceId!: string;
+
+  @Prop({ required: true, type: Date })
+  expiresAt!: Date;
+
+  @Prop({ required: true, type: String })
+  ip!: string;
+
+  @Prop({ required: true, type: Date })
+  lastActiveAt!: Date;
+
+  @Prop({ required: true, type: String })
+  title!: string;
+
+  @Prop({ required: true, type: String })
+  tokenJti!: string;
+
+  @Prop({ ref: "User", required: true, type: MongooseSchema.Types.ObjectId })
+  userId!: Types.ObjectId;
+}
 
 export interface SessionDoc {
   _id: Types.ObjectId;
@@ -11,21 +36,8 @@ export interface SessionDoc {
   userId: Types.ObjectId;
 }
 
-const sessionSchema = new Schema<SessionDoc>(
-  {
-    deviceId: { required: true, type: String },
-    expiresAt: { required: true, type: Date },
-    ip: { required: true, type: String },
-    lastActiveAt: { required: true, type: Date },
-    title: { required: true, type: String },
-    tokenJti: { required: true, type: String },
-    userId: { ref: "User", required: true, type: Schema.Types.ObjectId },
-  },
-  { timestamps: false, versionKey: false },
-);
+export const SessionSchema = SchemaFactory.createForClass(Session);
 
-sessionSchema.index({ deviceId: 1, userId: 1 }, { unique: true });
-sessionSchema.index({ userId: 1 });
-sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-
-export const SessionModel = model<SessionDoc>("Session", sessionSchema);
+SessionSchema.index({ deviceId: 1, userId: 1 }, { unique: true });
+SessionSchema.index({ userId: 1 });
+SessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });

@@ -11,17 +11,23 @@ import { isValidObjectId, Types } from "mongoose";
 
 import type { CommentDoc } from "../../db/models/comment.model.js";
 
-import * as commentLikesRepository from "../../db/repositories/comment-likes.repository.js";
-import * as commentsRepository from "../../db/repositories/comments.repository.js";
-import * as postsRepository from "../../db/repositories/posts.repository.js";
+import { CommentLikesRepository } from "../../db/repositories/comment-likes.repository.js";
+import { CommentsRepository } from "../../db/repositories/comments.repository.js";
+import { PostsRepository } from "../../db/repositories/posts.repository.js";
 import { ForbiddenError, NotFoundError } from "../../lib/errors.js";
 import { buildPaginator } from "../../lib/paginator.js";
 
 @Injectable()
 export class CommentsService {
+  constructor(
+    private readonly commentsRepository: CommentsRepository,
+    private readonly commentLikesRepository: CommentLikesRepository,
+    private readonly postsRepository: PostsRepository,
+  ) {}
+
   async clearAllComments(): Promise<void> {
-    await commentsRepository.clearAll();
-    await commentLikesRepository.clearAll();
+    await this.commentsRepository.clearAll();
+    await this.commentLikesRepository.clearAll();
   }
 
   async createPostComment({
@@ -33,8 +39,8 @@ export class CommentsService {
     input: CommentUpdateInput;
     postId: string;
   }): Promise<CommentViewModel> {
-    await assertPostExists(postId);
-    const doc = await commentsRepository.create({
+    await this.assertPostExists(postId);
+    const doc = await this.commentsRepository.create({
       commentatorInfo: {
         userId: new Types.ObjectId(currentUser.userId),
         userLogin: currentUser.login,
@@ -53,10 +59,10 @@ export class CommentsService {
     currentUserId: string;
   }): Promise<void> {
     assertValidId(commentId);
-    const doc = await commentsRepository.findById(commentId);
+    const doc = await this.commentsRepository.findById(commentId);
     if (!doc) throw new NotFoundError("Comment not found", { bodyless: true });
     if (doc.commentatorInfo.userId.toHexString() !== currentUserId) throw new ForbiddenError();
-    await commentsRepository.remove(commentId);
+    await this.commentsRepository.remove(commentId);
   }
 
   async getCommentById({
@@ -67,9 +73,9 @@ export class CommentsService {
     currentUserId?: string;
   }): Promise<CommentViewModel> {
     assertValidId(commentId);
-    const doc = await commentsRepository.findById(commentId);
+    const doc = await this.commentsRepository.findById(commentId);
     if (!doc) throw new NotFoundError("Comment not found", { bodyless: true });
-    const myStatus = await resolveMyStatus({ commentId, currentUserId });
+    const myStatus = await this.resolveMyStatus({ commentId, currentUserId });
     return mapToView({ doc, myStatus });
   }
 
@@ -82,11 +88,11 @@ export class CommentsService {
     postId: string;
     query: CommentsQuery;
   }): Promise<Paginator<CommentViewModel>> {
-    await assertPostExists(postId);
-    const { items, totalCount } = await commentsRepository.findByPostId(postId, query);
+    await this.assertPostExists(postId);
+    const { items, totalCount } = await this.commentsRepository.findByPostId(postId, query);
     const myStatusByCommentId =
       currentUserId && items.length > 0
-        ? await commentLikesRepository.findByCommentIdsForUser({
+        ? await this.commentLikesRepository.findByCommentIdsForUser({
             commentIds: items.map((item) => item._id.toHexString()),
             userId: currentUserId,
           })
@@ -114,16 +120,16 @@ export class CommentsService {
     newStatus: LikeStatus;
   }): Promise<void> {
     assertValidId(commentId);
-    const doc = await commentsRepository.findById(commentId);
+    const doc = await this.commentsRepository.findById(commentId);
     if (!doc) throw new NotFoundError("Comment not found", { bodyless: true });
 
     const previousPersistedStatus =
       newStatus === "None"
-        ? await commentLikesRepository.deleteAndReturnPreviousStatus({
+        ? await this.commentLikesRepository.deleteAndReturnPreviousStatus({
             commentId,
             userId: currentUserId,
           })
-        : await commentLikesRepository.upsertAndReturnPreviousStatus({
+        : await this.commentLikesRepository.upsertAndReturnPreviousStatus({
             commentId,
             status: newStatus,
             userId: currentUserId,
@@ -135,7 +141,7 @@ export class CommentsService {
       newStatus,
     });
 
-    await commentsRepository.applyCounterDelta({ commentId, dislikesDelta, likesDelta });
+    await this.commentsRepository.applyCounterDelta({ commentId, dislikesDelta, likesDelta });
   }
 
   async updateComment({
@@ -148,17 +154,29 @@ export class CommentsService {
     input: CommentUpdateInput;
   }): Promise<void> {
     assertValidId(commentId);
-    const doc = await commentsRepository.findById(commentId);
+    const doc = await this.commentsRepository.findById(commentId);
     if (!doc) throw new NotFoundError("Comment not found", { bodyless: true });
     if (doc.commentatorInfo.userId.toHexString() !== currentUserId) throw new ForbiddenError();
-    await commentsRepository.updateContent(commentId, input.content);
+    await this.commentsRepository.updateContent(commentId, input.content);
   }
-}
 
-async function assertPostExists(postId: string): Promise<void> {
-  if (!isValidObjectId(postId)) throw new NotFoundError("Post not found", { bodyless: true });
-  const post = await postsRepository.findById(postId);
-  if (!post) throw new NotFoundError("Post not found", { bodyless: true });
+  private async assertPostExists(postId: string): Promise<void> {
+    if (!isValidObjectId(postId)) throw new NotFoundError("Post not found", { bodyless: true });
+    const post = await this.postsRepository.findById(postId);
+    if (!post) throw new NotFoundError("Post not found", { bodyless: true });
+  }
+
+  private async resolveMyStatus({
+    commentId,
+    currentUserId,
+  }: {
+    commentId: string;
+    currentUserId?: string;
+  }): Promise<LikeStatus> {
+    if (!currentUserId) return "None";
+    const status = await this.commentLikesRepository.findOne({ commentId, userId: currentUserId });
+    return status ?? "None";
+  }
 }
 
 function assertValidId(id: string): void {
@@ -192,16 +210,4 @@ function mapToView({ doc, myStatus }: { doc: CommentDoc; myStatus: LikeStatus })
       myStatus,
     },
   };
-}
-
-async function resolveMyStatus({
-  commentId,
-  currentUserId,
-}: {
-  commentId: string;
-  currentUserId?: string;
-}): Promise<LikeStatus> {
-  if (!currentUserId) return "None";
-  const status = await commentLikesRepository.findOne({ commentId, userId: currentUserId });
-  return status ?? "None";
 }

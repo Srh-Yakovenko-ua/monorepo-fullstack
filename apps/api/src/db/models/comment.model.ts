@@ -1,4 +1,37 @@
-import { model, Schema, type Types } from "mongoose";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Schema as MongooseSchema, type Types } from "mongoose";
+
+@Schema({ _id: false, versionKey: false })
+export class CommentatorInfo {
+  @Prop({ ref: "User", required: true, type: MongooseSchema.Types.ObjectId })
+  userId!: Types.ObjectId;
+
+  @Prop({ required: true, type: String })
+  userLogin!: string;
+}
+
+const CommentatorInfoSchema = SchemaFactory.createForClass(CommentatorInfo);
+
+@Schema({ timestamps: false, versionKey: false })
+export class Comment {
+  @Prop({ required: true, type: CommentatorInfoSchema })
+  commentatorInfo!: CommentatorInfo;
+
+  @Prop({ required: true, type: String })
+  content!: string;
+
+  @Prop({ default: Date.now, required: true, type: Date })
+  createdAt!: Date;
+
+  @Prop({ default: 0, required: true, type: Number })
+  dislikesCount!: number;
+
+  @Prop({ default: 0, required: true, type: Number })
+  likesCount!: number;
+
+  @Prop({ ref: "Post", required: true, type: MongooseSchema.Types.ObjectId })
+  postId!: Types.ObjectId;
+}
 
 export interface CommentDoc {
   _id: Types.ObjectId;
@@ -10,19 +43,4 @@ export interface CommentDoc {
   postId: Types.ObjectId;
 }
 
-const commentSchema = new Schema<CommentDoc>(
-  {
-    commentatorInfo: {
-      userId: { ref: "User", required: true, type: Schema.Types.ObjectId },
-      userLogin: { required: true, type: String },
-    },
-    content: { required: true, type: String },
-    createdAt: { default: Date.now, required: true, type: Date },
-    dislikesCount: { default: 0, required: true, type: Number },
-    likesCount: { default: 0, required: true, type: Number },
-    postId: { ref: "Post", required: true, type: Schema.Types.ObjectId },
-  },
-  { timestamps: false, versionKey: false },
-);
-
-export const CommentModel = model<CommentDoc>("Comment", commentSchema);
+export const CommentSchema = SchemaFactory.createForClass(Comment);

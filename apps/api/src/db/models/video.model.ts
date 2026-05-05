@@ -1,6 +1,32 @@
-import type { VideoResolution } from "@app/shared";
+import { type VideoResolution } from "@app/shared";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 
-import { model, Schema } from "mongoose";
+@Schema({ timestamps: false, versionKey: false })
+export class Video {
+  @Prop({ required: true, type: Number })
+  _id!: number;
+
+  @Prop({ required: true, type: String })
+  author!: string;
+
+  @Prop({ required: true, type: [String] })
+  availableResolutions!: VideoResolution[];
+
+  @Prop({ default: false, required: true, type: Boolean })
+  canBeDownloaded!: boolean;
+
+  @Prop({ default: Date.now, required: true, type: Date })
+  createdAt!: Date;
+
+  @Prop({ default: null, type: Number })
+  minAgeRestriction!: null | number;
+
+  @Prop({ required: true, type: Date })
+  publicationDate!: Date;
+
+  @Prop({ required: true, type: String })
+  title!: string;
+}
 
 export interface VideoDoc {
   _id: number;
@@ -13,18 +39,4 @@ export interface VideoDoc {
   title: string;
 }
 
-const videoSchema = new Schema<VideoDoc>(
-  {
-    _id: { required: true, type: Number },
-    author: { required: true, type: String },
-    availableResolutions: { required: true, type: [String] },
-    canBeDownloaded: { default: false, required: true, type: Boolean },
-    createdAt: { default: Date.now, required: true, type: Date },
-    minAgeRestriction: { default: null, type: Number },
-    publicationDate: { required: true, type: Date },
-    title: { required: true, type: String },
-  },
-  { timestamps: false, versionKey: false },
-);
-
-export const VideoModel = model<VideoDoc>("Video", videoSchema);
+export const VideoSchema = SchemaFactory.createForClass(Video);

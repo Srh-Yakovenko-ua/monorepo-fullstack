@@ -14,22 +14,26 @@ import { Injectable } from "@nestjs/common";
 import type { BlogDoc } from "../../db/models/blog.model.js";
 import type { BlogLookupDoc } from "../../db/repositories/blogs.repository.js";
 
-import * as blogsRepository from "../../db/repositories/blogs.repository.js";
-import * as postsRepository from "../../db/repositories/posts.repository.js";
+import { BlogsRepository } from "../../db/repositories/blogs.repository.js";
+import { PostsRepository } from "../../db/repositories/posts.repository.js";
 import { NotFoundError } from "../../lib/errors.js";
 import { buildPaginator } from "../../lib/paginator.js";
 import { PostsService, toPostView } from "../posts/posts.service.js";
 
 @Injectable()
 export class BlogsService {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(
+    private readonly blogsRepository: BlogsRepository,
+    private readonly postsRepository: PostsRepository,
+    private readonly postsService: PostsService,
+  ) {}
 
   async clearAllBlogs(): Promise<void> {
-    await blogsRepository.clearAll();
+    await this.blogsRepository.clearAll();
   }
 
   async createBlog(input: BlogInput): Promise<BlogViewModel> {
-    const doc = await blogsRepository.create({
+    const doc = await this.blogsRepository.create({
       description: input.description,
       name: input.name,
       websiteUrl: input.websiteUrl,
@@ -38,10 +42,10 @@ export class BlogsService {
   }
 
   async createPostForBlog(blogId: string, input: BlogScopedPostInput): Promise<PostViewModel> {
-    const blog = await blogsRepository.findById(blogId);
+    const blog = await this.blogsRepository.findById(blogId);
     if (!blog) throw new NotFoundError(`Blog with id ${blogId} not found`);
 
-    const doc = await postsRepository.create({
+    const doc = await this.postsRepository.create({
       blogId: blog._id.toHexString(),
       blogName: blog.name,
       content: input.content,
@@ -52,12 +56,12 @@ export class BlogsService {
   }
 
   async deleteBlog(id: string): Promise<void> {
-    const removed = await blogsRepository.remove(id);
+    const removed = await this.blogsRepository.remove(id);
     if (!removed) throw new NotFoundError(`Blog with id ${id} not found`);
   }
 
   async getAllBlogs(query: BlogsQuery): Promise<Paginator<BlogViewModel>> {
-    const { items, totalCount } = await blogsRepository.findPage(query);
+    const { items, totalCount } = await this.blogsRepository.findPage(query);
     return buildPaginator({
       items: items.map(toBlogView),
       pageNumber: query.pageNumber,
@@ -67,13 +71,13 @@ export class BlogsService {
   }
 
   async getBlogById(id: string): Promise<BlogViewModel> {
-    const blog = await blogsRepository.findById(id);
+    const blog = await this.blogsRepository.findById(id);
     if (!blog) throw new NotFoundError(`Blog with id ${id} not found`);
     return toBlogView(blog);
   }
 
   async getBlogLookup(query: BlogsQuery): Promise<Paginator<BlogLookupItem>> {
-    const { items, totalCount } = await blogsRepository.findLookupPage(query);
+    const { items, totalCount } = await this.blogsRepository.findLookupPage(query);
     return buildPaginator({
       items: items.map(toBlogLookupItem),
       pageNumber: query.pageNumber,
@@ -91,15 +95,15 @@ export class BlogsService {
     currentUserId?: string;
     query: PaginationQuery;
   }): Promise<Paginator<PostViewModel>> {
-    const blog = await blogsRepository.findById(blogId);
+    const blog = await this.blogsRepository.findById(blogId);
     if (!blog) throw new NotFoundError(`Blog with id ${blogId} not found`);
     return this.postsService.listPostsForBlog({ blogId, currentUserId, query });
   }
 
   async updateBlog(id: string, input: BlogInput): Promise<void> {
-    const existing = await blogsRepository.findById(id);
+    const existing = await this.blogsRepository.findById(id);
     if (!existing) throw new NotFoundError(`Blog with id ${id} not found`);
-    await blogsRepository.update(id, {
+    await this.blogsRepository.update(id, {
       description: input.description,
       name: input.name,
       websiteUrl: input.websiteUrl,

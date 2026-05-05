@@ -1,6 +1,32 @@
-import type { Types } from "mongoose";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { type Types } from "mongoose";
 
-import { model, Schema } from "mongoose";
+@Schema({ timestamps: false, versionKey: false })
+export class Post {
+  @Prop({ required: true, type: String })
+  blogId!: string;
+
+  @Prop({ required: true, type: String })
+  blogName!: string;
+
+  @Prop({ required: true, type: String })
+  content!: string;
+
+  @Prop({ default: Date.now, required: true, type: Date })
+  createdAt!: Date;
+
+  @Prop({ default: 0, required: true, type: Number })
+  dislikesCount!: number;
+
+  @Prop({ default: 0, required: true, type: Number })
+  likesCount!: number;
+
+  @Prop({ required: true, type: String })
+  shortDescription!: string;
+
+  @Prop({ required: true, type: String })
+  title!: string;
+}
 
 export interface PostDoc {
   _id: Types.ObjectId;
@@ -14,18 +40,4 @@ export interface PostDoc {
   title: string;
 }
 
-const postSchema = new Schema<PostDoc>(
-  {
-    blogId: { required: true, type: String },
-    blogName: { required: true, type: String },
-    content: { required: true, type: String },
-    createdAt: { default: Date.now, required: true, type: Date },
-    dislikesCount: { default: 0, required: true, type: Number },
-    likesCount: { default: 0, required: true, type: Number },
-    shortDescription: { required: true, type: String },
-    title: { required: true, type: String },
-  },
-  { timestamps: false, versionKey: false },
-);
-
-export const PostModel = model<PostDoc>("Post", postSchema);
+export const PostSchema = SchemaFactory.createForClass(Post);

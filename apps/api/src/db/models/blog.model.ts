@@ -1,6 +1,23 @@
-import type { Types } from "mongoose";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { type Types } from "mongoose";
 
-import { model, Schema } from "mongoose";
+@Schema({ timestamps: false, versionKey: false })
+export class Blog {
+  @Prop({ default: Date.now, required: true, type: Date })
+  createdAt!: Date;
+
+  @Prop({ required: true, type: String })
+  description!: string;
+
+  @Prop({ default: false, required: true, type: Boolean })
+  isMembership!: boolean;
+
+  @Prop({ required: true, type: String })
+  name!: string;
+
+  @Prop({ required: true, type: String })
+  websiteUrl!: string;
+}
 
 export interface BlogDoc {
   _id: Types.ObjectId;
@@ -11,15 +28,4 @@ export interface BlogDoc {
   websiteUrl: string;
 }
 
-const blogSchema = new Schema<BlogDoc>(
-  {
-    createdAt: { default: Date.now, required: true, type: Date },
-    description: { required: true, type: String },
-    isMembership: { default: false, required: true, type: Boolean },
-    name: { required: true, type: String },
-    websiteUrl: { required: true, type: String },
-  },
-  { timestamps: false, versionKey: false },
-);
-
-export const BlogModel = model<BlogDoc>("Blog", blogSchema);
+export const BlogSchema = SchemaFactory.createForClass(Blog);

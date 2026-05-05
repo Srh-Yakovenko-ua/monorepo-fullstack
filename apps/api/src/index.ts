@@ -1,32 +1,26 @@
-import { bootstrapNestApp, runStartupTasks } from "./bootstrap.js";
+import { bootstrapNestApp } from "./bootstrap.js";
 import { env } from "./config/env.js";
-import { connectMongo, disconnectMongo } from "./db/mongo.js";
 import { createLogger } from "./lib/logger.js";
 
 const log = createLogger("startup");
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 
 async function main(): Promise<void> {
-  let mongoConnected = false;
+  let app;
+  try {
+    app = await bootstrapNestApp();
+  } catch (err) {
+    log.error({ err }, "failed to bootstrap nest app");
+    process.exit(1);
+  }
 
   try {
-    await connectMongo();
-    mongoConnected = true;
+    await app.listen(env.port);
+    log.info({ port: env.port }, `api listening on http://localhost:${env.port}`);
   } catch (err) {
-    log.warn({ err }, "mongo connection failed, starting API without DB");
+    log.error({ err }, "failed to listen, exiting");
+    process.exit(1);
   }
-
-  if (mongoConnected) {
-    try {
-      await runStartupTasks();
-    } catch (err) {
-      log.warn({ err }, "startup tasks failed, continuing");
-    }
-  }
-
-  const app = await bootstrapNestApp();
-  await app.listen(env.port);
-  log.info({ port: env.port }, `api listening on http://localhost:${env.port}`);
 
   let isShuttingDown = false;
 
@@ -43,7 +37,6 @@ async function main(): Promise<void> {
 
     try {
       await app.close();
-      await disconnectMongo().catch(() => {});
       clearTimeout(forceExit);
       process.exit(0);
     } catch (err) {

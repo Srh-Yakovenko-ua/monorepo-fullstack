@@ -3,7 +3,7 @@ import type { INestApplication } from "@nestjs/common";
 import { hash } from "bcryptjs";
 import request from "supertest";
 
-import { UserModel } from "../db/models/user.model.js";
+import { UserModel } from "./models.js";
 
 const BCRYPT_SALT_ROUNDS = 10;
 

@@ -1,13 +1,7 @@
 let bootstrapPromise;
 
 async function bootstrap() {
-  const [{ bootstrapNestApp }, { connectMongo }] = await Promise.all([
-    import("../apps/api/dist/bootstrap.js"),
-    import("../apps/api/dist/db/mongo.js"),
-  ]);
-  connectMongo().catch((err) => {
-    console.error("[api] mongo connect failed, DB routes will fail until it recovers", err);
-  });
+  const { bootstrapNestApp } = await import("../apps/api/dist/bootstrap.js");
   const app = await bootstrapNestApp();
   return app.getHttpAdapter().getInstance();
 }

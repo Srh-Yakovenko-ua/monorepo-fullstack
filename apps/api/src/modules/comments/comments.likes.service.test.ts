@@ -1,13 +1,24 @@
-import mongoose from "mongoose";
-import { describe, expect, it } from "vitest";
+import type { INestApplication } from "@nestjs/common";
 
-import { CommentLikeModel } from "../../db/models/comment-like.model.js";
-import { CommentModel } from "../../db/models/comment.model.js";
-import { PostModel } from "../../db/models/post.model.js";
+import mongoose from "mongoose";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
 import { NotFoundError } from "../../lib/errors.js";
+import { createTestApp } from "../../test/create-test-app.js";
+import { CommentLikeModel, CommentModel, PostModel } from "../../test/models.js";
 import { CommentsService } from "./comments.service.js";
 
-const commentsService = new CommentsService();
+let app: INestApplication;
+let commentsService: CommentsService;
+
+beforeAll(async () => {
+  app = await createTestApp();
+  commentsService = app.get(CommentsService);
+});
+
+afterAll(async () => {
+  await app.close();
+});
 
 async function getCommentDoc(commentId: string) {
   const fresh = await CommentModel.findOne({ _id: commentId }).lean();
