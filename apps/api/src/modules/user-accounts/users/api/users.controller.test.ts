@@ -12,12 +12,13 @@ import {
 } from "../../../../test/auth-helpers.js";
 import { createTestApp } from "../../../../test/create-test-app.js";
 import { UserModel } from "../../../../test/models.js";
+import { UserAccountsModule } from "../../user-accounts.module.js";
 
 let app: INestApplication;
 let server: ReturnType<INestApplication["getHttpServer"]>;
 
 beforeAll(async () => {
-  app = await createTestApp();
+  app = await createTestApp([UserAccountsModule]);
   server = app.getHttpServer();
 });
 

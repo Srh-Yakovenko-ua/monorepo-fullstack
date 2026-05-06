@@ -5,12 +5,25 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createAdminAndLogin } from "../../test/auth-helpers.js";
 import { createTestApp } from "../../test/create-test-app.js";
+import { BlogsModule } from "../blogs/blogs.module.js";
+import { CommentsModule } from "../comments/comments.module.js";
+import { PostsModule } from "../posts/posts.module.js";
+import { UserAccountsModule } from "../user-accounts/user-accounts.module.js";
+import { VideosModule } from "../videos/videos.module.js";
+import { TestingModule } from "./testing.module.js";
 
 let app: INestApplication;
 let server: ReturnType<INestApplication["getHttpServer"]>;
 
 beforeAll(async () => {
-  app = await createTestApp();
+  app = await createTestApp([
+    BlogsModule,
+    PostsModule,
+    CommentsModule,
+    VideosModule,
+    UserAccountsModule,
+    TestingModule,
+  ]);
   server = app.getHttpServer();
 });
 

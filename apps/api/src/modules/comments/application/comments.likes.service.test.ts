@@ -6,13 +6,16 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { NotFoundError } from "../../../core/exceptions/errors.js";
 import { createTestApp } from "../../../test/create-test-app.js";
 import { CommentLikeModel, CommentModel, PostModel } from "../../../test/models.js";
+import { BlogsModule } from "../../blogs/blogs.module.js";
+import { PostsModule } from "../../posts/posts.module.js";
+import { CommentsModule } from "../comments.module.js";
 import { CommentsService } from "./comments.service.js";
 
 let app: INestApplication;
 let commentsService: CommentsService;
 
 beforeAll(async () => {
-  app = await createTestApp();
+  app = await createTestApp([BlogsModule, PostsModule, CommentsModule]);
   commentsService = app.get(CommentsService);
 });
 

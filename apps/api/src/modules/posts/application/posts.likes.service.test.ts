@@ -6,13 +6,15 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { NotFoundError } from "../../../core/exceptions/errors.js";
 import { createTestApp } from "../../../test/create-test-app.js";
 import { PostLikeModel, PostModel } from "../../../test/models.js";
+import { BlogsModule } from "../../blogs/blogs.module.js";
+import { PostsModule } from "../posts.module.js";
 import { PostsService } from "./posts.service.js";
 
 let app: INestApplication;
 let postsService: PostsService;
 
 beforeAll(async () => {
-  app = await createTestApp();
+  app = await createTestApp([BlogsModule, PostsModule]);
   postsService = app.get(PostsService);
 });
 

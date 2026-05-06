@@ -7,6 +7,7 @@ import { sendEmail } from "../../../../core/mailer.js";
 import { createAdminAndLogin } from "../../../../test/auth-helpers.js";
 import { createTestApp } from "../../../../test/create-test-app.js";
 import { UserModel } from "../../../../test/models.js";
+import { UserAccountsModule } from "../../user-accounts.module.js";
 
 vi.mock("../../../../core/mailer.js", () => ({
   sendEmail: vi.fn().mockResolvedValue(undefined),
@@ -18,7 +19,7 @@ let app: INestApplication;
 let server: ReturnType<INestApplication["getHttpServer"]>;
 
 beforeAll(async () => {
-  app = await createTestApp();
+  app = await createTestApp([UserAccountsModule]);
   server = app.getHttpServer();
 });
 

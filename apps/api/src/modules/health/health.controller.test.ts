@@ -4,11 +4,12 @@ import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createTestApp } from "../../test/create-test-app.js";
+import { HealthModule } from "./health.module.js";
 
 let app: INestApplication;
 
 beforeAll(async () => {
-  app = await createTestApp();
+  app = await createTestApp([HealthModule]);
 });
 
 afterAll(async () => {

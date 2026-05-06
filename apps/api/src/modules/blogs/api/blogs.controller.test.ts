@@ -4,12 +4,14 @@ import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createTestApp } from "../../../test/create-test-app.js";
+import { PostsModule } from "../../posts/posts.module.js";
+import { BlogsModule } from "../blogs.module.js";
 
 let app: INestApplication;
 let server: ReturnType<INestApplication["getHttpServer"]>;
 
 beforeAll(async () => {
-  app = await createTestApp();
+  app = await createTestApp([BlogsModule, PostsModule]);
   server = app.getHttpServer();
 });
 

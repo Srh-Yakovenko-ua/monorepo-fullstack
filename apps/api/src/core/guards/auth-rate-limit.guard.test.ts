@@ -3,6 +3,7 @@ import type { INestApplication } from "@nestjs/common";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { UserAccountsModule } from "../../modules/user-accounts/user-accounts.module.js";
 import { createTestApp } from "../../test/create-test-app.js";
 
 vi.mock("../mailer.js", () => ({
@@ -13,7 +14,7 @@ let app: INestApplication;
 let server: ReturnType<INestApplication["getHttpServer"]>;
 
 beforeAll(async () => {
-  app = await createTestApp();
+  app = await createTestApp([UserAccountsModule]);
   server = app.getHttpServer();
 });
 
