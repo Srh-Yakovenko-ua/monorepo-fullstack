@@ -23,10 +23,10 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { UnauthorizedError } from "../../../../core/exceptions/errors.js";
-import { JwtAuthGuard } from "../../../../core/guards/jwt-auth.guard.js";
-import { OptionalJwtAuthGuard } from "../../../../core/guards/optional-jwt-auth.guard.js";
-import { ZodBodyPipe } from "../../../../core/pipes/zod-body.pipe.js";
+import { UnauthorizedError } from "../../../core/exceptions/errors.js";
+import { JwtAuthGuard } from "../../../core/guards/jwt-auth.guard.js";
+import { OptionalJwtAuthGuard } from "../../../core/guards/optional-jwt-auth.guard.js";
+import { ZodBodyPipe } from "../../../core/pipes/zod-body.pipe.js";
 import { LikeInputDto } from "../../posts/api/input-dto/like-input.dto.js";
 import { CommentsService } from "../application/comments.service.js";
 import { CommentUpdateInputDto } from "./input-dto/comment-update-input.dto.js";

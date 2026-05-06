@@ -1,9 +1,9 @@
 import { Controller, Delete, HttpCode, HttpStatus } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
-import { BlogsService } from "../bloggers-platform/blogs/application/blogs.service.js";
-import { CommentsService } from "../bloggers-platform/comments/application/comments.service.js";
-import { PostsService } from "../bloggers-platform/posts/application/posts.service.js";
+import { BlogsService } from "../blogs/application/blogs.service.js";
+import { CommentsService } from "../comments/application/comments.service.js";
+import { PostsService } from "../posts/application/posts.service.js";
 import { SecurityService } from "../user-accounts/security/application/security.service.js";
 import { UsersService } from "../user-accounts/users/application/users.service.js";
 import { VideosService } from "../videos/application/videos.service.js";

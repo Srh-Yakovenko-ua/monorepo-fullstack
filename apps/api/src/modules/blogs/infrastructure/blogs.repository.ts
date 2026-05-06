@@ -4,7 +4,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { type Model } from "mongoose";
 
-import { escapeRegExp } from "../../../../core/regex.js";
+import { escapeRegExp } from "../../../core/regex.js";
 import { Blog, type BlogDoc } from "../domain/blog.entity.js";
 
 export type BlogCreateInput = Pick<BlogDoc, "description" | "name" | "websiteUrl">;

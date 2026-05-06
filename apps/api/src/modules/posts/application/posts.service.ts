@@ -15,9 +15,9 @@ import { type Connection, isValidObjectId } from "mongoose";
 import type { PostDoc } from "../domain/post.entity.js";
 import type { NewestLikeRow } from "../infrastructure/post-likes.repository.js";
 
-import { BadRequestError, NotFoundError } from "../../../../core/exceptions/errors.js";
-import { createLogger } from "../../../../core/logger.js";
-import { buildPaginator } from "../../../../core/paginator.js";
+import { BadRequestError, NotFoundError } from "../../../core/exceptions/errors.js";
+import { createLogger } from "../../../core/logger.js";
+import { buildPaginator } from "../../../core/paginator.js";
 import { BlogsRepository } from "../../blogs/infrastructure/blogs.repository.js";
 import { PostLikesRepository } from "../infrastructure/post-likes.repository.js";
 import { PostsRepository } from "../infrastructure/posts.repository.js";

@@ -3,7 +3,7 @@ import type { INestApplication } from "@nestjs/common";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { createTestApp } from "../../../../test/create-test-app.js";
+import { createTestApp } from "../../../test/create-test-app.js";
 
 let app: INestApplication;
 let server: ReturnType<INestApplication["getHttpServer"]>;

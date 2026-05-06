@@ -5,8 +5,8 @@ import { Injectable } from "@nestjs/common";
 import type { BlogDoc } from "../domain/blog.entity.js";
 import type { BlogLookupDoc } from "../infrastructure/blogs.repository.js";
 
-import { NotFoundError } from "../../../../core/exceptions/errors.js";
-import { buildPaginator } from "../../../../core/paginator.js";
+import { NotFoundError } from "../../../core/exceptions/errors.js";
+import { buildPaginator } from "../../../core/paginator.js";
 import { BlogsRepository } from "../infrastructure/blogs.repository.js";
 
 @Injectable()

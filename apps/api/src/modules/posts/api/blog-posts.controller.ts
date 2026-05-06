@@ -24,9 +24,9 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { OptionalJwtAuthGuard } from "../../../../core/guards/optional-jwt-auth.guard.js";
-import { ZodBodyPipe } from "../../../../core/pipes/zod-body.pipe.js";
-import { ZodQueryPipe } from "../../../../core/pipes/zod-query.pipe.js";
+import { OptionalJwtAuthGuard } from "../../../core/guards/optional-jwt-auth.guard.js";
+import { ZodBodyPipe } from "../../../core/pipes/zod-body.pipe.js";
+import { ZodQueryPipe } from "../../../core/pipes/zod-query.pipe.js";
 import { BlogsService } from "../../blogs/application/blogs.service.js";
 import { PostsService } from "../application/posts.service.js";
 import { BlogScopedPostInputDto } from "./input-dto/blog-scoped-post-input.dto.js";

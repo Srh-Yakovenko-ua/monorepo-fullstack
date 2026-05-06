@@ -26,11 +26,11 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { UnauthorizedError } from "../../../../core/exceptions/errors.js";
-import { JwtAuthGuard } from "../../../../core/guards/jwt-auth.guard.js";
-import { OptionalJwtAuthGuard } from "../../../../core/guards/optional-jwt-auth.guard.js";
-import { ZodBodyPipe } from "../../../../core/pipes/zod-body.pipe.js";
-import { ZodQueryPipe } from "../../../../core/pipes/zod-query.pipe.js";
+import { UnauthorizedError } from "../../../core/exceptions/errors.js";
+import { JwtAuthGuard } from "../../../core/guards/jwt-auth.guard.js";
+import { OptionalJwtAuthGuard } from "../../../core/guards/optional-jwt-auth.guard.js";
+import { ZodBodyPipe } from "../../../core/pipes/zod-body.pipe.js";
+import { ZodQueryPipe } from "../../../core/pipes/zod-query.pipe.js";
 import { PostsService } from "../application/posts.service.js";
 import { LikeInputDto } from "./input-dto/like-input.dto.js";
 import { PaginationQueryDto } from "./input-dto/pagination-query.dto.js";

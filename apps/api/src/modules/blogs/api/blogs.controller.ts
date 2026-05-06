@@ -15,8 +15,8 @@ import {
 } from "@nestjs/common";
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 
-import { ZodBodyPipe } from "../../../../core/pipes/zod-body.pipe.js";
-import { ZodQueryPipe } from "../../../../core/pipes/zod-query.pipe.js";
+import { ZodBodyPipe } from "../../../core/pipes/zod-body.pipe.js";
+import { ZodQueryPipe } from "../../../core/pipes/zod-query.pipe.js";
 import { BlogsService } from "../application/blogs.service.js";
 import { BlogInputDto } from "./input-dto/blog-input.dto.js";
 import { BlogsQueryDto } from "./input-dto/blogs-query.dto.js";

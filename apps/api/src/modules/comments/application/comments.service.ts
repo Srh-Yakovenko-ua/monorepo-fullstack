@@ -11,8 +11,8 @@ import { isValidObjectId, Types } from "mongoose";
 
 import type { CommentDoc } from "../domain/comment.entity.js";
 
-import { ForbiddenError, NotFoundError } from "../../../../core/exceptions/errors.js";
-import { buildPaginator } from "../../../../core/paginator.js";
+import { ForbiddenError, NotFoundError } from "../../../core/exceptions/errors.js";
+import { buildPaginator } from "../../../core/paginator.js";
 import { PostsRepository } from "../../posts/infrastructure/posts.repository.js";
 import { CommentLikesRepository } from "../infrastructure/comment-likes.repository.js";
 import { CommentsRepository } from "../infrastructure/comments.repository.js";

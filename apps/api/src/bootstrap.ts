@@ -43,7 +43,6 @@ export async function bootstrapNestApp(): Promise<NestExpressApplication> {
       .setDescription("REST API for the monorepo-fullstack project")
       .setVersion("1.0")
       .addBearerAuth({ bearerFormat: "JWT", scheme: "bearer", type: "http" })
-      .addBasicAuth()
       .addCookieAuth("refreshToken")
       .build();
     const document = cleanupOpenApiDoc(SwaggerModule.createDocument(app, swaggerConfig));

@@ -3,9 +3,9 @@ import type { INestApplication } from "@nestjs/common";
 import mongoose from "mongoose";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { NotFoundError } from "../../../../core/exceptions/errors.js";
-import { createTestApp } from "../../../../test/create-test-app.js";
-import { PostLikeModel, PostModel } from "../../../../test/models.js";
+import { NotFoundError } from "../../../core/exceptions/errors.js";
+import { createTestApp } from "../../../test/create-test-app.js";
+import { PostLikeModel, PostModel } from "../../../test/models.js";
 import { PostsService } from "./posts.service.js";
 
 let app: INestApplication;

@@ -3,16 +3,10 @@ import mongoose from "mongoose";
 import {
   type CommentLikeDoc,
   CommentLikeSchema,
-} from "../modules/bloggers-platform/comments/domain/comment-like.entity.js";
-import {
-  type CommentDoc,
-  CommentSchema,
-} from "../modules/bloggers-platform/comments/domain/comment.entity.js";
-import {
-  type PostLikeDoc,
-  PostLikeSchema,
-} from "../modules/bloggers-platform/posts/domain/post-like.entity.js";
-import { type PostDoc, PostSchema } from "../modules/bloggers-platform/posts/domain/post.entity.js";
+} from "../modules/comments/domain/comment-like.entity.js";
+import { type CommentDoc, CommentSchema } from "../modules/comments/domain/comment.entity.js";
+import { type PostLikeDoc, PostLikeSchema } from "../modules/posts/domain/post-like.entity.js";
+import { type PostDoc, PostSchema } from "../modules/posts/domain/post.entity.js";
 import { type UserDoc, UserSchema } from "../modules/user-accounts/users/domain/user.entity.js";
 
 function ensureModel<T>(name: string, schema: mongoose.Schema): mongoose.Model<T> {
