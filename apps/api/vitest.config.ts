@@ -19,8 +19,6 @@ export default defineConfig({
     globals: false,
     globalSetup: ["./src/test/global-setup.ts"],
     include: ["src/**/*.{test,spec}.ts"],
-    maxWorkers: 1,
-    minWorkers: 1,
     pool: "forks",
     restoreMocks: true,
     setupFiles: ["./src/test/setup.ts"],

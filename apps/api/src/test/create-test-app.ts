@@ -6,8 +6,8 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { type NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import cookieParser from "cookie-parser";
+import mongoose from "mongoose";
 
-import { env } from "../config/env.js";
 import { CoreModule } from "../core/core.module.js";
 import { HttpErrorFilter } from "../core/exceptions/http-error.filter.js";
 import { RequestIdMiddleware } from "../core/middleware/request-id.middleware.js";
@@ -19,9 +19,9 @@ export async function createTestApp(
 ): Promise<INestApplication> {
   const moduleRef = await Test.createTestingModule({
     imports: [
-      MongooseModule.forRoot(env.mongoUri, {
-        retryAttempts: 0,
-        serverSelectionTimeoutMS: 3000,
+      MongooseModule.forRoot("mongodb://placeholder/unused", {
+        connectionFactory: () => mongoose.connection,
+        lazyConnection: true,
       }),
       CoreModule,
       ...imports,
