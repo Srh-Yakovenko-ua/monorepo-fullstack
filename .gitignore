@@ -28,6 +28,9 @@ apps/web/.vite/
 # Playwright MCP — auto-generated snapshots/console logs from browser sessions
 .playwright-mcp/
 
+# Claude Code runtime locks
+.claude/*.lock
+
 # Vercel
 .vercel/
 

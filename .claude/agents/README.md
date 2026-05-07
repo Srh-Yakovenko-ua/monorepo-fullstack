@@ -22,14 +22,14 @@ Subagents are useful for:
 
 ### Implementation (can Write/Edit code)
 
-| Agent                                                   | Model  | When to use                                                                      |
-| ------------------------------------------------------- | ------ | -------------------------------------------------------------------------------- |
-| [`frontend-engineer`](./frontend-engineer.md)           | sonnet | Writing, modifying, or debugging React code in `apps/web` — structure and logic  |
-| [`design-engineer`](./design-engineer.md)               | sonnet | Visual polish, typography, colors, motion, interaction states, responsive rhythm |
-| [`backend-engineer`](./backend-engineer.md)             | sonnet | Writing, modifying, or debugging Express/Mongoose code in `apps/api`             |
-| [`frontend-test-engineer`](./frontend-test-engineer.md) | sonnet | Vitest + React Testing Library tests for `apps/web`                              |
-| [`backend-test-engineer`](./backend-test-engineer.md)   | sonnet | Vitest + supertest tests for `apps/api` (services, controllers, middleware)      |
-| [`refactor-specialist`](./refactor-specialist.md)       | sonnet | Cleaning up messy code, removing dead code, simplifying — behavior-preserving    |
+| Agent                                                   | Model  | When to use                                                                                                       |
+| ------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- |
+| [`frontend-engineer`](./frontend-engineer.md)           | sonnet | Writing, modifying, or debugging React code in `apps/web` — structure and logic                                   |
+| [`design-engineer`](./design-engineer.md)               | sonnet | Visual polish, typography, colors, motion, interaction states, responsive rhythm                                  |
+| [`backend-engineer`](./backend-engineer.md)             | opus   | Writing, modifying, or debugging NestJS code in `apps/api` (controllers, services, repositories, guards, modules) |
+| [`frontend-test-engineer`](./frontend-test-engineer.md) | sonnet | Vitest + React Testing Library tests for `apps/web`                                                               |
+| [`backend-test-engineer`](./backend-test-engineer.md)   | opus   | Vitest + supertest tests for `apps/api` via `createTestApp([modules])` + `@nestjs/testing`                        |
+| [`refactor-specialist`](./refactor-specialist.md)       | sonnet | Cleaning up messy code, removing dead code, simplifying — behavior-preserving                                     |
 
 ### Documentation (can Write/Edit `docs/features/**` only)
 
@@ -59,9 +59,9 @@ Subagents are useful for:
 Writing new code?
 ├── Frontend structure/logic → frontend-engineer
 ├── Frontend visual polish / motion / typography → design-engineer
-├── Backend (Express/Mongoose) → backend-engineer
+├── Backend (NestJS + @nestjs/mongoose) → backend-engineer
 ├── Frontend test (Vitest + RTL) → frontend-test-engineer
-├── Backend test (Vitest + supertest) → backend-test-engineer
+├── Backend test (Vitest + supertest + @nestjs/testing) → backend-test-engineer
 └── Cleanup → refactor-specialist
 
 Building a new feature end-to-end?
