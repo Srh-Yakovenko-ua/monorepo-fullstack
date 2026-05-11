@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { afterAll, afterEach, beforeAll } from "vitest";
 
-import { resetAuthRateLimit } from "../core/guards/auth-rate-limit.guard.js";
+import { resetAuthThrottler } from "../core/auth-throttler-storage.js";
 
 beforeAll(async () => {
   const uri = process.env.MONGO_URI;
@@ -20,10 +20,10 @@ afterAll(async () => {
 afterEach(async () => {
   const db = mongoose.connection.db;
   if (!db) {
-    await resetAuthRateLimit();
+    resetAuthThrottler();
     return;
   }
   const collections = await db.collections();
   await Promise.all(collections.map((collection) => collection.deleteMany({})));
-  await resetAuthRateLimit();
+  resetAuthThrottler();
 });

@@ -32,7 +32,7 @@ import { differenceInMilliseconds } from "date-fns";
 
 import { env } from "../../../../config/env.js";
 import { UnauthorizedError } from "../../../../core/exceptions/errors.js";
-import { AuthRateLimitGuard } from "../../../../core/guards/auth-rate-limit.guard.js";
+import { AuthThrottlerGuard } from "../../../../core/guards/auth-throttler.guard.js";
 import { JwtAuthGuard } from "../../../../core/guards/jwt-auth.guard.js";
 import { RefreshSessionGuard } from "../../../../core/guards/refresh-session.guard.js";
 import { createLogger } from "../../../../core/logger.js";
@@ -64,7 +64,7 @@ export class AuthController {
   @ApiResponse({ description: "Too many requests", status: 429 })
   @HttpCode(HttpStatus.OK)
   @Post("login")
-  @UseGuards(AuthRateLimitGuard)
+  @UseGuards(AuthThrottlerGuard)
   async login(
     @Body(new ZodBodyPipe(LoginInputSchema)) body: LoginInputDto,
     @Req() request: Request,
@@ -119,7 +119,7 @@ export class AuthController {
   @ApiResponse({ description: "Too many requests", status: 429 })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post("new-password")
-  @UseGuards(AuthRateLimitGuard)
+  @UseGuards(AuthThrottlerGuard)
   newPassword(
     @Body(new ZodBodyPipe(NewPasswordInputSchema)) body: NewPasswordInputDto,
   ): Promise<void> {
@@ -133,7 +133,7 @@ export class AuthController {
   @ApiResponse({ description: "Too many requests", status: 429 })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post("password-recovery")
-  @UseGuards(AuthRateLimitGuard)
+  @UseGuards(AuthThrottlerGuard)
   passwordRecovery(
     @Body(new ZodBodyPipe(PasswordRecoveryInputSchema)) body: PasswordRecoveryInputDto,
   ): void {
@@ -179,7 +179,7 @@ export class AuthController {
   @ApiResponse({ description: "Too many requests", status: 429 })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post("registration")
-  @UseGuards(AuthRateLimitGuard)
+  @UseGuards(AuthThrottlerGuard)
   registration(
     @Body(new ZodBodyPipe(CreateUserInputSchema)) body: CreateUserInputDto,
   ): Promise<void> {
@@ -193,7 +193,7 @@ export class AuthController {
   @ApiResponse({ description: "Too many requests", status: 429 })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post("registration-confirmation")
-  @UseGuards(AuthRateLimitGuard)
+  @UseGuards(AuthThrottlerGuard)
   registrationConfirmation(
     @Body(new ZodBodyPipe(RegistrationConfirmationInputSchema))
     body: RegistrationConfirmationInputDto,
@@ -208,7 +208,7 @@ export class AuthController {
   @ApiResponse({ description: "Too many requests", status: 429 })
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post("registration-email-resending")
-  @UseGuards(AuthRateLimitGuard)
+  @UseGuards(AuthThrottlerGuard)
   registrationEmailResending(
     @Body(new ZodBodyPipe(RegistrationEmailResendingInputSchema))
     body: RegistrationEmailResendingInputDto,

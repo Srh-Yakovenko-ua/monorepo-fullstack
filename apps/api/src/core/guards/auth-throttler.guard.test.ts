@@ -37,7 +37,7 @@ function buildRegistrationPayload(suffix: number) {
   };
 }
 
-describe("AuthRateLimitGuard", () => {
+describe("AuthThrottlerGuard", () => {
   it("returns 401 for first 5 wrong-credentials attempts and 429 starting from the 6th", async () => {
     for (let attempt = 1; attempt <= 5; attempt += 1) {
       const res = await request(server)
@@ -52,6 +52,7 @@ describe("AuthRateLimitGuard", () => {
       .set("Origin", TEST_ORIGIN)
       .send(wrongLoginPayload);
     expect(sixth.status).toBe(429);
+    expect(sixth.body).toMatchObject({ message: "Too many requests" });
 
     const seventh = await request(server)
       .post("/api/auth/login")
@@ -78,14 +79,14 @@ describe("AuthRateLimitGuard", () => {
     }
   });
 
-  it("emits standard draft-7 RateLimit headers", async () => {
+  it("emits X-RateLimit headers on throttled responses", async () => {
     const res = await request(server)
       .post("/api/auth/login")
       .set("Origin", TEST_ORIGIN)
       .send(wrongLoginPayload);
 
-    expect(res.headers).toHaveProperty("ratelimit");
-    expect(res.headers).toHaveProperty("ratelimit-policy");
-    expect(res.headers).not.toHaveProperty("x-ratelimit-limit");
+    expect(res.headers).toHaveProperty("x-ratelimit-limit");
+    expect(res.headers).toHaveProperty("x-ratelimit-remaining");
+    expect(res.headers).toHaveProperty("x-ratelimit-reset");
   });
 });
