@@ -5,6 +5,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 
 import { env } from "./config/env.js";
 import { CoreModule } from "./core/core.module.js";
+import { DatabaseModule } from "./core/database/database.module.js";
 import { RequestIdMiddleware } from "./core/middleware/request-id.middleware.js";
 import { RequestLoggerMiddleware } from "./core/middleware/request-logger.middleware.js";
 import { BlogsModule } from "./modules/blogs/blogs.module.js";
@@ -38,6 +39,7 @@ const optionalModules = [
         uri: env.mongoUri,
       }),
     }),
+    DatabaseModule,
     CoreModule,
     ...featureModules,
     ...optionalModules,

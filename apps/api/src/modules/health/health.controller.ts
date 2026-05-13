@@ -13,7 +13,7 @@ export class HealthController {
   @ApiOperation({ summary: "Service health check" })
   @ApiResponse({ description: "Service is healthy", status: 200 })
   @Get()
-  getHealth(): ApiHealth {
+  getHealth(): Promise<ApiHealth> {
     return this.healthService.getHealth();
   }
 }

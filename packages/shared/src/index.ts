@@ -7,6 +7,7 @@ export type ApiError = {
 };
 
 export type ApiHealth = {
+  postgres: "down" | "ok";
   status: "degraded" | "down" | "ok";
   timestamp: string;
   uptimeSeconds: number;

@@ -22,6 +22,7 @@ describe("GET /api/health", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe("ok");
+    expect(["ok", "down"]).toContain(res.body.postgres);
     expect(typeof res.body.uptimeSeconds).toBe("number");
     expect(typeof res.body.timestamp).toBe("string");
   });

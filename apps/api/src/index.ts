@@ -14,6 +14,8 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  app.enableShutdownHooks();
+
   try {
     await app.listen(env.port);
     log.info({ port: env.port }, `api listening on http://localhost:${env.port}`);

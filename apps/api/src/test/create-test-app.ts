@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 
 import { CoreModule } from "../core/core.module.js";
+import { DatabaseModule } from "../core/database/database.module.js";
 import { HttpErrorFilter } from "../core/exceptions/http-error.filter.js";
 import { RequestIdMiddleware } from "../core/middleware/request-id.middleware.js";
 
@@ -23,6 +24,7 @@ export async function createTestApp(
         connectionFactory: () => mongoose.connection,
         lazyConnection: true,
       }),
+      DatabaseModule,
       CoreModule,
       ...imports,
     ],

@@ -14,7 +14,7 @@ import {
 } from "@nestjs/common";
 import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 
-import { NotFoundError } from "../../../core/exceptions/errors.js";
+import { BadRequestError } from "../../../core/exceptions/errors.js";
 import { ZodBodyPipe } from "../../../core/pipes/zod-body.pipe.js";
 import { VideosService } from "../application/videos.service.js";
 import { CreateVideoInputDto } from "./input-dto/create-video-input.dto.js";
@@ -81,6 +81,6 @@ export class VideosController {
 
 function parseVideoId(raw: string): number {
   const id = Number(raw);
-  if (!Number.isFinite(id)) throw new NotFoundError(`Video with id ${raw} not found`);
+  if (!Number.isInteger(id)) throw new BadRequestError(`Invalid video id: ${raw}`);
   return id;
 }

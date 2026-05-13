@@ -19,7 +19,6 @@ export class VideosService {
   async createVideo(input: CreateVideoInput): Promise<VideoViewModel> {
     const now = new Date();
     const doc = await this.videosRepository.create({
-      _id: now.getTime(),
       author: input.author,
       availableResolutions: input.availableResolutions,
       canBeDownloaded: false,
@@ -68,7 +67,7 @@ function toVideoView(doc: VideoDoc): VideoViewModel {
     availableResolutions: doc.availableResolutions,
     canBeDownloaded: doc.canBeDownloaded,
     createdAt: doc.createdAt.toISOString(),
-    id: doc._id,
+    id: doc.id,
     minAgeRestriction: doc.minAgeRestriction,
     publicationDate: doc.publicationDate.toISOString(),
     title: doc.title,

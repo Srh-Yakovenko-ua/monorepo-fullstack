@@ -30,6 +30,7 @@ const envSchema = z
         }
         return items;
       }),
+    DATABASE_URL: z.string().url(),
     EMAIL_FROM: z.string().email().default("no-reply@example.com"),
     ENABLE_SWAGGER: z
       .enum(["true", "false"])
@@ -60,6 +61,7 @@ const envSchema = z
   })
   .transform((raw) => ({
     corsOrigins: raw.CORS_ORIGINS,
+    databaseUrl: raw.DATABASE_URL,
     emailFrom: raw.EMAIL_FROM,
     enableSwagger: raw.ENABLE_SWAGGER,
     enableTestingEndpoints: raw.ENABLE_TESTING_ENDPOINTS,

@@ -39,6 +39,7 @@ catalog:
   "@types/express": ^5.0.6
   "@types/node": ^25.6.0
   "@types/nodemailer": ^6.4.17
+  "@types/pg": ^8.20.0
   "@types/react": ^19.2.14
   "@types/react-dom": ^19.2.3
   "@types/supertest": ^7.2.0
@@ -83,6 +84,7 @@ catalog:
   next-themes: ^0.4.6
   nodemailer: ^8.0.5
   nuqs: ^2.8.9
+  pg: ^8.20.0
   pino: ^10.3.1
   pino-http: ^11.0.0
   pino-pretty: ^13.1.3

@@ -8,6 +8,7 @@ export default defineConfig({
     clearMocks: true,
     env: {
       CORS_ORIGINS: "http://localhost:5173",
+      DATABASE_URL: "postgresql://monorepo:monorepo_dev_2026@localhost:5432/monorepo_dev",
       JWT_ACCESS_EXPIRES_IN: "2m",
       JWT_REFRESH_EXPIRES_IN: "2m",
       JWT_SECRET: "test-secret-that-is-at-least-32-characters-long",
