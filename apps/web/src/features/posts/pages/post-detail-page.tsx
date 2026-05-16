@@ -13,8 +13,9 @@ import { gradientFromString } from "@/lib/gradient-from-string";
 export function PostDetailPage() {
   const { t } = useTranslation();
   const { postId } = useParams<{ postId: string }>();
-  const { data: post, isError, isLoading } = usePost(postId ?? "");
-  const [newCommentId, setNewCommentId] = useState<null | string>(null);
+  const numericPostId = Number(postId);
+  const { data: post, isError, isLoading } = usePost(numericPostId);
+  const [newCommentId, setNewCommentId] = useState<null | number>(null);
 
   usePageTitle(post?.title ?? t("posts.list.title"));
 
@@ -24,7 +25,7 @@ export function PostDetailPage() {
     return () => window.clearTimeout(timer);
   }, [newCommentId]);
 
-  function handleCommentCreated(commentId: string) {
+  function handleCommentCreated(commentId: number) {
     setNewCommentId(commentId);
   }
 

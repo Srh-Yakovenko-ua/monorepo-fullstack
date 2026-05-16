@@ -22,7 +22,7 @@ export function useDeleteBlog() {
   });
 }
 
-export function useUpdateBlog(id: string) {
+export function useUpdateBlog(id: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: Parameters<typeof blogsApi.update>[1]) => blogsApi.update(id, input),

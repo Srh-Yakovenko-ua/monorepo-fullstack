@@ -16,7 +16,7 @@ type FormValues = { content: string };
 type Props = {
   comment: CommentViewModel;
   onDone: () => void;
-  postId: string;
+  postId: number;
 };
 
 export function EditCommentForm({ comment, onDone, postId }: Props) {

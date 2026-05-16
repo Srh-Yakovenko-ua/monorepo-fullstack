@@ -31,9 +31,9 @@ export const usersApi = {
     if (query.searchEmailTerm) url.searchParams.set("searchEmailTerm", query.searchEmailTerm);
     return request<Paginator<UserViewModel>>(url.pathname + url.search, { authMode: "bearer" });
   },
-  remove: (id: string) =>
+  remove: (id: number) =>
     request<void>(`/api/users/${id}`, { authMode: "bearer", method: "DELETE" }),
-  updateRole: ({ id, role }: { id: string; role: UpdateUserRoleInput["role"] }) =>
+  updateRole: ({ id, role }: { id: number; role: UpdateUserRoleInput["role"] }) =>
     request<void>(`/api/users/${id}/role`, {
       authMode: "bearer",
       body: JSON.stringify({ role }),

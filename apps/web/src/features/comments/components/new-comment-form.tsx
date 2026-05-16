@@ -15,8 +15,8 @@ import { applyFieldErrors, toastApiError } from "@/lib/api-errors";
 type FormValues = { content: string };
 
 type Props = {
-  onCommentCreated?: (commentId: string) => void;
-  postId: string;
+  onCommentCreated?: (commentId: number) => void;
+  postId: number;
 };
 
 const MAX_LENGTH = 300;

@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 const SKELETON_ROW_COUNT = 5;
 
 type UsersTableProps = {
-  currentUserId: null | string;
+  currentUserId: null | number;
   error: Error | null;
   hasSearchTerms: boolean;
   isError: boolean;
@@ -29,7 +29,7 @@ type UsersTableProps = {
   isSuperAdmin: boolean;
   onColumnSortClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onDeleteClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  onRoleChange: (params: { role: UpdateUserRoleInput["role"]; userId: string }) => void;
+  onRoleChange: (params: { role: UpdateUserRoleInput["role"]; userId: number }) => void;
   roleChangePending: boolean;
   sortValue: UserSortValue;
   users: UserViewModel[];

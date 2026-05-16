@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   extendedLikesInfo: ExtendedLikesInfoViewModel;
-  postId: string;
+  postId: number;
 };
 
 export function PostLikes({ extendedLikesInfo, postId }: Props) {

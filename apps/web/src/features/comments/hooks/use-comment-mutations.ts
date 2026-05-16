@@ -8,7 +8,7 @@ import { applyLikeStatus } from "@/features/comments/lib/apply-like-status";
 
 type CommentsInfiniteData = InfiniteData<Paginator<CommentViewModel>, number>;
 
-export function useCreateComment(postId: string) {
+export function useCreateComment(postId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ content }: { content: string }) => commentsApi.create({ content, postId }),
@@ -18,22 +18,22 @@ export function useCreateComment(postId: string) {
   });
 }
 
-export function useDeleteComment(postId: string) {
+export function useDeleteComment(postId: number) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (commentId: string) => commentsApi.remove(commentId),
+    mutationFn: (commentId: number) => commentsApi.remove(commentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: commentsKeys.postComments(postId) });
     },
   });
 }
 
-export function useSetCommentLikeStatus({ postId }: { postId: string }) {
+export function useSetCommentLikeStatus({ postId }: { postId: number }) {
   const queryClient = useQueryClient();
   const queryKey = commentsKeys.postComments(postId);
 
   return useMutation({
-    mutationFn: ({ commentId, likeStatus }: { commentId: string; likeStatus: LikeStatus }) =>
+    mutationFn: ({ commentId, likeStatus }: { commentId: number; likeStatus: LikeStatus }) =>
       commentsApi.setLikeStatus({ commentId, likeStatus }),
     onError: () => {
       void queryClient.invalidateQueries({ queryKey });
@@ -71,10 +71,10 @@ export function useSetCommentLikeStatus({ postId }: { postId: string }) {
   });
 }
 
-export function useUpdateComment(postId: string) {
+export function useUpdateComment(postId: number) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ commentId, content }: { commentId: string; content: string }) =>
+    mutationFn: ({ commentId, content }: { commentId: number; content: string }) =>
       commentsApi.update({ commentId, content }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: commentsKeys.postComments(postId) });

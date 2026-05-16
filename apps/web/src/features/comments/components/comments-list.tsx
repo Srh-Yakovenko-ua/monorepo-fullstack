@@ -10,8 +10,8 @@ import { usePostComments } from "@/features/comments/hooks/use-post-comments";
 import { useUserAuth } from "@/features/user-auth";
 
 type Props = {
-  newCommentId?: null | string;
-  postId: string;
+  newCommentId?: null | number;
+  postId: number;
 };
 
 const listVariants: Variants = {

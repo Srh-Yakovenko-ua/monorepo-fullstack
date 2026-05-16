@@ -32,7 +32,7 @@ export function BlogFormDialog({ isOpen, props }: Props) {
   const mode = props.mode;
 
   const createBlog = useCreateBlog();
-  const updateBlog = useUpdateBlog(blog?.id ?? "");
+  const updateBlog = useUpdateBlog(blog?.id ?? 0);
 
   const form = useForm<BlogFormValues>({
     defaultValues: blog ?? { description: "", name: "", websiteUrl: "" },

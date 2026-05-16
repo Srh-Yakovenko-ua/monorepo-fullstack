@@ -21,9 +21,9 @@ import { ModalId, modalObserver } from "@/features/modals";
 
 type Props = {
   comment: CommentViewModel;
-  currentUserId: null | string;
+  currentUserId: null | number;
   isNew?: boolean;
-  postId: string;
+  postId: number;
 };
 
 const commentDateFormatter = new Intl.DateTimeFormat(undefined, {

@@ -11,7 +11,7 @@ export type PostsListQuery = {
 
 export const postsKeys = {
   all: ["posts"] as const,
-  detail: (id: string) => [...postsKeys.all, "detail", id] as const,
+  detail: (id: number) => [...postsKeys.all, "detail", id] as const,
   list: (query: Omit<PostsListQuery, "pageNumber">) => [...postsKeys.lists(), query] as const,
   lists: () => [...postsKeys.all, "list"] as const,
 };
@@ -22,7 +22,7 @@ export const postsApi = {
       body: JSON.stringify(input),
       method: "POST",
     }),
-  getById: (id: string) => request<PostViewModel>(`/api/posts/${id}`),
+  getById: (id: number) => request<PostViewModel>(`/api/posts/${id}`),
   list: (query: PostsListQuery) => {
     const url = new URL("/api/posts", window.location.origin);
     url.searchParams.set("pageNumber", String(query.pageNumber));
@@ -31,13 +31,13 @@ export const postsApi = {
     url.searchParams.set("sortDirection", query.sortDirection);
     return request<Paginator<PostViewModel>>(url.pathname + url.search);
   },
-  remove: (id: string) => request<void>(`/api/posts/${id}`, { method: "DELETE" }),
-  setLikeStatus: ({ likeStatus, postId }: LikeInput & { postId: string }) =>
+  remove: (id: number) => request<void>(`/api/posts/${id}`, { method: "DELETE" }),
+  setLikeStatus: ({ likeStatus, postId }: LikeInput & { postId: number }) =>
     request<void>(`/api/posts/${postId}/like-status`, {
       body: JSON.stringify({ likeStatus }),
       method: "PUT",
     }),
-  update: (id: string, input: PostInput) =>
+  update: (id: number, input: PostInput) =>
     request<void>(`/api/posts/${id}`, {
       body: JSON.stringify(input),
       method: "PUT",

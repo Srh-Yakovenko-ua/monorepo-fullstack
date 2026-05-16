@@ -11,9 +11,9 @@ import { useUserAuth } from "@/features/user-auth";
 import { cn } from "@/lib/utils";
 
 type Props = {
-  commentId: string;
+  commentId: number;
   likesInfo: LikesInfoViewModel;
-  postId: string;
+  postId: number;
 };
 
 export function CommentLikes({ commentId, likesInfo, postId }: Props) {

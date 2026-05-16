@@ -58,8 +58,8 @@ export const blogsApi = {
     if (query.searchNameTerm) url.searchParams.set("searchNameTerm", query.searchNameTerm);
     return request<Paginator<BlogLookupItem>>(url.pathname + url.search);
   },
-  remove: (id: string) => request<void>(`/api/blogs/${id}`, { method: "DELETE" }),
-  update: (id: string, input: BlogInput) =>
+  remove: (id: number) => request<void>(`/api/blogs/${id}`, { method: "DELETE" }),
+  update: (id: number, input: BlogInput) =>
     request<void>(`/api/blogs/${id}`, {
       body: JSON.stringify(input),
       method: "PUT",

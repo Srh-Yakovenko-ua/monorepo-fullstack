@@ -1,5 +1,4 @@
 import type { Path } from "react-hook-form";
-import type { z } from "zod";
 
 import { PostInputSchema } from "@app/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,6 +6,7 @@ import { useEffect } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -20,7 +20,15 @@ import { ModalId, type ModalPayloads } from "@/features/modals/lib/modal-registr
 import { useCreatePost, useUpdatePost } from "@/features/posts/hooks/use-post-mutations";
 import { ApiError } from "@/lib/http-client";
 
-type PostFormValues = z.infer<typeof PostInputSchema>;
+const PostFormSchema = PostInputSchema.extend({
+  blogId: z
+    .union([z.literal(""), z.number()])
+    .transform((blogIdValue) => (blogIdValue === "" ? Number.NaN : blogIdValue))
+    .pipe(z.number().int().positive()),
+});
+
+type PostFormInput = z.input<typeof PostFormSchema>;
+type PostFormOutput = z.output<typeof PostFormSchema>;
 
 type Props = {
   isOpen: boolean;
@@ -33,9 +41,9 @@ export function PostFormDialog({ isOpen, props }: Props) {
   const mode = props.mode;
 
   const createPost = useCreatePost();
-  const updatePost = useUpdatePost(post?.id ?? "");
+  const updatePost = useUpdatePost(post?.id ?? 0);
 
-  const form = useForm<PostFormValues>({
+  const form = useForm<PostFormInput, unknown, PostFormOutput>({
     defaultValues: post
       ? {
           blogId: post.blogId,
@@ -44,7 +52,7 @@ export function PostFormDialog({ isOpen, props }: Props) {
           title: post.title,
         }
       : { blogId: "", content: "", shortDescription: "", title: "" },
-    resolver: zodResolver(PostInputSchema),
+    resolver: zodResolver(PostFormSchema),
   });
 
   const titleValue = useWatch({ control: form.control, name: "title" });
@@ -75,7 +83,7 @@ export function PostFormDialog({ isOpen, props }: Props) {
     if (!open) handleClose();
   }
 
-  async function onSubmit(values: PostFormValues) {
+  async function onSubmit(values: PostFormOutput) {
     try {
       if (mode === "create") {
         await createPost.mutateAsync(values);
@@ -89,7 +97,7 @@ export function PostFormDialog({ isOpen, props }: Props) {
     } catch (err) {
       if (err instanceof ApiError && err.fieldErrors) {
         err.fieldErrors.forEach(({ field, message }) => {
-          form.setError(field as Path<PostFormValues>, { message });
+          form.setError(field as Path<PostFormInput>, { message });
         });
         toast.error(t("common.fixFormErrors"));
       } else {
@@ -189,7 +197,7 @@ export function PostFormDialog({ isOpen, props }: Props) {
                   id="post-blogId"
                   initialLabel={post?.blogName}
                   onValueChange={field.onChange}
-                  value={field.value}
+                  value={field.value === "" ? undefined : field.value}
                 />
               )}
             />

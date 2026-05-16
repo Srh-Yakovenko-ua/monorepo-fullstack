@@ -30,7 +30,7 @@ export function useSetPostLikeStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ likeStatus, postId }: { likeStatus: LikeStatus; postId: string }) =>
+    mutationFn: ({ likeStatus, postId }: { likeStatus: LikeStatus; postId: number }) =>
       postsApi.setLikeStatus({ likeStatus, postId }),
     onError: (_error, { postId }) => {
       void queryClient.invalidateQueries({ queryKey: postsKeys.detail(postId) });
@@ -96,7 +96,7 @@ export function useSetPostLikeStatus() {
   });
 }
 
-export function useUpdatePost(id: string) {
+export function useUpdatePost(id: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: Parameters<typeof postsApi.update>[1]) => postsApi.update(id, input),

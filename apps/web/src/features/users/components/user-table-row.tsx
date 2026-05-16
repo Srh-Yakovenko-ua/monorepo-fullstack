@@ -20,10 +20,10 @@ import { truncateUserId } from "@/features/users/lib/user-id";
 import { formatTimestamp } from "@/lib/format";
 
 type UserTableRowProps = {
-  currentUserId: null | string;
+  currentUserId: null | number;
   isSuperAdmin: boolean;
   onDeleteClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  onRoleChange: (params: { role: UpdateUserRoleInput["role"]; userId: string }) => void;
+  onRoleChange: (params: { role: UpdateUserRoleInput["role"]; userId: number }) => void;
   roleChangePending: boolean;
   user: UserViewModel;
 };
@@ -85,16 +85,16 @@ export function UserTableRow({
       <TableCell className="hidden px-4 py-3 md:table-cell">
         <div className="flex items-center gap-2">
           <span
-            aria-label={user.id}
+            aria-label={String(user.id)}
             className="font-mono text-xs text-muted-foreground tabular-nums"
-            title={user.id}
+            title={String(user.id)}
           >
             {truncateUserId(user.id)}
           </span>
           <CopyButton
             ariaLabel={t("users.list.copyId")}
             toastMessage={t("users.list.idCopied")}
-            value={user.id}
+            value={String(user.id)}
           />
         </div>
       </TableCell>

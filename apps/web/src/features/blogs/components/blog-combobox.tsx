@@ -22,8 +22,8 @@ type BlogComboboxProps = {
   disabled?: boolean;
   id?: string;
   initialLabel?: string;
-  onValueChange: (blogId: string) => void;
-  value: string;
+  onValueChange: (blogId: number) => void;
+  value: number | undefined;
 };
 
 export function BlogCombobox({
@@ -96,7 +96,8 @@ export function BlogCombobox({
     setSearch(nextSearch);
   }
 
-  function handleSelect(blogId: string) {
+  function handleSelect(blogIdValue: string) {
+    const blogId = Number(blogIdValue);
     const selected = blogs.find((blog) => blog.id === blogId);
     if (selected) {
       setDisplayLabel(selected.name);
@@ -173,7 +174,7 @@ export function BlogCombobox({
             {!isLoading && !isError && blogs.length > 0 && (
               <CommandGroup>
                 {blogs.map((blog) => (
-                  <CommandItem key={blog.id} onSelect={handleSelect} value={blog.id}>
+                  <CommandItem key={blog.id} onSelect={handleSelect} value={String(blog.id)}>
                     <Check
                       className={cn(
                         "mr-2 size-4 shrink-0",

@@ -4,7 +4,7 @@ import { commentsApi, commentsKeys } from "@/features/comments/api";
 
 const PAGE_SIZE = 15;
 
-export function usePostComments(postId: string) {
+export function usePostComments(postId: number) {
   return useInfiniteQuery({
     getNextPageParam: (
       lastPage: Awaited<ReturnType<typeof commentsApi.listByPost>>,

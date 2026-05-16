@@ -240,6 +240,6 @@ function PageBreadcrumbs() {
 }
 
 function PostBreadcrumbTitle({ fallback, postId }: { fallback: string; postId: string }) {
-  const { data: post } = usePost(postId);
+  const { data: post } = usePost(Number(postId));
   return <>{post?.title ?? fallback}</>;
 }
