@@ -1,84 +1,150 @@
-import type { BlogsQuery } from "@app/shared";
+import type { BlogSortField, BlogsQuery } from "@app/shared";
 
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { type Model } from "mongoose";
+import { Inject, Injectable } from "@nestjs/common";
+import { Pool } from "pg";
 
-import { escapeRegExp } from "../../../core/regex.js";
-import { Blog, type BlogDoc } from "../domain/blog.entity.js";
+import { POSTGRES_POOL } from "../../../core/database/postgres-pool.token.js";
+import { type BlogDoc } from "../domain/blog.entity.js";
 
 export type BlogCreateInput = Pick<BlogDoc, "description" | "name" | "websiteUrl">;
-export type BlogLookupDoc = Pick<BlogDoc, "_id" | "name">;
+export type BlogLookupDoc = Pick<BlogDoc, "id" | "name">;
 export type BlogUpdateInput = Pick<BlogDoc, "description" | "name" | "websiteUrl">;
+
+interface BlogLookupRow {
+  id: number;
+  name: string;
+}
+
+interface BlogRow {
+  created_at: Date;
+  description: string;
+  id: number;
+  is_membership: boolean;
+  name: string;
+  website_url: string;
+}
+
+const BLOG_SORT_COLUMN_BY_FIELD: Record<BlogSortField, string> = {
+  createdAt: "created_at",
+  name: "name",
+};
+
+function mapLookupRow(row: BlogLookupRow): BlogLookupDoc {
+  return {
+    id: row.id,
+    name: row.name,
+  };
+}
+
+function mapRow(row: BlogRow): BlogDoc {
+  return {
+    createdAt: row.created_at,
+    description: row.description,
+    id: row.id,
+    isMembership: row.is_membership,
+    name: row.name,
+    websiteUrl: row.website_url,
+  };
+}
 
 @Injectable()
 export class BlogsRepository {
-  constructor(@InjectModel(Blog.name) private readonly blogModel: Model<Blog>) {}
+  constructor(@Inject(POSTGRES_POOL) private readonly pool: Pool) {}
 
   async clearAll(): Promise<void> {
-    await this.blogModel.deleteMany({});
+    await this.pool.query("DELETE FROM blogs");
   }
 
   async create(input: BlogCreateInput): Promise<BlogDoc> {
-    const doc = await this.blogModel.create(input);
-    return doc.toObject();
+    const result = await this.pool.query<BlogRow>(
+      `INSERT INTO blogs (name, description, website_url)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
+      [input.name, input.description, input.websiteUrl],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error("INSERT INTO blogs did not return a row");
+    return mapRow(row);
   }
 
-  async findById(id: string): Promise<BlogDoc | null> {
-    return this.blogModel.findById(id).lean();
+  async findById(id: number): Promise<BlogDoc | null> {
+    const result = await this.pool.query<BlogRow>("SELECT * FROM blogs WHERE id = $1", [id]);
+    const row = result.rows[0];
+    if (!row) return null;
+    return mapRow(row);
   }
 
   async findLookupPage(query: BlogsQuery): Promise<{ items: BlogLookupDoc[]; totalCount: number }> {
-    const filter =
-      query.searchNameTerm && query.searchNameTerm.length > 0
-        ? { name: { $options: "i", $regex: escapeRegExp(query.searchNameTerm) } }
-        : {};
-
-    const skip = (query.pageNumber - 1) * query.pageSize;
-    const sortOrder = query.sortDirection === "asc" ? 1 : -1;
+    const sortColumn = BLOG_SORT_COLUMN_BY_FIELD[query.sortBy];
+    const sortDirection = query.sortDirection === "asc" ? "ASC" : "DESC";
+    const offset = (query.pageNumber - 1) * query.pageSize;
+    const search = query.searchNameTerm?.length ? query.searchNameTerm : null;
 
     const [items, totalCount] = await Promise.all([
-      this.blogModel
-        .find(filter)
-        .select({ _id: 1, name: 1 })
-        .sort({ [query.sortBy]: sortOrder })
-        .skip(skip)
-        .limit(query.pageSize)
-        .lean(),
-      this.blogModel.countDocuments(filter),
+      this.pool
+        .query<BlogLookupRow>(
+          `SELECT id, name FROM blogs
+           WHERE ($1::text IS NULL OR name ILIKE '%' || $1 || '%')
+           ORDER BY ${sortColumn} ${sortDirection}
+           LIMIT $2 OFFSET $3`,
+          [search, query.pageSize, offset],
+        )
+        .then((result) => result.rows.map(mapLookupRow)),
+      this.pool
+        .query<{ count: string }>(
+          `SELECT COUNT(*)::int AS count FROM blogs
+           WHERE ($1::text IS NULL OR name ILIKE '%' || $1 || '%')`,
+          [search],
+        )
+        .then((result) => Number(result.rows[0]?.count ?? 0)),
     ]);
 
     return { items, totalCount };
   }
 
   async findPage(query: BlogsQuery): Promise<{ items: BlogDoc[]; totalCount: number }> {
-    const filter =
-      query.searchNameTerm && query.searchNameTerm.length > 0
-        ? { name: { $options: "i", $regex: escapeRegExp(query.searchNameTerm) } }
-        : {};
-
-    const skip = (query.pageNumber - 1) * query.pageSize;
-    const sortOrder = query.sortDirection === "asc" ? 1 : -1;
+    const sortColumn = BLOG_SORT_COLUMN_BY_FIELD[query.sortBy];
+    const sortDirection = query.sortDirection === "asc" ? "ASC" : "DESC";
+    const offset = (query.pageNumber - 1) * query.pageSize;
+    const search = query.searchNameTerm?.length ? query.searchNameTerm : null;
 
     const [items, totalCount] = await Promise.all([
-      this.blogModel
-        .find(filter)
-        .sort({ [query.sortBy]: sortOrder })
-        .skip(skip)
-        .limit(query.pageSize)
-        .lean(),
-      this.blogModel.countDocuments(filter),
+      this.pool
+        .query<BlogRow>(
+          `SELECT * FROM blogs
+           WHERE ($1::text IS NULL OR name ILIKE '%' || $1 || '%')
+           ORDER BY ${sortColumn} ${sortDirection}
+           LIMIT $2 OFFSET $3`,
+          [search, query.pageSize, offset],
+        )
+        .then((result) => result.rows.map(mapRow)),
+      this.pool
+        .query<{ count: string }>(
+          `SELECT COUNT(*)::int AS count FROM blogs
+           WHERE ($1::text IS NULL OR name ILIKE '%' || $1 || '%')`,
+          [search],
+        )
+        .then((result) => Number(result.rows[0]?.count ?? 0)),
     ]);
 
     return { items, totalCount };
   }
 
-  async remove(id: string): Promise<boolean> {
-    const result = await this.blogModel.findByIdAndDelete(id);
-    return result !== null;
+  async remove(id: number): Promise<boolean> {
+    const result = await this.pool.query("DELETE FROM blogs WHERE id = $1", [id]);
+    return (result.rowCount ?? 0) > 0;
   }
 
-  async update(id: string, patch: BlogUpdateInput): Promise<BlogDoc | null> {
-    return this.blogModel.findByIdAndUpdate(id, patch, { returnDocument: "after" }).lean();
+  async update(id: number, patch: BlogUpdateInput): Promise<BlogDoc | null> {
+    const result = await this.pool.query<BlogRow>(
+      `UPDATE blogs
+       SET name = $1, description = $2, website_url = $3
+       WHERE id = $4
+       RETURNING *`,
+      [patch.name, patch.description, patch.websiteUrl, id],
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return mapRow(row);
   }
 }

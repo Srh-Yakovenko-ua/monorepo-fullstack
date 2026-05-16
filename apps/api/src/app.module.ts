@@ -1,7 +1,6 @@
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 
 import { Module } from "@nestjs/common";
-import { MongooseModule } from "@nestjs/mongoose";
 
 import { env } from "./config/env.js";
 import { CoreModule } from "./core/core.module.js";
@@ -30,20 +29,7 @@ const optionalModules = [
 ];
 
 @Module({
-  imports: [
-    MongooseModule.forRootAsync({
-      useFactory: () => ({
-        lazyConnection: true,
-        retryAttempts: 0,
-        serverSelectionTimeoutMS: 3000,
-        uri: env.mongoUri,
-      }),
-    }),
-    DatabaseModule,
-    CoreModule,
-    ...featureModules,
-    ...optionalModules,
-  ],
+  imports: [DatabaseModule, CoreModule, ...featureModules, ...optionalModules],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

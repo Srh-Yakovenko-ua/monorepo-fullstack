@@ -1,21 +1,61 @@
-import type { UserRole, UsersQuery } from "@app/shared";
+import type { UserRole, UserSortField, UsersQuery } from "@app/shared";
 
-import { ROLE } from "@app/shared";
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { type Model } from "mongoose";
+import { Inject, Injectable } from "@nestjs/common";
+import { Pool } from "pg";
 
-import { escapeRegExp } from "../../../../core/regex.js";
-import { type EmailConfirmation, User, type UserDoc } from "../domain/user.entity.js";
+import { POSTGRES_POOL } from "../../../../core/database/postgres-pool.token.js";
+import { type UserDoc } from "../domain/user.entity.js";
 
 export type UserCreateInput = Pick<
   UserDoc,
-  "email" | "emailConfirmation" | "login" | "passwordHash" | "passwordRecovery" | "role"
+  | "email"
+  | "emailConfirmationCode"
+  | "emailConfirmationExpiresAt"
+  | "emailIsConfirmed"
+  | "login"
+  | "passwordHash"
+  | "role"
 >;
+
+interface UserRow {
+  created_at: Date;
+  email: string;
+  email_confirmation_code: null | string;
+  email_confirmation_expires_at: Date | null;
+  email_is_confirmed: boolean;
+  id: number;
+  login: string;
+  password_hash: string;
+  password_recovery_code: null | string;
+  password_recovery_expires_at: Date | null;
+  role: UserRole;
+}
+
+const USER_SORT_COLUMN_BY_FIELD: Record<UserSortField, string> = {
+  createdAt: "created_at",
+  email: "email",
+  login: "login",
+};
+
+function mapRow(row: UserRow): UserDoc {
+  return {
+    createdAt: row.created_at,
+    email: row.email,
+    emailConfirmationCode: row.email_confirmation_code,
+    emailConfirmationExpiresAt: row.email_confirmation_expires_at,
+    emailIsConfirmed: row.email_is_confirmed,
+    id: row.id,
+    login: row.login,
+    passwordHash: row.password_hash,
+    passwordRecoveryCode: row.password_recovery_code,
+    passwordRecoveryExpiresAt: row.password_recovery_expires_at,
+    role: row.role,
+  };
+}
 
 @Injectable()
 export class UsersRepository {
-  constructor(@InjectModel(User.name) private readonly userModel: Model<User>) {}
+  constructor(@Inject(POSTGRES_POOL) private readonly pool: Pool) {}
 
   async atomicResetPassword({
     newPasswordHash,
@@ -26,89 +66,139 @@ export class UsersRepository {
     now: Date;
     recoveryCode: string;
   }): Promise<null | UserDoc> {
-    return this.userModel
-      .findOneAndUpdate(
-        {
-          "passwordRecovery.code": recoveryCode,
-          "passwordRecovery.expiresAt": { $gt: now },
-        },
-        {
-          $set: { passwordHash: newPasswordHash },
-          $unset: { "passwordRecovery.code": "", "passwordRecovery.expiresAt": "" },
-        },
-        { returnDocument: "after" },
-      )
-      .lean();
-  }
-
-  async backfillMissingRole(): Promise<number> {
-    const result = await this.userModel.updateMany(
-      { role: { $exists: false } },
-      { $set: { role: ROLE.user } },
+    const result = await this.pool.query<UserRow>(
+      `UPDATE users
+       SET password_hash = $1,
+           password_recovery_code = NULL,
+           password_recovery_expires_at = NULL
+       WHERE password_recovery_code = $2
+         AND password_recovery_expires_at > $3
+       RETURNING *`,
+      [newPasswordHash, recoveryCode, now],
     );
-    return result.modifiedCount;
+    const row = result.rows[0];
+    if (!row) return null;
+    return mapRow(row);
   }
 
   async clearAll(): Promise<void> {
-    await this.userModel.deleteMany({});
+    await this.pool.query("DELETE FROM users");
   }
 
   async create(input: UserCreateInput): Promise<UserDoc> {
-    const doc = await this.userModel.create(input);
-    return doc.toObject();
+    const result = await this.pool.query<UserRow>(
+      `INSERT INTO users (
+         email, login, password_hash, role,
+         email_confirmation_code, email_confirmation_expires_at, email_is_confirmed
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [
+        input.email,
+        input.login,
+        input.passwordHash,
+        input.role,
+        input.emailConfirmationCode,
+        input.emailConfirmationExpiresAt,
+        input.emailIsConfirmed,
+      ],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error("INSERT INTO users did not return a row");
+    return mapRow(row);
   }
 
   async findByEmail(email: string): Promise<null | UserDoc> {
-    return this.userModel.findOne({ email: email.trim().toLowerCase() }).lean();
+    const result = await this.pool.query<UserRow>("SELECT * FROM users WHERE email = $1", [
+      email.trim().toLowerCase(),
+    ]);
+    const row = result.rows[0];
+    if (!row) return null;
+    return mapRow(row);
   }
 
   async findByEmailConfirmationCode(code: string): Promise<null | UserDoc> {
-    return this.userModel.findOne({ "emailConfirmation.code": code }).lean();
+    const result = await this.pool.query<UserRow>(
+      "SELECT * FROM users WHERE email_confirmation_code = $1",
+      [code],
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return mapRow(row);
   }
 
-  async findById(id: string): Promise<null | UserDoc> {
-    return this.userModel.findById(id).lean();
+  async findById(id: number): Promise<null | UserDoc> {
+    const result = await this.pool.query<UserRow>("SELECT * FROM users WHERE id = $1", [id]);
+    const row = result.rows[0];
+    if (!row) return null;
+    return mapRow(row);
   }
 
   async findByLogin(login: string): Promise<null | UserDoc> {
-    return this.userModel.findOne({ login }).lean();
+    const result = await this.pool.query<UserRow>("SELECT * FROM users WHERE login = $1", [login]);
+    const row = result.rows[0];
+    if (!row) return null;
+    return mapRow(row);
   }
 
   async findByLoginOrEmail(loginOrEmail: string): Promise<null | UserDoc> {
-    return this.userModel
-      .findOne({
-        $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
-      })
-      .lean();
+    const result = await this.pool.query<UserRow>(
+      "SELECT * FROM users WHERE email = $1 OR login = $1",
+      [loginOrEmail],
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return mapRow(row);
   }
 
   async findPage(query: UsersQuery): Promise<{ items: UserDoc[]; totalCount: number }> {
-    const filter = buildFilter(query);
-    const skip = (query.pageNumber - 1) * query.pageSize;
-    const sortOrder = query.sortDirection === "asc" ? 1 : -1;
+    const sortColumn = USER_SORT_COLUMN_BY_FIELD[query.sortBy];
+    const sortDirection = query.sortDirection === "asc" ? "ASC" : "DESC";
+    const offset = (query.pageNumber - 1) * query.pageSize;
+    const loginSearch = query.searchLoginTerm?.length ? query.searchLoginTerm : null;
+    const emailSearch = query.searchEmailTerm?.length ? query.searchEmailTerm : null;
+
+    const whereClause = `
+      WHERE (
+        ($1::text IS NULL AND $2::text IS NULL)
+        OR ($1::text IS NOT NULL AND login ILIKE '%' || $1 || '%')
+        OR ($2::text IS NOT NULL AND email ILIKE '%' || $2 || '%')
+      )
+    `;
 
     const [items, totalCount] = await Promise.all([
-      this.userModel
-        .find(filter)
-        .sort({ [query.sortBy]: sortOrder })
-        .skip(skip)
-        .limit(query.pageSize)
-        .lean(),
-      this.userModel.countDocuments(filter),
+      this.pool
+        .query<UserRow>(
+          `SELECT * FROM users ${whereClause}
+           ORDER BY ${sortColumn} ${sortDirection}
+           LIMIT $3 OFFSET $4`,
+          [loginSearch, emailSearch, query.pageSize, offset],
+        )
+        .then((result) => result.rows.map(mapRow)),
+      this.pool
+        .query<{
+          count: string;
+        }>(`SELECT COUNT(*)::int AS count FROM users ${whereClause}`, [loginSearch, emailSearch])
+        .then((result) => Number(result.rows[0]?.count ?? 0)),
     ]);
 
     return { items, totalCount };
   }
 
-  async markEmailConfirmed(userId: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, {
-      "emailConfirmation.isConfirmed": true,
-    });
+  async markEmailConfirmed(userId: number): Promise<void> {
+    await this.pool.query(
+      `UPDATE users
+       SET email_is_confirmed = TRUE,
+           email_confirmation_code = NULL,
+           email_confirmation_expires_at = NULL
+       WHERE id = $1`,
+      [userId],
+    );
   }
 
-  async remove(id: string): Promise<boolean> {
-    const result = await this.userModel.findByIdAndDelete(id);
-    return result !== null;
+  async remove(id: number): Promise<boolean> {
+    const result = await this.pool.query("DELETE FROM users WHERE id = $1", [id]);
+    return (result.rowCount ?? 0) > 0;
   }
 
   async setPasswordRecovery({
@@ -118,54 +208,46 @@ export class UsersRepository {
   }: {
     code: string;
     expiresAt: Date;
-    userId: string;
+    userId: number;
   }): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, {
-      $set: {
-        "passwordRecovery.code": code,
-        "passwordRecovery.expiresAt": expiresAt,
-      },
-    });
+    await this.pool.query(
+      `UPDATE users
+       SET password_recovery_code = $1,
+           password_recovery_expires_at = $2
+       WHERE id = $3`,
+      [code, expiresAt, userId],
+    );
   }
 
-  async updateEmailConfirmation(
-    userId: string,
-    emailConfirmation: EmailConfirmation,
-  ): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, { emailConfirmation });
+  async updateEmailConfirmation({
+    code,
+    expiresAt,
+    isConfirmed,
+    userId,
+  }: {
+    code: null | string;
+    expiresAt: Date | null;
+    isConfirmed: boolean;
+    userId: number;
+  }): Promise<void> {
+    await this.pool.query(
+      `UPDATE users
+       SET email_confirmation_code = $1,
+           email_confirmation_expires_at = $2,
+           email_is_confirmed = $3
+       WHERE id = $4`,
+      [code, expiresAt, isConfirmed, userId],
+    );
   }
 
-  async updatePasswordHash(userId: string, passwordHash: string): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, { passwordHash });
+  async updatePasswordHash(userId: number, passwordHash: string): Promise<void> {
+    await this.pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [
+      passwordHash,
+      userId,
+    ]);
   }
 
-  async updateRole(userId: string, role: UserRole): Promise<void> {
-    await this.userModel.findByIdAndUpdate(userId, { role });
+  async updateRole(userId: number, role: UserRole): Promise<void> {
+    await this.pool.query("UPDATE users SET role = $1 WHERE id = $2", [role, userId]);
   }
-}
-
-function buildFilter(query: UsersQuery): Record<string, unknown> {
-  const { searchEmailTerm, searchLoginTerm } = query;
-
-  const hasLogin = searchLoginTerm && searchLoginTerm.length > 0;
-  const hasEmail = searchEmailTerm && searchEmailTerm.length > 0;
-
-  if (hasLogin && hasEmail) {
-    return {
-      $or: [
-        { login: { $options: "i", $regex: escapeRegExp(searchLoginTerm) } },
-        { email: { $options: "i", $regex: escapeRegExp(searchEmailTerm) } },
-      ],
-    };
-  }
-
-  if (hasLogin) {
-    return { login: { $options: "i", $regex: escapeRegExp(searchLoginTerm) } };
-  }
-
-  if (hasEmail) {
-    return { email: { $options: "i", $regex: escapeRegExp(searchEmailTerm) } };
-  }
-
-  return {};
 }

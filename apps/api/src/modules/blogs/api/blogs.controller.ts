@@ -15,6 +15,7 @@ import {
 } from "@nestjs/common";
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 
+import { BadRequestError } from "../../../core/exceptions/errors.js";
 import { ZodBodyPipe } from "../../../core/pipes/zod-body.pipe.js";
 import { ZodQueryPipe } from "../../../core/pipes/zod-query.pipe.js";
 import { BlogsService } from "../application/blogs.service.js";
@@ -42,8 +43,8 @@ export class BlogsController {
   @ApiResponse({ description: "Blog not found", status: 404 })
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteBlog(@Param("id") id: string): Promise<void> {
-    return this.blogsService.deleteBlog(id);
+  deleteBlog(@Param("id") rawId: string): Promise<void> {
+    return this.blogsService.deleteBlog(parseBlogId(rawId));
   }
 
   @ApiOperation({ summary: "List blogs as lightweight lookup items" })
@@ -73,8 +74,8 @@ export class BlogsController {
   @ApiResponse({ description: "Blog found", status: 200 })
   @ApiResponse({ description: "Blog not found", status: 404 })
   @Get(":id")
-  getBlog(@Param("id") id: string): Promise<BlogViewModel> {
-    return this.blogsService.getBlogById(id);
+  getBlog(@Param("id") rawId: string): Promise<BlogViewModel> {
+    return this.blogsService.getBlogById(parseBlogId(rawId));
   }
 
   @ApiBody({ type: BlogInputDto })
@@ -86,9 +87,15 @@ export class BlogsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Put(":id")
   updateBlog(
-    @Param("id") id: string,
+    @Param("id") rawId: string,
     @Body(new ZodBodyPipe(BlogInputSchema)) body: BlogInputDto,
   ): Promise<void> {
-    return this.blogsService.updateBlog(id, body);
+    return this.blogsService.updateBlog(parseBlogId(rawId), body);
   }
+}
+
+function parseBlogId(raw: string): number {
+  const id = Number(raw);
+  if (!Number.isInteger(id)) throw new BadRequestError(`Invalid blog id: ${raw}`);
+  return id;
 }

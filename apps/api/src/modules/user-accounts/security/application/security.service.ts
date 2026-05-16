@@ -20,7 +20,7 @@ export class SecurityService {
     userId,
   }: {
     currentDeviceId: string;
-    userId: string;
+    userId: number;
   }): Promise<DeviceViewModel[]> {
     const sessions = await this.sessionsRepository.findAllByUser(userId);
     return sessions.map((doc) => toDeviceView(doc, currentDeviceId));
@@ -33,14 +33,14 @@ export class SecurityService {
   }: {
     currentDeviceId: string;
     targetDeviceId: string;
-    userId: string;
+    userId: number;
   }): Promise<void> {
     if (targetDeviceId === currentDeviceId) {
       throw new ForbiddenError("Cannot terminate current session, use sign-out instead");
     }
 
     const session = await this.sessionsRepository.findByDeviceId(targetDeviceId);
-    if (!session || session.userId.toHexString() !== userId) {
+    if (!session || session.userId !== userId) {
       throw new NotFoundError(`Device ${targetDeviceId} not found`);
     }
 
@@ -52,7 +52,7 @@ export class SecurityService {
     userId,
   }: {
     currentDeviceId: string;
-    userId: string;
+    userId: number;
   }): Promise<void> {
     await this.sessionsRepository.deleteAllByUserExceptDevice({ currentDeviceId, userId });
   }

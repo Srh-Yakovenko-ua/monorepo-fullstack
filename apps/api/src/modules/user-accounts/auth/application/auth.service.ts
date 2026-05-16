@@ -89,25 +89,22 @@ export class AuthService {
       });
     }
 
-    if (user.emailConfirmation.isConfirmed) {
+    if (user.emailIsConfirmed) {
       throw new BadRequestError("Confirmation failed", {
         fields: [{ field: "code", message: "Email is already confirmed" }],
       });
     }
 
-    if (
-      !user.emailConfirmation.expiresAt ||
-      isAfter(new Date(), user.emailConfirmation.expiresAt)
-    ) {
+    if (!user.emailConfirmationExpiresAt || isAfter(new Date(), user.emailConfirmationExpiresAt)) {
       throw new BadRequestError("Confirmation failed", {
         fields: [{ field: "code", message: "Confirmation code expired" }],
       });
     }
 
-    await this.usersRepository.markEmailConfirmed(user._id.toHexString());
+    await this.usersRepository.markEmailConfirmed(user.id);
   }
 
-  async getCurrentUser(userId: string): Promise<MeViewModel> {
+  async getCurrentUser(userId: number): Promise<MeViewModel> {
     const user = await this.usersRepository.findById(userId);
     if (!user) throw new UnauthorizedError();
 
@@ -115,7 +112,7 @@ export class AuthService {
       email: user.email,
       login: user.login,
       role: user.role,
-      userId: user._id.toHexString(),
+      userId: user.id,
     };
   }
 
@@ -126,11 +123,11 @@ export class AuthService {
     const passwordMatches = await compare(input.password, user.passwordHash);
     if (!passwordMatches) throw new UnauthorizedError("Invalid login or password");
 
-    if (user.emailConfirmation?.isConfirmed === false) {
+    if (!user.emailIsConfirmed) {
       throw new UnauthorizedError("Invalid login or password");
     }
 
-    const userId = user._id.toHexString();
+    const userId = user.id;
     const deviceId = randomUUID();
     const title = parseDeviceTitle(context.userAgent);
 
@@ -156,12 +153,12 @@ export class AuthService {
     };
   }
 
-  async logout({ deviceId, userId }: { deviceId: string; userId: string }): Promise<void> {
+  async logout({ deviceId, userId }: { deviceId: string; userId: number }): Promise<void> {
     await this.sessionsRepository.deleteByUserAndDevice({ deviceId, userId });
   }
 
   async refreshTokens(
-    { deviceId, userId }: { deviceId: string; userId: string },
+    { deviceId, userId }: { deviceId: string; userId: number },
     context: LoginContext,
   ): Promise<RefreshResult> {
     const [accessToken, refreshTokenResult] = await Promise.all([
@@ -200,7 +197,7 @@ export class AuthService {
     try {
       await sendEmail({ ...template, to: user.email });
     } catch (err) {
-      log.error({ err, userId: user._id.toHexString() }, "Failed to send confirmation email");
+      log.error({ err, userId: user.id }, "Failed to send confirmation email");
     }
   }
 
@@ -210,14 +207,14 @@ export class AuthService {
 
     const now = new Date();
     const throttleCutoff = subSeconds(now, PASSWORD_RECOVERY_THROTTLE_SECONDS);
-    const lastIssuedAt = user.passwordRecovery.expiresAt
-      ? subHours(user.passwordRecovery.expiresAt, PASSWORD_RECOVERY_TTL_HOURS)
+    const lastIssuedAt = user.passwordRecoveryExpiresAt
+      ? subHours(user.passwordRecoveryExpiresAt, PASSWORD_RECOVERY_TTL_HOURS)
       : null;
     if (lastIssuedAt && isAfter(lastIssuedAt, throttleCutoff)) return;
 
     const code = randomUUID();
     const expiresAt = addHours(now, PASSWORD_RECOVERY_TTL_HOURS);
-    const userId = user._id.toHexString();
+    const userId = user.id;
     await this.usersRepository.setPasswordRecovery({ code, expiresAt, userId });
 
     const recoveryLink = `${env.frontendUrl}/password-recovery?recoveryCode=${code}`;
@@ -237,7 +234,7 @@ export class AuthService {
       });
     }
 
-    if (user.emailConfirmation.isConfirmed) {
+    if (user.emailIsConfirmed) {
       throw new BadRequestError("Resend failed", {
         fields: [{ field: "email", message: "Email is already confirmed" }],
       });
@@ -246,10 +243,11 @@ export class AuthService {
     const code = randomUUID();
     const expiresAt = addHours(new Date(), CONFIRMATION_TTL_HOURS);
 
-    await this.usersRepository.updateEmailConfirmation(user._id.toHexString(), {
+    await this.usersRepository.updateEmailConfirmation({
       code,
       expiresAt,
       isConfirmed: false,
+      userId: user.id,
     });
 
     const confirmLink = `${env.frontendUrl}/confirm-registration?code=${code}`;
@@ -258,7 +256,7 @@ export class AuthService {
     try {
       await sendEmail({ ...template, to: user.email });
     } catch (err) {
-      log.error({ err, userId: user._id.toHexString() }, "Failed to resend confirmation email");
+      log.error({ err, userId: user.id }, "Failed to resend confirmation email");
       throw new HttpError(HTTP_STATUS.BAD_GATEWAY, "Failed to send confirmation email");
     }
   }

@@ -24,7 +24,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { UnauthorizedError } from "../../../core/exceptions/errors.js";
+import { NotFoundError, UnauthorizedError } from "../../../core/exceptions/errors.js";
 import { JwtAuthGuard } from "../../../core/guards/jwt-auth.guard.js";
 import { OptionalJwtAuthGuard } from "../../../core/guards/optional-jwt-auth.guard.js";
 import { ZodBodyPipe } from "../../../core/pipes/zod-body.pipe.js";
@@ -50,7 +50,7 @@ export class PostCommentsController {
   @Post(":postId/comments")
   @UseGuards(JwtAuthGuard)
   createPostComment(
-    @Param("postId") postId: string,
+    @Param("postId") rawPostId: string,
     @Body(new ZodBodyPipe(CommentUpdateInputSchema)) body: CommentUpdateInputDto,
     @Req() request: Request,
   ): Promise<CommentViewModel> {
@@ -59,7 +59,7 @@ export class PostCommentsController {
     return this.commentsService.createPostComment({
       currentUser: { login: user.login, userId: user.userId },
       input: body,
-      postId,
+      postId: parsePostId(rawPostId),
     });
   }
 
@@ -73,14 +73,20 @@ export class PostCommentsController {
   @Get(":postId/comments")
   @UseGuards(OptionalJwtAuthGuard)
   listPostComments(
-    @Param("postId") postId: string,
+    @Param("postId") rawPostId: string,
     @Query(new ZodQueryPipe(CommentsQuerySchema)) query: CommentsQueryDto,
     @Req() request: Request,
   ): Promise<Paginator<CommentViewModel>> {
     return this.commentsService.listPostComments({
       currentUserId: request.viewerId,
-      postId,
+      postId: parsePostId(rawPostId),
       query,
     });
   }
+}
+
+function parsePostId(raw: string): number {
+  const id = Number(raw);
+  if (!Number.isInteger(id)) throw new NotFoundError("Post not found", { bodyless: true });
+  return id;
 }

@@ -14,7 +14,6 @@ catalog:
   "@hookform/resolvers": ^5.2.2
   "@nestjs/common": ^11.1.19
   "@nestjs/core": ^11.1.19
-  "@nestjs/mongoose": ^11.0.4
   "@nestjs/platform-express": ^11.1.19
   "@nestjs/swagger": ^11.4.2
   "@nestjs/testing": ^11.1.19
@@ -76,8 +75,6 @@ catalog:
   knip: ^6.3.1
   lint-staged: ^16.4.0
   lucide-react: ^1.8.0
-  mongodb-memory-server: ^11.0.1
-  mongoose: ^9.4.1
   motion: ^12.38.0
   nanoid: ^5.1.7
   nestjs-zod: ^5.3.0
@@ -128,6 +125,3 @@ catalog:
   zustand: ^5.0.12
 
 catalogMode: prefer
-
-onlyBuiltDependencies:
-  - mongodb-memory-server

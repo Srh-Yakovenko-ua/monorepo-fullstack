@@ -7,13 +7,13 @@ import { env } from "../config/env.js";
 
 const secret = new TextEncoder().encode(env.jwtSecret);
 
-export type AccessTokenPayload = { userId: string };
+export type AccessTokenPayload = { userId: number };
 export type RefreshTokenPayload = {
   deviceId: string;
   exp: number;
   iat: number;
   jti: string;
-  userId: string;
+  userId: number;
 };
 
 const refreshTokenPayloadSchema = z.object({
@@ -21,7 +21,7 @@ const refreshTokenPayloadSchema = z.object({
   exp: z.number(),
   iat: z.number(),
   jti: z.string(),
-  userId: z.string(),
+  userId: z.number().int().positive(),
 });
 
 export async function signAccessToken(payload: AccessTokenPayload): Promise<string> {
@@ -34,7 +34,7 @@ export async function signAccessToken(payload: AccessTokenPayload): Promise<stri
 
 export async function signRefreshToken(input: {
   deviceId: string;
-  userId: string;
+  userId: number;
 }): Promise<{ expiresAt: Date; issuedAt: Date; jti: string; token: string }> {
   const jti = randomUUID();
   const token = await new SignJWT({ deviceId: input.deviceId, userId: input.userId })
@@ -54,7 +54,9 @@ export async function signRefreshToken(input: {
 
 export async function verifyAccessToken(token: string): Promise<AccessTokenPayload> {
   const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
-  if (typeof payload.userId !== "string") throw new Error("Invalid token payload");
+  if (typeof payload.userId !== "number" || !Number.isInteger(payload.userId)) {
+    throw new Error("Invalid token payload");
+  }
   return { userId: payload.userId };
 }
 

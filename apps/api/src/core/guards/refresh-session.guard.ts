@@ -27,7 +27,7 @@ export class RefreshSessionGuard implements CanActivate {
     const token = request.cookies[REFRESH_TOKEN_COOKIE] as string | undefined;
     if (!token) throw new UnauthorizedError();
 
-    let payload: { deviceId: string; jti: string; userId: string };
+    let payload: { deviceId: string; jti: string; userId: number };
     try {
       payload = await verifyRefreshToken(token);
     } catch {

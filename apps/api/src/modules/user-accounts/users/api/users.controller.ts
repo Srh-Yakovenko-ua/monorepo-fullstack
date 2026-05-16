@@ -26,7 +26,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { UnauthorizedError } from "../../../../core/exceptions/errors.js";
+import { BadRequestError, UnauthorizedError } from "../../../../core/exceptions/errors.js";
 import { AdminGuard } from "../../../../core/guards/admin.guard.js";
 import { JwtAuthGuard } from "../../../../core/guards/jwt-auth.guard.js";
 import { SuperAdminGuard } from "../../../../core/guards/super-admin.guard.js";
@@ -68,8 +68,8 @@ export class UsersController {
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard, AdminGuard)
-  deleteUser(@Param("id") id: string): Promise<void> {
-    return this.usersService.deleteUser(id);
+  deleteUser(@Param("id") rawId: string): Promise<void> {
+    return this.usersService.deleteUser(parseUserId(rawId));
   }
 
   @ApiBearerAuth()
@@ -100,7 +100,7 @@ export class UsersController {
   @Put(":id/role")
   @UseGuards(JwtAuthGuard, SuperAdminGuard)
   updateUserRole(
-    @Param("id") id: string,
+    @Param("id") rawId: string,
     @Body(new ZodBodyPipe(UpdateUserRoleInputSchema)) body: UpdateUserRoleInputDto,
     @Req() request: Request,
   ): Promise<void> {
@@ -109,7 +109,13 @@ export class UsersController {
     return this.usersService.updateUserRole({
       actorUserId: actor.userId,
       newRole: body.role,
-      targetUserId: id,
+      targetUserId: parseUserId(rawId),
     });
   }
+}
+
+function parseUserId(raw: string): number {
+  const id = Number(raw);
+  if (!Number.isInteger(id)) throw new BadRequestError(`Invalid user id: ${raw}`);
+  return id;
 }

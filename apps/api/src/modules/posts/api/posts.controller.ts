@@ -26,7 +26,11 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { UnauthorizedError } from "../../../core/exceptions/errors.js";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../../../core/exceptions/errors.js";
 import { JwtAuthGuard } from "../../../core/guards/jwt-auth.guard.js";
 import { OptionalJwtAuthGuard } from "../../../core/guards/optional-jwt-auth.guard.js";
 import { ZodBodyPipe } from "../../../core/pipes/zod-body.pipe.js";
@@ -57,8 +61,8 @@ export class PostsController {
   @ApiResponse({ description: "Post not found", status: 404 })
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  deletePost(@Param("id") id: string): Promise<void> {
-    return this.postsService.deletePost(id);
+  deletePost(@Param("id") rawId: string): Promise<void> {
+    return this.postsService.deletePost(parsePostId(rawId));
   }
 
   @ApiBearerAuth()
@@ -68,10 +72,10 @@ export class PostsController {
   @ApiResponse({ description: "Post not found", status: 404 })
   @Get(":id")
   @UseGuards(OptionalJwtAuthGuard)
-  getPost(@Param("id") id: string, @Req() request: Request): Promise<PostViewModel> {
+  getPost(@Param("id") rawId: string, @Req() request: Request): Promise<PostViewModel> {
     return this.postsService.getPostById({
       currentUserId: request.viewerId,
-      postId: id,
+      postId: parsePostId(rawId),
     });
   }
 
@@ -101,7 +105,7 @@ export class PostsController {
   @Put(":postId/like-status")
   @UseGuards(JwtAuthGuard)
   setLikeStatus(
-    @Param("postId") postId: string,
+    @Param("postId") rawPostId: string,
     @Body(new ZodBodyPipe(LikeInputSchema)) body: LikeInputDto,
     @Req() request: Request,
   ): Promise<void> {
@@ -111,7 +115,7 @@ export class PostsController {
       currentUserId: user.userId,
       currentUserLogin: user.login,
       newStatus: body.likeStatus,
-      postId,
+      postId: parsePostIdForLikes(rawPostId),
     });
   }
 
@@ -124,9 +128,21 @@ export class PostsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Put(":id")
   updatePost(
-    @Param("id") id: string,
+    @Param("id") rawId: string,
     @Body(new ZodBodyPipe(PostInputSchema)) body: PostInputDto,
   ): Promise<void> {
-    return this.postsService.updatePost(id, body);
+    return this.postsService.updatePost(parsePostId(rawId), body);
   }
+}
+
+function parsePostId(raw: string): number {
+  const id = Number(raw);
+  if (!Number.isInteger(id)) throw new BadRequestError(`Invalid post id: ${raw}`);
+  return id;
+}
+
+function parsePostIdForLikes(raw: string): number {
+  const id = Number(raw);
+  if (!Number.isInteger(id)) throw new NotFoundError("Post not found", { bodyless: true });
+  return id;
 }

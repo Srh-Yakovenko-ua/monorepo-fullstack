@@ -53,14 +53,15 @@ async function createSuperAdmin({
   const passwordHash = await hash(password, BCRYPT_SALT_ROUNDS);
   const doc = await usersRepository.create({
     email,
-    emailConfirmation: { code: null, expiresAt: null, isConfirmed: true },
+    emailConfirmationCode: null,
+    emailConfirmationExpiresAt: null,
+    emailIsConfirmed: true,
     login,
     passwordHash,
-    passwordRecovery: { code: null, expiresAt: null },
     role: ROLE.superAdmin,
   });
 
-  log.info({ id: doc._id.toHexString(), login }, "super-admin created");
+  log.info({ id: doc.id, login }, "super-admin created");
 }
 
 function isAction(value: string | undefined): value is Action {
@@ -133,7 +134,7 @@ async function promoteToSuperAdmin({
     return;
   }
 
-  await usersRepository.updateRole(user._id.toHexString(), ROLE.superAdmin);
+  await usersRepository.updateRole(user.id, ROLE.superAdmin);
   log.info({ login, previousRole: user.role }, "promoted to super-admin");
 }
 
@@ -158,7 +159,7 @@ async function setSuperAdminPassword({
   }
 
   const passwordHash = await hash(password, BCRYPT_SALT_ROUNDS);
-  await usersRepository.updatePasswordHash(user._id.toHexString(), passwordHash);
+  await usersRepository.updatePasswordHash(user.id, passwordHash);
   log.info({ login, role: user.role }, "password updated");
 }
 

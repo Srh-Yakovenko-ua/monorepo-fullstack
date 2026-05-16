@@ -23,7 +23,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { UnauthorizedError } from "../../../core/exceptions/errors.js";
+import { NotFoundError, UnauthorizedError } from "../../../core/exceptions/errors.js";
 import { JwtAuthGuard } from "../../../core/guards/jwt-auth.guard.js";
 import { OptionalJwtAuthGuard } from "../../../core/guards/optional-jwt-auth.guard.js";
 import { ZodBodyPipe } from "../../../core/pipes/zod-body.pipe.js";
@@ -46,11 +46,11 @@ export class CommentsController {
   @Delete(":commentId")
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
-  deleteComment(@Param("commentId") commentId: string, @Req() request: Request): Promise<void> {
+  deleteComment(@Param("commentId") rawCommentId: string, @Req() request: Request): Promise<void> {
     const user = request.user;
     if (!user) throw new UnauthorizedError();
     return this.commentsService.deleteComment({
-      commentId,
+      commentId: parseCommentId(rawCommentId),
       currentUserId: user.userId,
     });
   }
@@ -63,11 +63,11 @@ export class CommentsController {
   @Get(":commentId")
   @UseGuards(OptionalJwtAuthGuard)
   getCommentById(
-    @Param("commentId") commentId: string,
+    @Param("commentId") rawCommentId: string,
     @Req() request: Request,
   ): Promise<CommentViewModel> {
     return this.commentsService.getCommentById({
-      commentId,
+      commentId: parseCommentId(rawCommentId),
       currentUserId: request.viewerId,
     });
   }
@@ -84,14 +84,14 @@ export class CommentsController {
   @Put(":commentId/like-status")
   @UseGuards(JwtAuthGuard)
   setLikeStatus(
-    @Param("commentId") commentId: string,
+    @Param("commentId") rawCommentId: string,
     @Body(new ZodBodyPipe(LikeInputSchema)) body: LikeInputDto,
     @Req() request: Request,
   ): Promise<void> {
     const user = request.user;
     if (!user) throw new UnauthorizedError();
     return this.commentsService.setLikeStatus({
-      commentId,
+      commentId: parseCommentId(rawCommentId),
       currentUserId: user.userId,
       newStatus: body.likeStatus,
     });
@@ -110,16 +110,22 @@ export class CommentsController {
   @Put(":commentId")
   @UseGuards(JwtAuthGuard)
   updateComment(
-    @Param("commentId") commentId: string,
+    @Param("commentId") rawCommentId: string,
     @Body(new ZodBodyPipe(CommentUpdateInputSchema)) body: CommentUpdateInputDto,
     @Req() request: Request,
   ): Promise<void> {
     const user = request.user;
     if (!user) throw new UnauthorizedError();
     return this.commentsService.updateComment({
-      commentId,
+      commentId: parseCommentId(rawCommentId),
       currentUserId: user.userId,
       input: body,
     });
   }
+}
+
+function parseCommentId(raw: string): number {
+  const id = Number(raw);
+  if (!Number.isInteger(id)) throw new NotFoundError("Comment not found", { bodyless: true });
+  return id;
 }

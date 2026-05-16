@@ -2,11 +2,9 @@ import "reflect-metadata";
 
 import type { INestApplication, ModuleMetadata } from "@nestjs/common";
 
-import { MongooseModule } from "@nestjs/mongoose";
 import { type NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import cookieParser from "cookie-parser";
-import mongoose from "mongoose";
 
 import { CoreModule } from "../core/core.module.js";
 import { DatabaseModule } from "../core/database/database.module.js";
@@ -19,15 +17,7 @@ export async function createTestApp(
   imports: NonNullable<ModuleMetadata["imports"]>,
 ): Promise<INestApplication> {
   const moduleRef = await Test.createTestingModule({
-    imports: [
-      MongooseModule.forRoot("mongodb://placeholder/unused", {
-        connectionFactory: () => mongoose.connection,
-        lazyConnection: true,
-      }),
-      DatabaseModule,
-      CoreModule,
-      ...imports,
-    ],
+    imports: [DatabaseModule, CoreModule, ...imports],
   }).compile();
 
   const app = moduleRef.createNestApplication<NestExpressApplication>();

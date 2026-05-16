@@ -26,7 +26,7 @@ export class BlogsService {
     return toBlogView(doc);
   }
 
-  async deleteBlog(id: string): Promise<void> {
+  async deleteBlog(id: number): Promise<void> {
     const removed = await this.blogsRepository.remove(id);
     if (!removed) throw new NotFoundError(`Blog with id ${id} not found`);
   }
@@ -41,7 +41,7 @@ export class BlogsService {
     });
   }
 
-  async getBlogById(id: string): Promise<BlogViewModel> {
+  async getBlogById(id: number): Promise<BlogViewModel> {
     const blog = await this.blogsRepository.findById(id);
     if (!blog) throw new NotFoundError(`Blog with id ${id} not found`);
     return toBlogView(blog);
@@ -57,7 +57,7 @@ export class BlogsService {
     });
   }
 
-  async updateBlog(id: string, input: BlogInput): Promise<void> {
+  async updateBlog(id: number, input: BlogInput): Promise<void> {
     const existing = await this.blogsRepository.findById(id);
     if (!existing) throw new NotFoundError(`Blog with id ${id} not found`);
     await this.blogsRepository.update(id, {
@@ -70,7 +70,7 @@ export class BlogsService {
 
 export function toBlogLookupItem(doc: BlogLookupDoc): BlogLookupItem {
   return {
-    id: doc._id.toHexString(),
+    id: doc.id,
     name: doc.name,
   };
 }
@@ -79,7 +79,7 @@ export function toBlogView(doc: BlogDoc): BlogViewModel {
   return {
     createdAt: doc.createdAt.toISOString(),
     description: doc.description,
-    id: doc._id.toHexString(),
+    id: doc.id,
     isMembership: doc.isMembership,
     name: doc.name,
     websiteUrl: doc.websiteUrl,

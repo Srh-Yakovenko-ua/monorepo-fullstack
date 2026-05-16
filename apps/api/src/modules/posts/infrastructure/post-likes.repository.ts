@@ -1,60 +1,77 @@
 import type { LikeStatus } from "@app/shared";
 
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { type Model, Types } from "mongoose";
+import { Inject, Injectable } from "@nestjs/common";
+import { Pool } from "pg";
 
-import { PostLike, type PostLikeStatus } from "../domain/post-like.entity.js";
+import { POSTGRES_POOL } from "../../../core/database/postgres-pool.token.js";
+import { type PostLikeStatus } from "../domain/post-like.entity.js";
 
 export type NewestLikeRow = {
   addedAt: Date;
-  userId: Types.ObjectId;
+  userId: number;
   userLogin: string;
 };
+
+interface NewestLikeQueryRow {
+  created_at: Date;
+  post_id: number;
+  user_id: number;
+  user_login: string;
+}
+
+interface PostLikeJoinRow {
+  post_id: number;
+  status: PostLikeStatus;
+}
+
+interface PostLikeStatusRow {
+  status: PostLikeStatus;
+}
 
 const DEFAULT_NEWEST_LIKES_LIMIT = 3;
 
 @Injectable()
 export class PostLikesRepository {
-  constructor(@InjectModel(PostLike.name) private readonly postLikeModel: Model<PostLike>) {}
+  constructor(@Inject(POSTGRES_POOL) private readonly pool: Pool) {}
 
   async clearAll(): Promise<void> {
-    await this.postLikeModel.deleteMany({});
+    await this.pool.query("DELETE FROM post_likes");
   }
 
   async deleteAndReturnPreviousStatus({
     postId,
     userId,
   }: {
-    postId: string;
-    userId: string;
+    postId: number;
+    userId: number;
   }): Promise<null | PostLikeStatus> {
-    const previous = await this.postLikeModel
-      .findOneAndDelete({
-        postId: new Types.ObjectId(postId),
-        userId: new Types.ObjectId(userId),
-      })
-      .lean();
-    return previous?.status ?? null;
+    const result = await this.pool.query<PostLikeStatusRow>(
+      `DELETE FROM post_likes
+       WHERE post_id = $1 AND user_id = $2
+       RETURNING status`,
+      [postId, userId],
+    );
+    const row = result.rows[0];
+    return row?.status ?? null;
   }
 
   async findByPostIdsForUser({
     postIds,
     userId,
   }: {
-    postIds: string[];
-    userId: string;
-  }): Promise<Map<string, LikeStatus>> {
-    if (postIds.length === 0) return new Map();
-    const docs = await this.postLikeModel
-      .find({
-        postId: { $in: postIds.map((postId) => new Types.ObjectId(postId)) },
-        userId: new Types.ObjectId(userId),
-      })
-      .lean();
-    const result = new Map<string, LikeStatus>();
-    for (const doc of docs) {
-      result.set(doc.postId.toHexString(), doc.status);
+    postIds: number[];
+    userId: number;
+  }): Promise<Map<number, LikeStatus>> {
+    const result = new Map<number, LikeStatus>();
+    if (postIds.length === 0) return result;
+    const rows = await this.pool.query<PostLikeJoinRow>(
+      `SELECT post_id, status
+       FROM post_likes
+       WHERE user_id = $1 AND post_id = ANY($2::int[])`,
+      [userId, postIds],
+    );
+    for (const row of rows.rows) {
+      result.set(row.post_id, row.status);
     }
     return result;
   }
@@ -64,29 +81,32 @@ export class PostLikesRepository {
     postIds,
   }: {
     limit?: number;
-    postIds: string[];
-  }): Promise<Map<string, NewestLikeRow[]>> {
-    const result = new Map<string, NewestLikeRow[]>();
+    postIds: number[];
+  }): Promise<Map<number, NewestLikeRow[]>> {
+    const result = new Map<number, NewestLikeRow[]>();
     if (postIds.length === 0) return result;
 
-    const objectIds = postIds.map((postId) => new Types.ObjectId(postId));
-    const groups = await this.postLikeModel.aggregate<{
-      _id: Types.ObjectId;
-      likes: { addedAt: Date; userId: Types.ObjectId; userLogin: string }[];
-    }>([
-      { $match: { postId: { $in: objectIds }, status: "Like" } },
-      { $sort: { createdAt: -1 } },
-      {
-        $group: {
-          _id: "$postId",
-          likes: { $push: { addedAt: "$createdAt", userId: "$userId", userLogin: "$userLogin" } },
-        },
-      },
-      { $project: { likes: { $slice: ["$likes", limit] } } },
-    ]);
+    const rows = await this.pool.query<NewestLikeQueryRow>(
+      `SELECT post_id, user_id, user_login, created_at
+       FROM (
+         SELECT
+           post_id,
+           user_id,
+           user_login,
+           created_at,
+           ROW_NUMBER() OVER (PARTITION BY post_id ORDER BY created_at DESC) AS rn
+         FROM post_likes
+         WHERE post_id = ANY($1::int[]) AND status = 'Like'
+       ) ranked
+       WHERE rn <= $2
+       ORDER BY post_id, created_at DESC`,
+      [postIds, limit],
+    );
 
-    for (const group of groups) {
-      result.set(group._id.toHexString(), group.likes);
+    for (const row of rows.rows) {
+      const list = result.get(row.post_id) ?? [];
+      list.push({ addedAt: row.created_at, userId: row.user_id, userLogin: row.user_login });
+      result.set(row.post_id, list);
     }
     return result;
   }
@@ -97,29 +117,31 @@ export class PostLikesRepository {
     userId,
     userLogin,
   }: {
-    postId: string;
+    postId: number;
     status: PostLikeStatus;
-    userId: string;
+    userId: number;
     userLogin: string;
   }): Promise<null | PostLikeStatus> {
-    const previous = await this.postLikeModel
-      .findOneAndUpdate(
-        {
-          postId: new Types.ObjectId(postId),
-          userId: new Types.ObjectId(userId),
-        },
-        {
-          $set: { status },
-          $setOnInsert: {
-            createdAt: new Date(),
-            postId: new Types.ObjectId(postId),
-            userId: new Types.ObjectId(userId),
-            userLogin,
-          },
-        },
-        { returnDocument: "before", upsert: true },
-      )
-      .lean();
-    return previous?.status ?? null;
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const previous = await client.query<PostLikeStatusRow>(
+        "SELECT status FROM post_likes WHERE post_id = $1 AND user_id = $2 FOR UPDATE",
+        [postId, userId],
+      );
+      await client.query(
+        `INSERT INTO post_likes (post_id, user_id, user_login, status)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (post_id, user_id) DO UPDATE SET status = EXCLUDED.status`,
+        [postId, userId, userLogin, status],
+      );
+      await client.query("COMMIT");
+      return previous.rows[0]?.status ?? null;
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 }

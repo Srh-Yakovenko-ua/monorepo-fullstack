@@ -5,14 +5,14 @@ import { Injectable } from "@nestjs/common";
 import { UsersRepository } from "../modules/user-accounts/users/infrastructure/users.repository.js";
 import { verifyAccessToken } from "./jwt.js";
 
-export type RequestUser = { email: string; login: string; role: UserRole; userId: string };
+export type RequestUser = { email: string; login: string; role: UserRole; userId: number };
 
 @Injectable()
 export class AuthHelper {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async resolveBearerUser(token: string): Promise<null | RequestUser> {
-    let userId: string;
+    let userId: number;
     try {
       const payload = await verifyAccessToken(token);
       userId = payload.userId;
@@ -27,7 +27,7 @@ export class AuthHelper {
       email: user.email,
       login: user.login,
       role: user.role,
-      userId: user._id.toHexString(),
+      userId: user.id,
     };
   }
 }

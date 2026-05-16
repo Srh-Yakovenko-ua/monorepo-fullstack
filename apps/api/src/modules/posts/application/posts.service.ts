@@ -8,34 +8,28 @@ import type {
   PostViewModel,
 } from "@app/shared";
 
-import { Injectable, type OnModuleInit } from "@nestjs/common";
-import { InjectConnection } from "@nestjs/mongoose";
-import { type Connection, isValidObjectId } from "mongoose";
+import { Injectable } from "@nestjs/common";
 
 import type { PostDoc } from "../domain/post.entity.js";
 import type { NewestLikeRow } from "../infrastructure/post-likes.repository.js";
 
 import { BadRequestError, NotFoundError } from "../../../core/exceptions/errors.js";
-import { createLogger } from "../../../core/logger.js";
 import { buildPaginator } from "../../../core/paginator.js";
 import { BlogsRepository } from "../../blogs/infrastructure/blogs.repository.js";
 import { PostLikesRepository } from "../infrastructure/post-likes.repository.js";
 import { PostsRepository } from "../infrastructure/posts.repository.js";
 
-const log = createLogger("posts.service");
-
 @Injectable()
-export class PostsService implements OnModuleInit {
+export class PostsService {
   constructor(
     private readonly blogsRepository: BlogsRepository,
     private readonly postsRepository: PostsRepository,
     private readonly postLikesRepository: PostLikesRepository,
-    @InjectConnection() private readonly connection: Connection,
   ) {}
 
   async clearAllPosts(): Promise<void> {
-    await this.postsRepository.clearAll();
     await this.postLikesRepository.clearAll();
+    await this.postsRepository.clearAll();
   }
 
   async createPost(input: PostInput): Promise<PostViewModel> {
@@ -47,7 +41,7 @@ export class PostsService implements OnModuleInit {
     }
 
     const doc = await this.postsRepository.create({
-      blogId: blog._id.toHexString(),
+      blogId: blog.id,
       blogName: blog.name,
       content: input.content,
       shortDescription: input.shortDescription,
@@ -56,7 +50,7 @@ export class PostsService implements OnModuleInit {
     return toPostView({ doc, myStatus: "None", newestLikes: [] });
   }
 
-  async deletePost(id: string): Promise<void> {
+  async deletePost(id: number): Promise<void> {
     const removed = await this.postsRepository.remove(id);
     if (!removed) throw new NotFoundError(`Post with id ${id} not found`);
   }
@@ -65,7 +59,7 @@ export class PostsService implements OnModuleInit {
     currentUserId,
     query,
   }: {
-    currentUserId?: string;
+    currentUserId?: number;
     query: PaginationQuery;
   }): Promise<Paginator<PostViewModel>> {
     const { items, totalCount } = await this.postsRepository.findPage(query);
@@ -82,10 +76,9 @@ export class PostsService implements OnModuleInit {
     currentUserId,
     postId,
   }: {
-    currentUserId?: string;
-    postId: string;
+    currentUserId?: number;
+    postId: number;
   }): Promise<PostViewModel> {
-    if (!isValidObjectId(postId)) throw new NotFoundError(`Post with id ${postId} not found`);
     const post = await this.postsRepository.findById(postId);
     if (!post) throw new NotFoundError(`Post with id ${postId} not found`);
     const [views] = await this.mapPostsToView({ currentUserId, docs: [post] });
@@ -98,8 +91,8 @@ export class PostsService implements OnModuleInit {
     currentUserId,
     query,
   }: {
-    blogId: string;
-    currentUserId?: string;
+    blogId: number;
+    currentUserId?: number;
     query: PaginationQuery;
   }): Promise<Paginator<PostViewModel>> {
     const { items, totalCount } = await this.postsRepository.findPage({ ...query, blogId });
@@ -112,62 +105,38 @@ export class PostsService implements OnModuleInit {
     });
   }
 
-  async onModuleInit(): Promise<void> {
-    if (this.connection.readyState !== 1) {
-      log.warn("mongo connection not ready, skipping like-counter backfill");
-      return;
-    }
-    try {
-      const backfilledLikeCounterCount = await this.postsRepository.backfillMissingLikeCounters();
-      if (backfilledLikeCounterCount > 0) {
-        log.info(
-          { count: backfilledLikeCounterCount },
-          "backfilled missing like/dislike counters on posts",
-        );
-      }
-    } catch (err) {
-      log.warn({ err }, "like-counter backfill failed, continuing");
-    }
-  }
-
   async setLikeStatus({
     currentUserId,
     currentUserLogin,
     newStatus,
     postId,
   }: {
-    currentUserId: string;
+    currentUserId: number;
     currentUserLogin: string;
     newStatus: LikeStatus;
-    postId: string;
+    postId: number;
   }): Promise<void> {
-    if (!isValidObjectId(postId)) throw new NotFoundError("Post not found", { bodyless: true });
     const doc = await this.postsRepository.findById(postId);
     if (!doc) throw new NotFoundError("Post not found", { bodyless: true });
 
-    const previousPersistedStatus =
-      newStatus === "None"
-        ? await this.postLikesRepository.deleteAndReturnPreviousStatus({
-            postId,
-            userId: currentUserId,
-          })
-        : await this.postLikesRepository.upsertAndReturnPreviousStatus({
-            postId,
-            status: newStatus,
-            userId: currentUserId,
-            userLogin: currentUserLogin,
-          });
+    if (newStatus === "None") {
+      await this.postLikesRepository.deleteAndReturnPreviousStatus({
+        postId,
+        userId: currentUserId,
+      });
+    } else {
+      await this.postLikesRepository.upsertAndReturnPreviousStatus({
+        postId,
+        status: newStatus,
+        userId: currentUserId,
+        userLogin: currentUserLogin,
+      });
+    }
 
-    const previousStatus: LikeStatus = previousPersistedStatus ?? "None";
-    const { dislikesDelta, likesDelta } = computeCounterDelta({
-      currentStatus: previousStatus,
-      newStatus,
-    });
-
-    await this.postsRepository.applyCounterDelta({ dislikesDelta, likesDelta, postId });
+    await this.postsRepository.recomputeLikeCounters(postId);
   }
 
-  async updatePost(id: string, input: PostInput): Promise<void> {
+  async updatePost(id: number, input: PostInput): Promise<void> {
     const existing = await this.postsRepository.findById(id);
     if (!existing) throw new NotFoundError(`Post with id ${id} not found`);
 
@@ -179,7 +148,7 @@ export class PostsService implements OnModuleInit {
     }
 
     await this.postsRepository.update(id, {
-      blogId: blog._id.toHexString(),
+      blogId: blog.id,
       blogName: blog.name,
       content: input.content,
       shortDescription: input.shortDescription,
@@ -191,23 +160,22 @@ export class PostsService implements OnModuleInit {
     currentUserId,
     docs,
   }: {
-    currentUserId?: string;
+    currentUserId?: number;
     docs: PostDoc[];
   }): Promise<PostViewModel[]> {
     if (docs.length === 0) return [];
-    const postIds = docs.map((doc) => doc._id.toHexString());
+    const postIds = docs.map((doc) => doc.id);
 
     const [myStatusByPostId, newestLikesByPostId] = await Promise.all([
-      currentUserId
-        ? this.postLikesRepository.findByPostIdsForUser({ postIds, userId: currentUserId })
-        : Promise.resolve(new Map<string, LikeStatus>()),
+      currentUserId === undefined
+        ? Promise.resolve(new Map<number, LikeStatus>())
+        : this.postLikesRepository.findByPostIdsForUser({ postIds, userId: currentUserId }),
       this.postLikesRepository.findNewestLikesByPostIds({ postIds }),
     ]);
 
     return docs.map((doc) => {
-      const id = doc._id.toHexString();
-      const myStatus = myStatusByPostId.get(id) ?? "None";
-      const newestLikes = (newestLikesByPostId.get(id) ?? []).map(toNewestLikeView);
+      const myStatus = myStatusByPostId.get(doc.id) ?? "None";
+      const newestLikes = (newestLikesByPostId.get(doc.id) ?? []).map(toNewestLikeView);
       return toPostView({ doc, myStatus, newestLikes });
     });
   }
@@ -223,8 +191,8 @@ export function toPostView({
   newestLikes: NewestLikeViewModel[];
 }): PostViewModel {
   const extendedLikesInfo: ExtendedLikesInfoViewModel = {
-    dislikesCount: doc.dislikesCount ?? 0,
-    likesCount: doc.likesCount ?? 0,
+    dislikesCount: doc.dislikesCount,
+    likesCount: doc.likesCount,
     myStatus,
     newestLikes,
   };
@@ -234,28 +202,16 @@ export function toPostView({
     content: doc.content,
     createdAt: doc.createdAt.toISOString(),
     extendedLikesInfo,
-    id: doc._id.toHexString(),
+    id: doc.id,
     shortDescription: doc.shortDescription,
     title: doc.title,
   };
-}
-
-function computeCounterDelta({
-  currentStatus,
-  newStatus,
-}: {
-  currentStatus: LikeStatus;
-  newStatus: LikeStatus;
-}): { dislikesDelta: number; likesDelta: number } {
-  const likesDelta = (newStatus === "Like" ? 1 : 0) - (currentStatus === "Like" ? 1 : 0);
-  const dislikesDelta = (newStatus === "Dislike" ? 1 : 0) - (currentStatus === "Dislike" ? 1 : 0);
-  return { dislikesDelta, likesDelta };
 }
 
 function toNewestLikeView(row: NewestLikeRow): NewestLikeViewModel {
   return {
     addedAt: row.addedAt.toISOString(),
     login: row.userLogin,
-    userId: row.userId.toHexString(),
+    userId: row.userId,
   };
 }

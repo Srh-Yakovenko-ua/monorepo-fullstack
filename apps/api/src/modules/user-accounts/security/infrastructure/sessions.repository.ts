@@ -1,8 +1,8 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { type Model, Types } from "mongoose";
+import { Inject, Injectable } from "@nestjs/common";
+import { Pool } from "pg";
 
-import { Session, type SessionDoc } from "../domain/session.entity.js";
+import { POSTGRES_POOL } from "../../../../core/database/postgres-pool.token.js";
+import { type SessionDoc } from "../domain/session.entity.js";
 
 export type SessionCreateInput = {
   deviceId: string;
@@ -11,28 +11,61 @@ export type SessionCreateInput = {
   lastActiveAt: Date;
   title: string;
   tokenJti: string;
-  userId: string;
+  userId: number;
 };
+
+interface SessionRow {
+  device_id: string;
+  expires_at: Date;
+  id: number;
+  ip: string;
+  last_active_at: Date;
+  title: string;
+  token_jti: string;
+  user_id: number;
+}
+
+function mapRow(row: SessionRow): SessionDoc {
+  return {
+    deviceId: row.device_id,
+    expiresAt: row.expires_at,
+    id: row.id,
+    ip: row.ip,
+    lastActiveAt: row.last_active_at,
+    title: row.title,
+    tokenJti: row.token_jti,
+    userId: row.user_id,
+  };
+}
 
 @Injectable()
 export class SessionsRepository {
-  constructor(@InjectModel(Session.name) private readonly sessionModel: Model<Session>) {}
+  constructor(@Inject(POSTGRES_POOL) private readonly pool: Pool) {}
 
   async clearAll(): Promise<void> {
-    await this.sessionModel.deleteMany({});
+    await this.pool.query("DELETE FROM sessions");
   }
 
   async create(input: SessionCreateInput): Promise<SessionDoc> {
-    const doc = await this.sessionModel.create({
-      deviceId: input.deviceId,
-      expiresAt: input.expiresAt,
-      ip: input.ip,
-      lastActiveAt: input.lastActiveAt,
-      title: input.title,
-      tokenJti: input.tokenJti,
-      userId: new Types.ObjectId(input.userId),
-    });
-    return doc.toObject();
+    const result = await this.pool.query<SessionRow>(
+      `INSERT INTO sessions (
+         user_id, device_id, token_jti, ip, title, last_active_at, expires_at
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [
+        input.userId,
+        input.deviceId,
+        input.tokenJti,
+        input.ip,
+        input.title,
+        input.lastActiveAt,
+        input.expiresAt,
+      ],
+    );
+    const row = result.rows[0];
+    if (!row) throw new Error("INSERT INTO sessions did not return a row");
+    return mapRow(row);
   }
 
   async deleteAllByUserExceptDevice({
@@ -40,12 +73,12 @@ export class SessionsRepository {
     userId,
   }: {
     currentDeviceId: string;
-    userId: string;
+    userId: number;
   }): Promise<void> {
-    await this.sessionModel.deleteMany({
-      deviceId: { $ne: currentDeviceId },
-      userId: new Types.ObjectId(userId),
-    });
+    await this.pool.query("DELETE FROM sessions WHERE user_id = $1 AND device_id <> $2", [
+      userId,
+      currentDeviceId,
+    ]);
   }
 
   async deleteByUserAndDevice({
@@ -53,21 +86,30 @@ export class SessionsRepository {
     userId,
   }: {
     deviceId: string;
-    userId: string;
+    userId: number;
   }): Promise<boolean> {
-    const result = await this.sessionModel.deleteOne({
-      deviceId,
-      userId: new Types.ObjectId(userId),
-    });
-    return result.deletedCount > 0;
+    const result = await this.pool.query(
+      "DELETE FROM sessions WHERE user_id = $1 AND device_id = $2",
+      [userId, deviceId],
+    );
+    return (result.rowCount ?? 0) > 0;
   }
 
-  async findAllByUser(userId: string): Promise<SessionDoc[]> {
-    return this.sessionModel.find({ userId: new Types.ObjectId(userId) }).lean();
+  async findAllByUser(userId: number): Promise<SessionDoc[]> {
+    const result = await this.pool.query<SessionRow>("SELECT * FROM sessions WHERE user_id = $1", [
+      userId,
+    ]);
+    return result.rows.map(mapRow);
   }
 
   async findByDeviceId(deviceId: string): Promise<null | SessionDoc> {
-    return this.sessionModel.findOne({ deviceId }).lean();
+    const result = await this.pool.query<SessionRow>(
+      "SELECT * FROM sessions WHERE device_id = $1",
+      [deviceId],
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return mapRow(row);
   }
 
   async findByUserAndDevice({
@@ -75,14 +117,15 @@ export class SessionsRepository {
     userId,
   }: {
     deviceId: string;
-    userId: string;
+    userId: number;
   }): Promise<null | SessionDoc> {
-    return this.sessionModel
-      .findOne({
-        deviceId,
-        userId: new Types.ObjectId(userId),
-      })
-      .lean();
+    const result = await this.pool.query<SessionRow>(
+      "SELECT * FROM sessions WHERE user_id = $1 AND device_id = $2",
+      [userId, deviceId],
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return mapRow(row);
   }
 
   async rotateSession({
@@ -98,11 +141,13 @@ export class SessionsRepository {
     ip: string;
     lastActiveAt: Date;
     tokenJti: string;
-    userId: string;
+    userId: number;
   }): Promise<void> {
-    await this.sessionModel.updateOne(
-      { deviceId, userId: new Types.ObjectId(userId) },
-      { expiresAt, ip, lastActiveAt, tokenJti },
+    await this.pool.query(
+      `UPDATE sessions
+       SET token_jti = $1, ip = $2, title = title, last_active_at = $3, expires_at = $4
+       WHERE user_id = $5 AND device_id = $6`,
+      [tokenJti, ip, lastActiveAt, expiresAt, userId, deviceId],
     );
   }
 }

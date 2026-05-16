@@ -87,14 +87,14 @@ export type BlogInput = z.infer<typeof BlogInputSchema>;
 export type BlogViewModel = {
   createdAt: string;
   description: string;
-  id: string;
+  id: number;
   isMembership: boolean;
   name: string;
   websiteUrl: string;
 };
 
 export const PostInputSchema = z.object({
-  blogId: z.string().trim().min(1),
+  blogId: z.coerce.number().int().positive(),
   content: z.string().trim().min(1).max(1000),
   shortDescription: z.string().trim().min(1).max(100),
   title: z.string().trim().min(1).max(30),
@@ -115,7 +115,7 @@ export type ExtendedLikesInfoViewModel = {
 export type NewestLikeViewModel = {
   addedAt: string;
   login: string;
-  userId: string;
+  userId: number;
 };
 
 export type Paginator<T> = {
@@ -127,12 +127,12 @@ export type Paginator<T> = {
 };
 
 export type PostViewModel = {
-  blogId: string;
+  blogId: number;
   blogName: string;
   content: string;
   createdAt: string;
   extendedLikesInfo: ExtendedLikesInfoViewModel;
-  id: string;
+  id: number;
   shortDescription: string;
   title: string;
 };
@@ -191,7 +191,7 @@ export const ROLE = {
 export const UpdateUserRoleInputSchema = z.object({
   role: z.enum([ROLE.admin, ROLE.user]),
 });
-export type MeViewModel = { email: string; login: string; role: UserRole; userId: string };
+export type MeViewModel = { email: string; login: string; role: UserRole; userId: number };
 
 export type UpdateUserRoleInput = z.infer<typeof UpdateUserRoleInputSchema>;
 
@@ -222,7 +222,7 @@ export type NewPasswordInput = z.infer<typeof NewPasswordInputSchema>;
 export const CommentUpdateInputSchema = z.object({
   content: z.string().trim().min(20).max(300),
 });
-export type CommentatorInfo = { userId: string; userLogin: string };
+export type CommentatorInfo = { userId: number; userLogin: string };
 
 export type CommentUpdateInput = z.infer<typeof CommentUpdateInputSchema>;
 
@@ -247,7 +247,7 @@ export type CommentViewModel = {
   commentatorInfo: CommentatorInfo;
   content: string;
   createdAt: string;
-  id: string;
+  id: number;
   likesInfo: LikesInfoViewModel;
 };
 
@@ -273,7 +273,7 @@ export type UsersQuery = z.infer<typeof UsersQuerySchema>;
 export type UserViewModel = {
   createdAt: string;
   email: string;
-  id: string;
+  id: number;
   login: string;
   role: UserRole;
 };
@@ -311,7 +311,7 @@ export const BlogsQuerySchema = z.object({
 });
 
 export type BlogLookupItem = {
-  id: string;
+  id: number;
   name: string;
 };
 export type BlogsQuery = z.infer<typeof BlogsQuerySchema>;

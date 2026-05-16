@@ -24,6 +24,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
+import { BadRequestError } from "../../../core/exceptions/errors.js";
 import { OptionalJwtAuthGuard } from "../../../core/guards/optional-jwt-auth.guard.js";
 import { ZodBodyPipe } from "../../../core/pipes/zod-body.pipe.js";
 import { ZodQueryPipe } from "../../../core/pipes/zod-query.pipe.js";
@@ -49,11 +50,12 @@ export class BlogPostsController {
   @HttpCode(HttpStatus.CREATED)
   @Post(":id/posts")
   async createPostForBlog(
-    @Param("id") id: string,
+    @Param("id") rawId: string,
     @Body(new ZodBodyPipe(BlogScopedPostInputSchema)) body: BlogScopedPostInputDto,
   ): Promise<PostViewModel> {
-    await this.blogsService.getBlogById(id);
-    return this.postsService.createPost({ ...body, blogId: id });
+    const blogId = parseBlogId(rawId);
+    await this.blogsService.getBlogById(blogId);
+    return this.postsService.createPost({ ...body, blogId });
   }
 
   @ApiBearerAuth()
@@ -66,15 +68,22 @@ export class BlogPostsController {
   @Get(":id/posts")
   @UseGuards(OptionalJwtAuthGuard)
   async listPostsForBlog(
-    @Param("id") id: string,
+    @Param("id") rawId: string,
     @Query(new ZodQueryPipe(PaginationQuerySchema)) query: PaginationQueryDto,
     @Req() request: Request,
   ): Promise<Paginator<PostViewModel>> {
-    await this.blogsService.getBlogById(id);
+    const blogId = parseBlogId(rawId);
+    await this.blogsService.getBlogById(blogId);
     return this.postsService.listPostsForBlog({
-      blogId: id,
+      blogId,
       currentUserId: request.viewerId,
       query,
     });
   }
+}
+
+function parseBlogId(raw: string): number {
+  const id = Number(raw);
+  if (!Number.isInteger(id)) throw new BadRequestError(`Invalid blog id: ${raw}`);
+  return id;
 }

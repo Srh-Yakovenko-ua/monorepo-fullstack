@@ -3,7 +3,6 @@ import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import type { Request, Response } from "express";
 
 import { Catch, HttpException } from "@nestjs/common";
-import { Error as MongooseError } from "mongoose";
 import { ZodError } from "zod";
 
 import { env } from "../../config/env.js";
@@ -84,7 +83,6 @@ function isBodyParserError(
 function toHttpError(err: unknown): HttpError {
   if (err instanceof HttpError) return err;
   if (err instanceof ZodError) return new ValidationError(formatZodError(err));
-  if (err instanceof MongooseError.CastError) return new NotFoundError("Resource not found");
   if (isBodyParserError(err)) return fromBodyParserError(err);
   if (err instanceof HttpException) {
     const status = err.getStatus();

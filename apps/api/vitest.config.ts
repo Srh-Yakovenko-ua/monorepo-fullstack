@@ -18,7 +18,6 @@ export default defineConfig({
     },
     environment: "node",
     globals: false,
-    globalSetup: ["./src/test/global-setup.ts"],
     include: ["src/**/*.{test,spec}.ts"],
     pool: "forks",
     restoreMocks: true,
