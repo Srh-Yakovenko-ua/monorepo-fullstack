@@ -1,15 +1,14 @@
 import type { ApiHealth } from "@app/shared";
 
-import { Inject, Injectable } from "@nestjs/common";
-import { Pool } from "pg";
-
-import { POSTGRES_POOL } from "../../core/database/postgres-pool.token.js";
+import { Injectable } from "@nestjs/common";
+import { InjectDataSource } from "@nestjs/typeorm";
+import { DataSource } from "typeorm";
 
 const PG_HEALTHCHECK_TIMEOUT_MS = 1000;
 
 @Injectable()
 export class HealthService {
-  constructor(@Inject(POSTGRES_POOL) private readonly pool: Pool) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async getHealth(): Promise<ApiHealth> {
     const postgres = await this.pingPostgres();
@@ -24,7 +23,7 @@ export class HealthService {
   private async pingPostgres(): Promise<"down" | "ok"> {
     let timeoutId: NodeJS.Timeout | undefined;
     try {
-      const queryPromise = this.pool.query("SELECT 1");
+      const queryPromise = this.dataSource.query("SELECT 1");
       const timeoutPromise = new Promise<never>((_resolve, reject) => {
         timeoutId = setTimeout(
           () => reject(new Error("postgres healthcheck timeout")),

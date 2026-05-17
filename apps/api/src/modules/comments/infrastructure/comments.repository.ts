@@ -1,69 +1,58 @@
 import type { CommentSortField, CommentsQuery } from "@app/shared";
 
-import { Inject, Injectable } from "@nestjs/common";
-import { Pool } from "pg";
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 
-import { POSTGRES_POOL } from "../../../core/database/postgres-pool.token.js";
-import { type CommentDoc } from "../domain/comment.entity.js";
+import { type CommentDoc, CommentEntity } from "../domain/comment.entity.js";
 
 export type CommentCreateInput = Pick<
   CommentDoc,
   "commentatorUserId" | "commentatorUserLogin" | "content" | "postId"
 >;
 
-interface CommentRow {
-  commentator_user_id: number;
-  commentator_user_login: string;
-  content: string;
-  created_at: Date;
-  dislikes_count: number;
-  id: number;
-  likes_count: number;
-  post_id: number;
-}
-
 const COMMENT_SORT_COLUMN_BY_FIELD: Record<CommentSortField, string> = {
-  createdAt: "created_at",
+  createdAt: "comment.createdAt",
 };
 
-function mapRow(row: CommentRow): CommentDoc {
+function mapEntity(entity: CommentEntity): CommentDoc {
   return {
-    commentatorUserId: row.commentator_user_id,
-    commentatorUserLogin: row.commentator_user_login,
-    content: row.content,
-    createdAt: row.created_at,
-    dislikesCount: row.dislikes_count,
-    id: row.id,
-    likesCount: row.likes_count,
-    postId: row.post_id,
+    commentatorUserId: entity.commentatorUserId,
+    commentatorUserLogin: entity.commentatorUserLogin,
+    content: entity.content,
+    createdAt: entity.createdAt,
+    dislikesCount: entity.dislikesCount,
+    id: entity.id,
+    likesCount: entity.likesCount,
+    postId: entity.postId,
   };
 }
 
 @Injectable()
 export class CommentsRepository {
-  constructor(@Inject(POSTGRES_POOL) private readonly pool: Pool) {}
+  constructor(
+    @InjectRepository(CommentEntity)
+    private readonly repository: Repository<CommentEntity>,
+  ) {}
 
   async clearAll(): Promise<void> {
-    await this.pool.query("DELETE FROM comments");
+    await this.repository.createQueryBuilder().delete().execute();
   }
 
   async create(input: CommentCreateInput): Promise<CommentDoc> {
-    const result = await this.pool.query<CommentRow>(
-      `INSERT INTO comments (post_id, commentator_user_id, commentator_user_login, content)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [input.postId, input.commentatorUserId, input.commentatorUserLogin, input.content],
-    );
-    const row = result.rows[0];
-    if (!row) throw new Error("INSERT INTO comments did not return a row");
-    return mapRow(row);
+    const created = this.repository.create({
+      commentatorUserId: input.commentatorUserId,
+      commentatorUserLogin: input.commentatorUserLogin,
+      content: input.content,
+      postId: input.postId,
+    });
+    const saved = await this.repository.save(created);
+    return mapEntity(saved);
   }
 
   async findById(id: number): Promise<CommentDoc | null> {
-    const result = await this.pool.query<CommentRow>("SELECT * FROM comments WHERE id = $1", [id]);
-    const row = result.rows[0];
-    if (!row) return null;
-    return mapRow(row);
+    const found = await this.repository.findOneBy({ id });
+    return found ? mapEntity(found) : null;
   }
 
   async findByPostId(
@@ -74,28 +63,19 @@ export class CommentsRepository {
     const sortDirection = query.sortDirection === "asc" ? "ASC" : "DESC";
     const offset = (query.pageNumber - 1) * query.pageSize;
 
-    const [items, totalCount] = await Promise.all([
-      this.pool
-        .query<CommentRow>(
-          `SELECT * FROM comments
-           WHERE post_id = $1
-           ORDER BY ${sortColumn} ${sortDirection}
-           LIMIT $2 OFFSET $3`,
-          [postId, query.pageSize, offset],
-        )
-        .then((result) => result.rows.map(mapRow)),
-      this.pool
-        .query<{
-          count: string;
-        }>("SELECT COUNT(*)::int AS count FROM comments WHERE post_id = $1", [postId])
-        .then((result) => Number(result.rows[0]?.count ?? 0)),
-    ]);
+    const [entities, totalCount] = await this.repository
+      .createQueryBuilder("comment")
+      .where("comment.postId = :postId", { postId })
+      .orderBy(sortColumn, sortDirection)
+      .limit(query.pageSize)
+      .offset(offset)
+      .getManyAndCount();
 
-    return { items, totalCount };
+    return { items: entities.map(mapEntity), totalCount };
   }
 
   async recomputeLikeCounters(commentId: number): Promise<void> {
-    await this.pool.query(
+    await this.repository.query(
       `UPDATE comments
        SET likes_count = (SELECT COUNT(*)::int FROM comment_likes WHERE comment_id = $1 AND status = 'Like'),
            dislikes_count = (SELECT COUNT(*)::int FROM comment_likes WHERE comment_id = $1 AND status = 'Dislike')
@@ -105,10 +85,10 @@ export class CommentsRepository {
   }
 
   async remove(id: number): Promise<void> {
-    await this.pool.query("DELETE FROM comments WHERE id = $1", [id]);
+    await this.repository.delete({ id });
   }
 
   async updateContent(id: number, content: string): Promise<void> {
-    await this.pool.query("UPDATE comments SET content = $1 WHERE id = $2", [content, id]);
+    await this.repository.update({ id }, { content });
   }
 }

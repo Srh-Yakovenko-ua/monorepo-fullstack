@@ -1,23 +1,13 @@
-import { Global, Inject, Module, type OnApplicationShutdown } from "@nestjs/common";
-import { Pool } from "pg";
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
 
-import { env } from "../../config/env.js";
-import { POSTGRES_POOL } from "./postgres-pool.token.js";
+import { buildTypeOrmOptions } from "./typeorm-options.js";
 
-@Global()
 @Module({
-  exports: [POSTGRES_POOL],
-  providers: [
-    {
-      provide: POSTGRES_POOL,
-      useFactory: (): Pool => new Pool({ connectionString: env.databaseUrl }),
-    },
+  imports: [
+    TypeOrmModule.forRootAsync({
+      useFactory: () => ({ ...buildTypeOrmOptions(), autoLoadEntities: true }),
+    }),
   ],
 })
-export class DatabaseModule implements OnApplicationShutdown {
-  constructor(@Inject(POSTGRES_POOL) private readonly pool: Pool) {}
-
-  async onApplicationShutdown(): Promise<void> {
-    await this.pool.end();
-  }
-}
+export class DatabaseModule {}

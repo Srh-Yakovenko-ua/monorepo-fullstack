@@ -1,10 +1,10 @@
 import type { UserRole, UserSortField, UsersQuery } from "@app/shared";
 
-import { Inject, Injectable } from "@nestjs/common";
-import { Pool } from "pg";
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Brackets, Repository } from "typeorm";
 
-import { POSTGRES_POOL } from "../../../../core/database/postgres-pool.token.js";
-import { type UserDoc } from "../domain/user.entity.js";
+import { type UserDoc, UserEntity } from "../domain/user.entity.js";
 
 export type UserCreateInput = Pick<
   UserDoc,
@@ -17,45 +17,34 @@ export type UserCreateInput = Pick<
   | "role"
 >;
 
-interface UserRow {
-  created_at: Date;
-  email: string;
-  email_confirmation_code: null | string;
-  email_confirmation_expires_at: Date | null;
-  email_is_confirmed: boolean;
-  id: number;
-  login: string;
-  password_hash: string;
-  password_recovery_code: null | string;
-  password_recovery_expires_at: Date | null;
-  role: UserRole;
-}
-
 const USER_SORT_COLUMN_BY_FIELD: Record<UserSortField, string> = {
-  createdAt: "created_at",
-  email: "email",
-  login: "login",
+  createdAt: "user.createdAt",
+  email: "user.email",
+  login: "user.login",
 };
 
-function mapRow(row: UserRow): UserDoc {
+function mapEntity(entity: UserEntity): UserDoc {
   return {
-    createdAt: row.created_at,
-    email: row.email,
-    emailConfirmationCode: row.email_confirmation_code,
-    emailConfirmationExpiresAt: row.email_confirmation_expires_at,
-    emailIsConfirmed: row.email_is_confirmed,
-    id: row.id,
-    login: row.login,
-    passwordHash: row.password_hash,
-    passwordRecoveryCode: row.password_recovery_code,
-    passwordRecoveryExpiresAt: row.password_recovery_expires_at,
-    role: row.role,
+    createdAt: entity.createdAt,
+    email: entity.email,
+    emailConfirmationCode: entity.emailConfirmationCode,
+    emailConfirmationExpiresAt: entity.emailConfirmationExpiresAt,
+    emailIsConfirmed: entity.emailIsConfirmed,
+    id: entity.id,
+    login: entity.login,
+    passwordHash: entity.passwordHash,
+    passwordRecoveryCode: entity.passwordRecoveryCode,
+    passwordRecoveryExpiresAt: entity.passwordRecoveryExpiresAt,
+    role: entity.role,
   };
 }
 
 @Injectable()
 export class UsersRepository {
-  constructor(@Inject(POSTGRES_POOL) private readonly pool: Pool) {}
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly repository: Repository<UserEntity>,
+  ) {}
 
   async atomicResetPassword({
     newPasswordHash,
@@ -66,89 +55,60 @@ export class UsersRepository {
     now: Date;
     recoveryCode: string;
   }): Promise<null | UserDoc> {
-    const result = await this.pool.query<UserRow>(
+    const rows = await this.repository.query<{ id: number }[]>(
       `UPDATE users
        SET password_hash = $1,
            password_recovery_code = NULL,
            password_recovery_expires_at = NULL
        WHERE password_recovery_code = $2
          AND password_recovery_expires_at > $3
-       RETURNING *`,
+       RETURNING id`,
       [newPasswordHash, recoveryCode, now],
     );
-    const row = result.rows[0];
-    if (!row) return null;
-    return mapRow(row);
+    const updatedId = rows[0]?.id;
+    if (typeof updatedId !== "number") return null;
+    const found = await this.repository.findOneBy({ id: updatedId });
+    return found ? mapEntity(found) : null;
   }
 
   async clearAll(): Promise<void> {
-    await this.pool.query("DELETE FROM users");
+    await this.repository.createQueryBuilder().delete().execute();
   }
 
   async create(input: UserCreateInput): Promise<UserDoc> {
-    const result = await this.pool.query<UserRow>(
-      `INSERT INTO users (
-         email, login, password_hash, role,
-         email_confirmation_code, email_confirmation_expires_at, email_is_confirmed
-       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-      [
-        input.email,
-        input.login,
-        input.passwordHash,
-        input.role,
-        input.emailConfirmationCode,
-        input.emailConfirmationExpiresAt,
-        input.emailIsConfirmed,
-      ],
-    );
-    const row = result.rows[0];
-    if (!row) throw new Error("INSERT INTO users did not return a row");
-    return mapRow(row);
+    const created = this.repository.create(input);
+    const saved = await this.repository.save(created);
+    return mapEntity(saved);
   }
 
   async findByEmail(email: string): Promise<null | UserDoc> {
-    const result = await this.pool.query<UserRow>("SELECT * FROM users WHERE email = $1", [
-      email.trim().toLowerCase(),
-    ]);
-    const row = result.rows[0];
-    if (!row) return null;
-    return mapRow(row);
+    const normalized = email.trim().toLowerCase();
+    const found = await this.repository.findOneBy({ email: normalized });
+    return found ? mapEntity(found) : null;
   }
 
   async findByEmailConfirmationCode(code: string): Promise<null | UserDoc> {
-    const result = await this.pool.query<UserRow>(
-      "SELECT * FROM users WHERE email_confirmation_code = $1",
-      [code],
-    );
-    const row = result.rows[0];
-    if (!row) return null;
-    return mapRow(row);
+    const found = await this.repository.findOneBy({ emailConfirmationCode: code });
+    return found ? mapEntity(found) : null;
   }
 
   async findById(id: number): Promise<null | UserDoc> {
-    const result = await this.pool.query<UserRow>("SELECT * FROM users WHERE id = $1", [id]);
-    const row = result.rows[0];
-    if (!row) return null;
-    return mapRow(row);
+    const found = await this.repository.findOneBy({ id });
+    return found ? mapEntity(found) : null;
   }
 
   async findByLogin(login: string): Promise<null | UserDoc> {
-    const result = await this.pool.query<UserRow>("SELECT * FROM users WHERE login = $1", [login]);
-    const row = result.rows[0];
-    if (!row) return null;
-    return mapRow(row);
+    const found = await this.repository.findOneBy({ login });
+    return found ? mapEntity(found) : null;
   }
 
   async findByLoginOrEmail(loginOrEmail: string): Promise<null | UserDoc> {
-    const result = await this.pool.query<UserRow>(
-      "SELECT * FROM users WHERE email = $1 OR login = $1",
-      [loginOrEmail],
-    );
-    const row = result.rows[0];
-    if (!row) return null;
-    return mapRow(row);
+    const found = await this.repository
+      .createQueryBuilder("user")
+      .where("user.email = :term", { term: loginOrEmail })
+      .orWhere("user.login = :term", { term: loginOrEmail })
+      .getOne();
+    return found ? mapEntity(found) : null;
   }
 
   async findPage(query: UsersQuery): Promise<{ items: UserDoc[]; totalCount: number }> {
@@ -158,47 +118,43 @@ export class UsersRepository {
     const loginSearch = query.searchLoginTerm?.length ? query.searchLoginTerm : null;
     const emailSearch = query.searchEmailTerm?.length ? query.searchEmailTerm : null;
 
-    const whereClause = `
-      WHERE (
-        ($1::text IS NULL AND $2::text IS NULL)
-        OR ($1::text IS NOT NULL AND login ILIKE '%' || $1 || '%')
-        OR ($2::text IS NOT NULL AND email ILIKE '%' || $2 || '%')
-      )
-    `;
+    const builder = this.repository
+      .createQueryBuilder("user")
+      .orderBy(sortColumn, sortDirection)
+      .limit(query.pageSize)
+      .offset(offset);
 
-    const [items, totalCount] = await Promise.all([
-      this.pool
-        .query<UserRow>(
-          `SELECT * FROM users ${whereClause}
-           ORDER BY ${sortColumn} ${sortDirection}
-           LIMIT $3 OFFSET $4`,
-          [loginSearch, emailSearch, query.pageSize, offset],
-        )
-        .then((result) => result.rows.map(mapRow)),
-      this.pool
-        .query<{
-          count: string;
-        }>(`SELECT COUNT(*)::int AS count FROM users ${whereClause}`, [loginSearch, emailSearch])
-        .then((result) => Number(result.rows[0]?.count ?? 0)),
-    ]);
+    if (loginSearch || emailSearch) {
+      builder.where(
+        new Brackets((qb) => {
+          if (loginSearch) {
+            qb.orWhere("user.login ILIKE :loginTerm", { loginTerm: `%${loginSearch}%` });
+          }
+          if (emailSearch) {
+            qb.orWhere("user.email ILIKE :emailTerm", { emailTerm: `%${emailSearch}%` });
+          }
+        }),
+      );
+    }
 
-    return { items, totalCount };
+    const [entities, totalCount] = await builder.getManyAndCount();
+    return { items: entities.map(mapEntity), totalCount };
   }
 
   async markEmailConfirmed(userId: number): Promise<void> {
-    await this.pool.query(
-      `UPDATE users
-       SET email_is_confirmed = TRUE,
-           email_confirmation_code = NULL,
-           email_confirmation_expires_at = NULL
-       WHERE id = $1`,
-      [userId],
+    await this.repository.update(
+      { id: userId },
+      {
+        emailConfirmationCode: null,
+        emailConfirmationExpiresAt: null,
+        emailIsConfirmed: true,
+      },
     );
   }
 
   async remove(id: number): Promise<boolean> {
-    const result = await this.pool.query("DELETE FROM users WHERE id = $1", [id]);
-    return (result.rowCount ?? 0) > 0;
+    const result = await this.repository.delete({ id });
+    return (result.affected ?? 0) > 0;
   }
 
   async setPasswordRecovery({
@@ -210,12 +166,9 @@ export class UsersRepository {
     expiresAt: Date;
     userId: number;
   }): Promise<void> {
-    await this.pool.query(
-      `UPDATE users
-       SET password_recovery_code = $1,
-           password_recovery_expires_at = $2
-       WHERE id = $3`,
-      [code, expiresAt, userId],
+    await this.repository.update(
+      { id: userId },
+      { passwordRecoveryCode: code, passwordRecoveryExpiresAt: expiresAt },
     );
   }
 
@@ -230,24 +183,21 @@ export class UsersRepository {
     isConfirmed: boolean;
     userId: number;
   }): Promise<void> {
-    await this.pool.query(
-      `UPDATE users
-       SET email_confirmation_code = $1,
-           email_confirmation_expires_at = $2,
-           email_is_confirmed = $3
-       WHERE id = $4`,
-      [code, expiresAt, isConfirmed, userId],
+    await this.repository.update(
+      { id: userId },
+      {
+        emailConfirmationCode: code,
+        emailConfirmationExpiresAt: expiresAt,
+        emailIsConfirmed: isConfirmed,
+      },
     );
   }
 
   async updatePasswordHash(userId: number, passwordHash: string): Promise<void> {
-    await this.pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [
-      passwordHash,
-      userId,
-    ]);
+    await this.repository.update({ id: userId }, { passwordHash });
   }
 
   async updateRole(userId: number, role: UserRole): Promise<void> {
-    await this.pool.query("UPDATE users SET role = $1 WHERE id = $2", [role, userId]);
+    await this.repository.update({ id: userId }, { role });
   }
 }

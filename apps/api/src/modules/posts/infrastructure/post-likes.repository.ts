@@ -1,10 +1,10 @@
 import type { LikeStatus } from "@app/shared";
 
-import { Inject, Injectable } from "@nestjs/common";
-import { Pool } from "pg";
+import { Injectable } from "@nestjs/common";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
+import { DataSource, Repository } from "typeorm";
 
-import { POSTGRES_POOL } from "../../../core/database/postgres-pool.token.js";
-import { type PostLikeStatus } from "../domain/post-like.entity.js";
+import { PostLikeEntity, type PostLikeStatus } from "../domain/post-like.entity.js";
 
 export type NewestLikeRow = {
   addedAt: Date;
@@ -19,23 +19,19 @@ interface NewestLikeQueryRow {
   user_login: string;
 }
 
-interface PostLikeJoinRow {
-  post_id: number;
-  status: PostLikeStatus;
-}
-
-interface PostLikeStatusRow {
-  status: PostLikeStatus;
-}
-
 const DEFAULT_NEWEST_LIKES_LIMIT = 3;
 
 @Injectable()
 export class PostLikesRepository {
-  constructor(@Inject(POSTGRES_POOL) private readonly pool: Pool) {}
+  constructor(
+    @InjectRepository(PostLikeEntity)
+    private readonly repository: Repository<PostLikeEntity>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
+  ) {}
 
   async clearAll(): Promise<void> {
-    await this.pool.query("DELETE FROM post_likes");
+    await this.repository.createQueryBuilder().delete().execute();
   }
 
   async deleteAndReturnPreviousStatus({
@@ -45,14 +41,13 @@ export class PostLikesRepository {
     postId: number;
     userId: number;
   }): Promise<null | PostLikeStatus> {
-    const result = await this.pool.query<PostLikeStatusRow>(
+    const rows = await this.repository.query<{ status: PostLikeStatus }[]>(
       `DELETE FROM post_likes
        WHERE post_id = $1 AND user_id = $2
        RETURNING status`,
       [postId, userId],
     );
-    const row = result.rows[0];
-    return row?.status ?? null;
+    return rows[0]?.status ?? null;
   }
 
   async findByPostIdsForUser({
@@ -64,14 +59,16 @@ export class PostLikesRepository {
   }): Promise<Map<number, LikeStatus>> {
     const result = new Map<number, LikeStatus>();
     if (postIds.length === 0) return result;
-    const rows = await this.pool.query<PostLikeJoinRow>(
-      `SELECT post_id, status
-       FROM post_likes
-       WHERE user_id = $1 AND post_id = ANY($2::int[])`,
-      [userId, postIds],
-    );
-    for (const row of rows.rows) {
-      result.set(row.post_id, row.status);
+
+    const entities = await this.repository
+      .createQueryBuilder("postLike")
+      .select(["postLike.postId", "postLike.status"])
+      .where("postLike.userId = :userId", { userId })
+      .andWhere("postLike.postId IN (:...postIds)", { postIds })
+      .getMany();
+
+    for (const entity of entities) {
+      result.set(entity.postId, entity.status);
     }
     return result;
   }
@@ -86,7 +83,7 @@ export class PostLikesRepository {
     const result = new Map<number, NewestLikeRow[]>();
     if (postIds.length === 0) return result;
 
-    const rows = await this.pool.query<NewestLikeQueryRow>(
+    const rows = await this.repository.query<NewestLikeQueryRow[]>(
       `SELECT post_id, user_id, user_login, created_at
        FROM (
          SELECT
@@ -103,7 +100,7 @@ export class PostLikesRepository {
       [postIds, limit],
     );
 
-    for (const row of rows.rows) {
+    for (const row of rows) {
       const list = result.get(row.post_id) ?? [];
       list.push({ addedAt: row.created_at, userId: row.user_id, userLogin: row.user_login });
       result.set(row.post_id, list);
@@ -122,26 +119,18 @@ export class PostLikesRepository {
     userId: number;
     userLogin: string;
   }): Promise<null | PostLikeStatus> {
-    const client = await this.pool.connect();
-    try {
-      await client.query("BEGIN");
-      const previous = await client.query<PostLikeStatusRow>(
+    return this.dataSource.transaction(async (manager) => {
+      const previousRows = await manager.query<{ status: PostLikeStatus }[]>(
         "SELECT status FROM post_likes WHERE post_id = $1 AND user_id = $2 FOR UPDATE",
         [postId, userId],
       );
-      await client.query(
+      await manager.query(
         `INSERT INTO post_likes (post_id, user_id, user_login, status)
          VALUES ($1, $2, $3, $4)
          ON CONFLICT (post_id, user_id) DO UPDATE SET status = EXCLUDED.status`,
         [postId, userId, userLogin, status],
       );
-      await client.query("COMMIT");
-      return previous.rows[0]?.status ?? null;
-    } catch (err) {
-      await client.query("ROLLBACK");
-      throw err;
-    } finally {
-      client.release();
-    }
+      return previousRows[0]?.status ?? null;
+    });
   }
 }

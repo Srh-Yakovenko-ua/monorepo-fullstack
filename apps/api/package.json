@@ -10,7 +10,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "super-admin": "tsx --conditions=source scripts/super-admin.ts"
+    "super-admin": "tsx --conditions=source scripts/super-admin.ts",
+    "db:migration:generate": "tsx --conditions=source ./node_modules/typeorm/cli.js migration:generate src/core/database/migrations/Init -d src/core/database/data-source.ts",
+    "db:migration:run": "tsx --conditions=source ./node_modules/typeorm/cli.js migration:run -d src/core/database/data-source.ts",
+    "db:migration:revert": "tsx --conditions=source ./node_modules/typeorm/cli.js migration:revert -d src/core/database/data-source.ts",
+    "db:schema:drop": "tsx --conditions=source ./node_modules/typeorm/cli.js schema:drop -d src/core/database/data-source.ts"
   },
   "dependencies": {
     "@app/shared": "workspace:*",
@@ -19,6 +23,7 @@
     "@nestjs/platform-express": "catalog:",
     "@nestjs/swagger": "catalog:",
     "@nestjs/throttler": "catalog:",
+    "@nestjs/typeorm": "catalog:",
     "bcryptjs": "catalog:",
     "compression": "catalog:",
     "cookie-parser": "catalog:",
@@ -33,6 +38,8 @@
     "pino-http": "catalog:",
     "reflect-metadata": "catalog:",
     "rxjs": "catalog:",
+    "typeorm": "catalog:",
+    "typeorm-naming-strategies": "catalog:",
     "ua-parser-js": "catalog:",
     "zod": "catalog:"
   },

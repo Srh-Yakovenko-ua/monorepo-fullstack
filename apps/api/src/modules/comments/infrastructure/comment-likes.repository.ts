@@ -1,26 +1,22 @@
 import type { LikeStatus } from "@app/shared";
 
-import { Inject, Injectable } from "@nestjs/common";
-import { Pool } from "pg";
+import { Injectable } from "@nestjs/common";
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
+import { DataSource, Repository } from "typeorm";
 
-import { POSTGRES_POOL } from "../../../core/database/postgres-pool.token.js";
-import { type CommentLikeStatus } from "../domain/comment-like.entity.js";
-
-interface CommentLikeJoinRow {
-  comment_id: number;
-  status: CommentLikeStatus;
-}
-
-interface CommentLikeStatusRow {
-  status: CommentLikeStatus;
-}
+import { CommentLikeEntity, type CommentLikeStatus } from "../domain/comment-like.entity.js";
 
 @Injectable()
 export class CommentLikesRepository {
-  constructor(@Inject(POSTGRES_POOL) private readonly pool: Pool) {}
+  constructor(
+    @InjectRepository(CommentLikeEntity)
+    private readonly repository: Repository<CommentLikeEntity>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
+  ) {}
 
   async clearAll(): Promise<void> {
-    await this.pool.query("DELETE FROM comment_likes");
+    await this.repository.createQueryBuilder().delete().execute();
   }
 
   async deleteAndReturnPreviousStatus({
@@ -30,14 +26,13 @@ export class CommentLikesRepository {
     commentId: number;
     userId: number;
   }): Promise<CommentLikeStatus | null> {
-    const result = await this.pool.query<CommentLikeStatusRow>(
+    const rows = await this.repository.query<{ status: CommentLikeStatus }[]>(
       `DELETE FROM comment_likes
        WHERE comment_id = $1 AND user_id = $2
        RETURNING status`,
       [commentId, userId],
     );
-    const row = result.rows[0];
-    return row?.status ?? null;
+    return rows[0]?.status ?? null;
   }
 
   async findByCommentIdsForUser({
@@ -49,14 +44,16 @@ export class CommentLikesRepository {
   }): Promise<Map<number, LikeStatus>> {
     const result = new Map<number, LikeStatus>();
     if (commentIds.length === 0) return result;
-    const rows = await this.pool.query<CommentLikeJoinRow>(
-      `SELECT comment_id, status
-       FROM comment_likes
-       WHERE user_id = $1 AND comment_id = ANY($2::int[])`,
-      [userId, commentIds],
-    );
-    for (const row of rows.rows) {
-      result.set(row.comment_id, row.status);
+
+    const entities = await this.repository
+      .createQueryBuilder("commentLike")
+      .select(["commentLike.commentId", "commentLike.status"])
+      .where("commentLike.userId = :userId", { userId })
+      .andWhere("commentLike.commentId IN (:...commentIds)", { commentIds })
+      .getMany();
+
+    for (const entity of entities) {
+      result.set(entity.commentId, entity.status);
     }
     return result;
   }
@@ -68,12 +65,11 @@ export class CommentLikesRepository {
     commentId: number;
     userId: number;
   }): Promise<CommentLikeStatus | null> {
-    const result = await this.pool.query<CommentLikeStatusRow>(
-      "SELECT status FROM comment_likes WHERE comment_id = $1 AND user_id = $2",
-      [commentId, userId],
-    );
-    const row = result.rows[0];
-    return row?.status ?? null;
+    const entity = await this.repository.findOne({
+      select: ["status"],
+      where: { commentId, userId },
+    });
+    return entity?.status ?? null;
   }
 
   async upsertAndReturnPreviousStatus({
@@ -85,26 +81,18 @@ export class CommentLikesRepository {
     status: CommentLikeStatus;
     userId: number;
   }): Promise<CommentLikeStatus | null> {
-    const client = await this.pool.connect();
-    try {
-      await client.query("BEGIN");
-      const previous = await client.query<CommentLikeStatusRow>(
+    return this.dataSource.transaction(async (manager) => {
+      const previousRows = await manager.query<{ status: CommentLikeStatus }[]>(
         "SELECT status FROM comment_likes WHERE comment_id = $1 AND user_id = $2 FOR UPDATE",
         [commentId, userId],
       );
-      await client.query(
+      await manager.query(
         `INSERT INTO comment_likes (comment_id, user_id, status)
          VALUES ($1, $2, $3)
          ON CONFLICT (comment_id, user_id) DO UPDATE SET status = EXCLUDED.status`,
         [commentId, userId, status],
       );
-      await client.query("COMMIT");
-      return previous.rows[0]?.status ?? null;
-    } catch (err) {
-      await client.query("ROLLBACK");
-      throw err;
-    } finally {
-      client.release();
-    }
+      return previousRows[0]?.status ?? null;
+    });
   }
 }

@@ -27,6 +27,7 @@
     },
     "apps/api": {
       "project": ["src/**/*.ts"],
+      "entry": ["src/index.ts", "src/core/database/data-source.ts"],
       "ignoreDependencies": ["pino-pretty"]
     },
     "packages/shared": {
