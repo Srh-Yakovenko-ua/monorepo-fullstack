@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 
-import { buildTypeOrmOptions } from "./typeorm-options.js";
+import { buildMigrationOptions } from "./typeorm-options.js";
 
-const appDataSource = new DataSource(buildTypeOrmOptions());
+const appDataSource = new DataSource(buildMigrationOptions());
 
 export default appDataSource;

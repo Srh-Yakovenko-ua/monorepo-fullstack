@@ -1,6 +1,6 @@
 {
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm turbo build --filter=@app/web --filter=@app/api",
+  "buildCommand": "pnpm turbo build --filter=@app/web --filter=@app/api && pnpm --filter @app/api db:migration:run",
   "outputDirectory": "apps/web/dist",
   "framework": null,
   "rewrites": [

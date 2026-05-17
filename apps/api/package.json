@@ -14,6 +14,7 @@
     "db:migration:generate": "tsx --conditions=source ./node_modules/typeorm/cli.js migration:generate src/core/database/migrations/Init -d src/core/database/data-source.ts",
     "db:migration:run": "tsx --conditions=source ./node_modules/typeorm/cli.js migration:run -d src/core/database/data-source.ts",
     "db:migration:revert": "tsx --conditions=source ./node_modules/typeorm/cli.js migration:revert -d src/core/database/data-source.ts",
+    "db:migration:show": "tsx --conditions=source ./node_modules/typeorm/cli.js migration:show -d src/core/database/data-source.ts",
     "db:schema:drop": "tsx --conditions=source ./node_modules/typeorm/cli.js schema:drop -d src/core/database/data-source.ts"
   },
   "dependencies": {
