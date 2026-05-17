@@ -76,10 +76,8 @@ export const BlogInputSchema = z.object({
   websiteUrl: z
     .string()
     .max(100, "blogs.form.errors.websiteUrlTooLong")
-    .regex(
-      /^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/,
-      "blogs.form.errors.websiteUrlInvalid",
-    ),
+    .url("blogs.form.errors.websiteUrlInvalid")
+    .startsWith("https://", "blogs.form.errors.websiteUrlInvalid"),
 });
 
 export type BlogInput = z.infer<typeof BlogInputSchema>;
