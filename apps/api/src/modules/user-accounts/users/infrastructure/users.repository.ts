@@ -55,7 +55,7 @@ export class UsersRepository {
     now: Date;
     recoveryCode: string;
   }): Promise<null | UserDoc> {
-    const rows = await this.repository.query<{ id: number }[]>(
+    const result = await this.repository.query<[{ id: number }[], number]>(
       `UPDATE users
        SET password_hash = $1,
            password_recovery_code = NULL,
@@ -65,7 +65,7 @@ export class UsersRepository {
        RETURNING id`,
       [newPasswordHash, recoveryCode, now],
     );
-    const updatedId = rows[0]?.id;
+    const updatedId = result[0]?.[0]?.id;
     if (typeof updatedId !== "number") return null;
     const found = await this.repository.findOneBy({ id: updatedId });
     return found ? mapEntity(found) : null;
