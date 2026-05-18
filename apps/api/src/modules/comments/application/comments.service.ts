@@ -117,20 +117,11 @@ export class CommentsService {
     const doc = await this.commentsRepository.findById(commentId);
     if (!doc) throw new NotFoundError("Comment not found", { bodyless: true });
 
-    if (newStatus === "None") {
-      await this.commentLikesRepository.deleteAndReturnPreviousStatus({
-        commentId,
-        userId: currentUserId,
-      });
-    } else {
-      await this.commentLikesRepository.upsertAndReturnPreviousStatus({
-        commentId,
-        status: newStatus,
-        userId: currentUserId,
-      });
-    }
-
-    await this.commentsRepository.recomputeLikeCounters(commentId);
+    await this.commentLikesRepository.applyLikeChange({
+      commentId,
+      newStatus,
+      userId: currentUserId,
+    });
   }
 
   async updateComment({

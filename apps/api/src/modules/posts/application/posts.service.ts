@@ -119,21 +119,12 @@ export class PostsService {
     const doc = await this.postsRepository.findById(postId);
     if (!doc) throw new NotFoundError("Post not found", { bodyless: true });
 
-    if (newStatus === "None") {
-      await this.postLikesRepository.deleteAndReturnPreviousStatus({
-        postId,
-        userId: currentUserId,
-      });
-    } else {
-      await this.postLikesRepository.upsertAndReturnPreviousStatus({
-        postId,
-        status: newStatus,
-        userId: currentUserId,
-        userLogin: currentUserLogin,
-      });
-    }
-
-    await this.postsRepository.recomputeLikeCounters(postId);
+    await this.postLikesRepository.applyLikeChange({
+      newStatus,
+      postId,
+      userId: currentUserId,
+      userLogin: currentUserLogin,
+    });
   }
 
   async updatePost(id: number, input: PostInput): Promise<void> {

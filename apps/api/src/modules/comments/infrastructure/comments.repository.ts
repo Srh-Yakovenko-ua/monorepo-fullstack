@@ -74,16 +74,6 @@ export class CommentsRepository {
     return { items: entities.map(mapEntity), totalCount };
   }
 
-  async recomputeLikeCounters(commentId: number): Promise<void> {
-    await this.repository.query(
-      `UPDATE comments
-       SET likes_count = (SELECT COUNT(*)::int FROM comment_likes WHERE comment_id = $1 AND status = 'Like'),
-           dislikes_count = (SELECT COUNT(*)::int FROM comment_likes WHERE comment_id = $1 AND status = 'Dislike')
-       WHERE id = $1`,
-      [commentId],
-    );
-  }
-
   async remove(id: number): Promise<void> {
     await this.repository.delete({ id });
   }

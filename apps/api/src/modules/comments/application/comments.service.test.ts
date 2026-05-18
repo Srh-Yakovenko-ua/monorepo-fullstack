@@ -12,11 +12,10 @@ import { CommentsRepository } from "../infrastructure/comments.repository.js";
 import { CommentsService } from "./comments.service.js";
 
 type MockedCommentLikesRepository = {
+  applyLikeChange: ReturnType<typeof vi.fn>;
   clearAll: ReturnType<typeof vi.fn>;
-  deleteAndReturnPreviousStatus: ReturnType<typeof vi.fn>;
   findByCommentIdsForUser: ReturnType<typeof vi.fn>;
   findOne: ReturnType<typeof vi.fn>;
-  upsertAndReturnPreviousStatus: ReturnType<typeof vi.fn>;
 };
 
 type MockedCommentsRepository = {
@@ -24,7 +23,6 @@ type MockedCommentsRepository = {
   create: ReturnType<typeof vi.fn>;
   findById: ReturnType<typeof vi.fn>;
   findByPostId: ReturnType<typeof vi.fn>;
-  recomputeLikeCounters: ReturnType<typeof vi.fn>;
   remove: ReturnType<typeof vi.fn>;
   updateContent: ReturnType<typeof vi.fn>;
 };
@@ -49,11 +47,10 @@ function buildCommentDoc(overrides: Partial<CommentDoc> = {}): CommentDoc {
 
 function buildCommentLikesRepository(): MockedCommentLikesRepository {
   return {
+    applyLikeChange: vi.fn().mockResolvedValue(undefined),
     clearAll: vi.fn().mockResolvedValue(undefined),
-    deleteAndReturnPreviousStatus: vi.fn().mockResolvedValue(null),
     findByCommentIdsForUser: vi.fn().mockResolvedValue(new Map<number, LikeStatus>()),
     findOne: vi.fn().mockResolvedValue(null),
-    upsertAndReturnPreviousStatus: vi.fn().mockResolvedValue(null),
   };
 }
 
@@ -63,7 +60,6 @@ function buildCommentsRepository(): MockedCommentsRepository {
     create: vi.fn(),
     findById: vi.fn(),
     findByPostId: vi.fn(),
-    recomputeLikeCounters: vi.fn().mockResolvedValue(undefined),
     remove: vi.fn().mockResolvedValue(undefined),
     updateContent: vi.fn().mockResolvedValue(undefined),
   };
@@ -390,7 +386,7 @@ describe("CommentsService", () => {
   });
 
   describe("setLikeStatus", () => {
-    it("upserts a Like and recomputes counters", async () => {
+    it("delegates Like to applyLikeChange", async () => {
       const commentsRepository = buildCommentsRepository();
       commentsRepository.findById.mockResolvedValue(buildCommentDoc({ id: 5 }));
       const commentLikesRepository = buildCommentLikesRepository();
@@ -399,16 +395,14 @@ describe("CommentsService", () => {
 
       await service.setLikeStatus({ commentId: 5, currentUserId: 1, newStatus: "Like" });
 
-      expect(commentLikesRepository.upsertAndReturnPreviousStatus).toHaveBeenCalledWith({
+      expect(commentLikesRepository.applyLikeChange).toHaveBeenCalledWith({
         commentId: 5,
-        status: "Like",
+        newStatus: "Like",
         userId: 1,
       });
-      expect(commentLikesRepository.deleteAndReturnPreviousStatus).not.toHaveBeenCalled();
-      expect(commentsRepository.recomputeLikeCounters).toHaveBeenCalledWith(5);
     });
 
-    it("upserts a Dislike and recomputes counters", async () => {
+    it("delegates Dislike to applyLikeChange", async () => {
       const commentsRepository = buildCommentsRepository();
       commentsRepository.findById.mockResolvedValue(buildCommentDoc({ id: 5 }));
       const commentLikesRepository = buildCommentLikesRepository();
@@ -417,14 +411,14 @@ describe("CommentsService", () => {
 
       await service.setLikeStatus({ commentId: 5, currentUserId: 1, newStatus: "Dislike" });
 
-      expect(commentLikesRepository.upsertAndReturnPreviousStatus).toHaveBeenCalledWith({
+      expect(commentLikesRepository.applyLikeChange).toHaveBeenCalledWith({
         commentId: 5,
-        status: "Dislike",
+        newStatus: "Dislike",
         userId: 1,
       });
     });
 
-    it("deletes the like row when transitioning to None and recomputes counters", async () => {
+    it("delegates None to applyLikeChange", async () => {
       const commentsRepository = buildCommentsRepository();
       commentsRepository.findById.mockResolvedValue(buildCommentDoc({ id: 5 }));
       const commentLikesRepository = buildCommentLikesRepository();
@@ -433,23 +427,24 @@ describe("CommentsService", () => {
 
       await service.setLikeStatus({ commentId: 5, currentUserId: 1, newStatus: "None" });
 
-      expect(commentLikesRepository.deleteAndReturnPreviousStatus).toHaveBeenCalledWith({
+      expect(commentLikesRepository.applyLikeChange).toHaveBeenCalledWith({
         commentId: 5,
+        newStatus: "None",
         userId: 1,
       });
-      expect(commentLikesRepository.upsertAndReturnPreviousStatus).not.toHaveBeenCalled();
-      expect(commentsRepository.recomputeLikeCounters).toHaveBeenCalledWith(5);
     });
 
     it("throws NotFoundError when the comment does not exist", async () => {
       const commentsRepository = buildCommentsRepository();
       commentsRepository.findById.mockResolvedValue(null);
+      const commentLikesRepository = buildCommentLikesRepository();
 
-      const { service } = buildService({ commentsRepository });
+      const { service } = buildService({ commentLikesRepository, commentsRepository });
 
       await expect(
         service.setLikeStatus({ commentId: 999, currentUserId: 1, newStatus: "Like" }),
       ).rejects.toBeInstanceOf(NotFoundError);
+      expect(commentLikesRepository.applyLikeChange).not.toHaveBeenCalled();
     });
   });
 

@@ -14,11 +14,10 @@ type MockedBlogsRepository = {
 };
 
 type MockedPostLikesRepository = {
+  applyLikeChange: ReturnType<typeof vi.fn>;
   clearAll: ReturnType<typeof vi.fn>;
-  deleteAndReturnPreviousStatus: ReturnType<typeof vi.fn>;
   findByPostIdsForUser: ReturnType<typeof vi.fn>;
   findNewestLikesByPostIds: ReturnType<typeof vi.fn>;
-  upsertAndReturnPreviousStatus: ReturnType<typeof vi.fn>;
 };
 
 type MockedPostsRepository = {
@@ -26,7 +25,6 @@ type MockedPostsRepository = {
   create: ReturnType<typeof vi.fn>;
   findById: ReturnType<typeof vi.fn>;
   findPage: ReturnType<typeof vi.fn>;
-  recomputeLikeCounters: ReturnType<typeof vi.fn>;
   remove: ReturnType<typeof vi.fn>;
   update: ReturnType<typeof vi.fn>;
 };
@@ -64,11 +62,10 @@ function buildPostDoc(overrides: Partial<PostDoc> = {}): PostDoc {
 
 function buildPostLikesRepository(): MockedPostLikesRepository {
   return {
+    applyLikeChange: vi.fn().mockResolvedValue(undefined),
     clearAll: vi.fn().mockResolvedValue(undefined),
-    deleteAndReturnPreviousStatus: vi.fn().mockResolvedValue(null),
     findByPostIdsForUser: vi.fn().mockResolvedValue(new Map()),
     findNewestLikesByPostIds: vi.fn().mockResolvedValue(new Map()),
-    upsertAndReturnPreviousStatus: vi.fn().mockResolvedValue(null),
   };
 }
 
@@ -78,7 +75,6 @@ function buildPostsRepository(): MockedPostsRepository {
     create: vi.fn(),
     findById: vi.fn(),
     findPage: vi.fn(),
-    recomputeLikeCounters: vi.fn().mockResolvedValue(undefined),
     remove: vi.fn(),
     update: vi.fn(),
   };
@@ -275,11 +271,10 @@ describe("PostsService.setLikeStatus", () => {
         postId: 999,
       }),
     ).rejects.toBeInstanceOf(NotFoundError);
-    expect(postLikesRepository.upsertAndReturnPreviousStatus).not.toHaveBeenCalled();
-    expect(postLikesRepository.deleteAndReturnPreviousStatus).not.toHaveBeenCalled();
+    expect(postLikesRepository.applyLikeChange).not.toHaveBeenCalled();
   });
 
-  it("upserts a Like row and recomputes counters on first Like", async () => {
+  it("delegates Like to applyLikeChange with the resolved user identity", async () => {
     const doc = buildPostDoc();
     const { postLikesRepository, postsRepository, service } = buildService();
     postsRepository.findById.mockResolvedValue(doc);
@@ -291,20 +286,18 @@ describe("PostsService.setLikeStatus", () => {
       postId: doc.id,
     });
 
-    expect(postLikesRepository.upsertAndReturnPreviousStatus).toHaveBeenCalledWith({
+    expect(postLikesRepository.applyLikeChange).toHaveBeenCalledWith({
+      newStatus: "Like",
       postId: doc.id,
-      status: "Like",
       userId: 1,
       userLogin: "alice",
     });
-    expect(postsRepository.recomputeLikeCounters).toHaveBeenCalledWith(doc.id);
   });
 
-  it("upserts Dislike row when transitioning Like -> Dislike", async () => {
+  it("delegates Dislike to applyLikeChange", async () => {
     const doc = buildPostDoc();
     const { postLikesRepository, postsRepository, service } = buildService();
     postsRepository.findById.mockResolvedValue(doc);
-    postLikesRepository.upsertAndReturnPreviousStatus.mockResolvedValue("Like");
 
     await service.setLikeStatus({
       currentUserId: 1,
@@ -313,16 +306,15 @@ describe("PostsService.setLikeStatus", () => {
       postId: doc.id,
     });
 
-    expect(postLikesRepository.upsertAndReturnPreviousStatus).toHaveBeenCalledWith({
+    expect(postLikesRepository.applyLikeChange).toHaveBeenCalledWith({
+      newStatus: "Dislike",
       postId: doc.id,
-      status: "Dislike",
       userId: 1,
       userLogin: "alice",
     });
-    expect(postsRepository.recomputeLikeCounters).toHaveBeenCalledWith(doc.id);
   });
 
-  it("deletes the like row when transitioning to None", async () => {
+  it("delegates None to applyLikeChange", async () => {
     const doc = buildPostDoc();
     const { postLikesRepository, postsRepository, service } = buildService();
     postsRepository.findById.mockResolvedValue(doc);
@@ -334,19 +326,18 @@ describe("PostsService.setLikeStatus", () => {
       postId: doc.id,
     });
 
-    expect(postLikesRepository.deleteAndReturnPreviousStatus).toHaveBeenCalledWith({
+    expect(postLikesRepository.applyLikeChange).toHaveBeenCalledWith({
+      newStatus: "None",
       postId: doc.id,
       userId: 1,
+      userLogin: "alice",
     });
-    expect(postLikesRepository.upsertAndReturnPreviousStatus).not.toHaveBeenCalled();
-    expect(postsRepository.recomputeLikeCounters).toHaveBeenCalledWith(doc.id);
   });
 
-  it("calls upsert again on idempotent Like -> Like", async () => {
+  it("calls applyLikeChange exactly once per setLikeStatus invocation", async () => {
     const doc = buildPostDoc();
     const { postLikesRepository, postsRepository, service } = buildService();
     postsRepository.findById.mockResolvedValue(doc);
-    postLikesRepository.upsertAndReturnPreviousStatus.mockResolvedValue("Like");
 
     await service.setLikeStatus({
       currentUserId: 1,
@@ -355,8 +346,7 @@ describe("PostsService.setLikeStatus", () => {
       postId: doc.id,
     });
 
-    expect(postLikesRepository.upsertAndReturnPreviousStatus).toHaveBeenCalledTimes(1);
-    expect(postsRepository.recomputeLikeCounters).toHaveBeenCalledTimes(1);
+    expect(postLikesRepository.applyLikeChange).toHaveBeenCalledTimes(1);
   });
 });
 

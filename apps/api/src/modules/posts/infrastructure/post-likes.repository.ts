@@ -2,7 +2,7 @@ import type { LikeStatus } from "@app/shared";
 
 import { Injectable } from "@nestjs/common";
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
-import { DataSource, Repository } from "typeorm";
+import { DataSource, type EntityManager, Repository } from "typeorm";
 
 import { PostLikeEntity, type PostLikeStatus } from "../domain/post-like.entity.js";
 
@@ -21,6 +21,25 @@ interface NewestLikeQueryRow {
 
 const DEFAULT_NEWEST_LIKES_LIMIT = 3;
 
+type CounterDelta = { dislikesDelta: number; likesDelta: number };
+
+function resolveCounterDelta({
+  newStatus,
+  previousStatus,
+}: {
+  newStatus: LikeStatus;
+  previousStatus: null | PostLikeStatus;
+}): CounterDelta {
+  const previousLikeWeight = previousStatus === "Like" ? 1 : 0;
+  const previousDislikeWeight = previousStatus === "Dislike" ? 1 : 0;
+  const nextLikeWeight = newStatus === "Like" ? 1 : 0;
+  const nextDislikeWeight = newStatus === "Dislike" ? 1 : 0;
+  return {
+    dislikesDelta: nextDislikeWeight - previousDislikeWeight,
+    likesDelta: nextLikeWeight - previousLikeWeight,
+  };
+}
+
 @Injectable()
 export class PostLikesRepository {
   constructor(
@@ -30,24 +49,39 @@ export class PostLikesRepository {
     private readonly dataSource: DataSource,
   ) {}
 
-  async clearAll(): Promise<void> {
-    await this.repository.createQueryBuilder().delete().execute();
-  }
-
-  async deleteAndReturnPreviousStatus({
+  async applyLikeChange({
+    newStatus,
     postId,
     userId,
+    userLogin,
   }: {
+    newStatus: LikeStatus;
     postId: number;
     userId: number;
-  }): Promise<null | PostLikeStatus> {
-    const rows = await this.repository.query<{ status: PostLikeStatus }[]>(
-      `DELETE FROM post_likes
-       WHERE post_id = $1 AND user_id = $2
-       RETURNING status`,
-      [postId, userId],
-    );
-    return rows[0]?.status ?? null;
+    userLogin: string;
+  }): Promise<void> {
+    await this.dataSource.transaction(async (manager) => {
+      const previousStatus = await this.lockAndReadPreviousStatus({ manager, postId, userId });
+      if (previousStatus === newStatus) return;
+      if (previousStatus === null && newStatus === "None") return;
+
+      await this.applyLikeRowChange({ manager, newStatus, postId, userId, userLogin });
+
+      const { dislikesDelta, likesDelta } = resolveCounterDelta({ newStatus, previousStatus });
+      if (dislikesDelta === 0 && likesDelta === 0) return;
+
+      await manager.query(
+        `UPDATE posts
+         SET likes_count = likes_count + $1,
+             dislikes_count = dislikes_count + $2
+         WHERE id = $3`,
+        [likesDelta, dislikesDelta, postId],
+      );
+    });
+  }
+
+  async clearAll(): Promise<void> {
+    await this.repository.createQueryBuilder().delete().execute();
   }
 
   async findByPostIdsForUser({
@@ -108,29 +142,47 @@ export class PostLikesRepository {
     return result;
   }
 
-  async upsertAndReturnPreviousStatus({
+  private async applyLikeRowChange({
+    manager,
+    newStatus,
     postId,
-    status,
     userId,
     userLogin,
   }: {
+    manager: EntityManager;
+    newStatus: LikeStatus;
     postId: number;
-    status: PostLikeStatus;
     userId: number;
     userLogin: string;
+  }): Promise<void> {
+    if (newStatus === "None") {
+      await manager.query("DELETE FROM post_likes WHERE post_id = $1 AND user_id = $2", [
+        postId,
+        userId,
+      ]);
+      return;
+    }
+    await manager.query(
+      `INSERT INTO post_likes (post_id, user_id, user_login, status)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (post_id, user_id) DO UPDATE SET status = EXCLUDED.status`,
+      [postId, userId, userLogin, newStatus],
+    );
+  }
+
+  private async lockAndReadPreviousStatus({
+    manager,
+    postId,
+    userId,
+  }: {
+    manager: EntityManager;
+    postId: number;
+    userId: number;
   }): Promise<null | PostLikeStatus> {
-    return this.dataSource.transaction(async (manager) => {
-      const previousRows = await manager.query<{ status: PostLikeStatus }[]>(
-        "SELECT status FROM post_likes WHERE post_id = $1 AND user_id = $2 FOR UPDATE",
-        [postId, userId],
-      );
-      await manager.query(
-        `INSERT INTO post_likes (post_id, user_id, user_login, status)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (post_id, user_id) DO UPDATE SET status = EXCLUDED.status`,
-        [postId, userId, userLogin, status],
-      );
-      return previousRows[0]?.status ?? null;
-    });
+    const rows = await manager.query<{ status: PostLikeStatus }[]>(
+      "SELECT status FROM post_likes WHERE post_id = $1 AND user_id = $2 FOR UPDATE",
+      [postId, userId],
+    );
+    return rows[0]?.status ?? null;
   }
 }
