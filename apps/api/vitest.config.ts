@@ -1,6 +1,6 @@
 import { defineConfig } from "vitest/config";
 
-const testEnv = {
+const testDefaults = {
   CORS_ORIGINS: "http://localhost:5173",
   DATABASE_URL: "postgresql://monorepo:monorepo_dev_2026@localhost:5432/monorepo_test",
   EMAIL_FROM: "no-reply@test.local",
@@ -14,8 +14,11 @@ const testEnv = {
   SMTP_USER: "test",
 };
 
-for (const [key, value] of Object.entries(testEnv)) {
-  process.env[key] = value;
+const testEnv: Record<string, string> = {};
+for (const [key, value] of Object.entries(testDefaults)) {
+  const resolved = process.env[key] ?? value;
+  process.env[key] = resolved;
+  testEnv[key] = resolved;
 }
 
 export default defineConfig({
