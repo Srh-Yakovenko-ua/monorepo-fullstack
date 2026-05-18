@@ -1,6 +1,8 @@
+import "./core/tracing.js";
 import { bootstrapNestApp } from "./bootstrap.js";
 import { env } from "./config/env.js";
 import { createLogger } from "./core/logger.js";
+import { shutdownTracing } from "./core/tracing.js";
 
 const log = createLogger("startup");
 const SHUTDOWN_TIMEOUT_MS = 10_000;
@@ -39,6 +41,7 @@ async function main(): Promise<void> {
 
     try {
       await app.close();
+      await shutdownTracing();
       clearTimeout(forceExit);
       process.exit(0);
     } catch (err) {

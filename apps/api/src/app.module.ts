@@ -10,6 +10,8 @@ import { RequestLoggerMiddleware } from "./core/middleware/request-logger.middle
 import { BlogsModule } from "./modules/blogs/blogs.module.js";
 import { CommentsModule } from "./modules/comments/comments.module.js";
 import { HealthModule } from "./modules/health/health.module.js";
+import { MetricsMiddleware } from "./modules/observability/metrics.middleware.js";
+import { MetricsModule } from "./modules/observability/metrics.module.js";
 import { PostsModule } from "./modules/posts/posts.module.js";
 import { TestingModule } from "./modules/testing/testing.module.js";
 import { UserAccountsModule } from "./modules/user-accounts/user-accounts.module.js";
@@ -19,6 +21,7 @@ const featureModules = [
   BlogsModule,
   CommentsModule,
   HealthModule,
+  MetricsModule,
   PostsModule,
   UserAccountsModule,
   VideosModule,
@@ -33,6 +36,8 @@ const optionalModules = [
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestIdMiddleware, RequestLoggerMiddleware).forRoutes("*splat");
+    consumer
+      .apply(RequestIdMiddleware, MetricsMiddleware, RequestLoggerMiddleware)
+      .forRoutes("*splat");
   }
 }

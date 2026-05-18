@@ -58,6 +58,10 @@ const envSchema = z
     SMTP_PASS: z.string().default(""),
     SMTP_PORT: z.coerce.number().int().positive().default(2525),
     SMTP_USER: z.string().default(""),
+    TRACING_ENABLED: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
   })
   .transform((raw) => ({
     corsOrigins: raw.CORS_ORIGINS,
@@ -77,6 +81,7 @@ const envSchema = z
     smtpPass: raw.SMTP_PASS,
     smtpPort: raw.SMTP_PORT,
     smtpUser: raw.SMTP_USER,
+    tracingEnabled: raw.TRACING_ENABLED,
   }));
 
 const parsed = envSchema.safeParse(process.env);
