@@ -1,9 +1,10 @@
 import type { INestApplication } from "@nestjs/common";
 
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { createTestApp } from "../../../test/create-test-app.js";
+import { truncateAllTables } from "../../../test/truncate.js";
 import { VideosModule } from "../videos.module.js";
 
 let app: INestApplication;
@@ -12,6 +13,10 @@ let server: ReturnType<INestApplication["getHttpServer"]>;
 beforeAll(async () => {
   app = await createTestApp([VideosModule]);
   server = app.getHttpServer();
+});
+
+beforeEach(async () => {
+  await truncateAllTables(app);
 });
 
 afterAll(async () => {
@@ -24,7 +29,7 @@ const validCreateBody = {
   title: "My Video",
 };
 
-describe.skip("Videos API", () => {
+describe("Videos API", () => {
   describe("GET /api/videos", () => {
     it("returns empty array when no videos exist", async () => {
       const res = await request(server).get("/api/videos");
