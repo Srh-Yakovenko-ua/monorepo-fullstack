@@ -16,13 +16,13 @@ export const usersKeys = {
 
 export const usersApi = {
   create: (input: CreateUserInput) =>
-    request<UserViewModel>("/api/users", {
+    request<UserViewModel>("/api/sa/users", {
       authMode: "bearer",
       body: JSON.stringify(input),
       method: "POST",
     }),
   list: (query: UsersQuery) => {
-    const url = new URL("/api/users", window.location.origin);
+    const url = new URL("/api/sa/users", window.location.origin);
     url.searchParams.set("pageNumber", String(query.pageNumber));
     url.searchParams.set("pageSize", String(query.pageSize));
     url.searchParams.set("sortBy", query.sortBy);
@@ -31,10 +31,10 @@ export const usersApi = {
     if (query.searchEmailTerm) url.searchParams.set("searchEmailTerm", query.searchEmailTerm);
     return request<Paginator<UserViewModel>>(url.pathname + url.search, { authMode: "bearer" });
   },
-  remove: (id: number) =>
-    request<void>(`/api/users/${id}`, { authMode: "bearer", method: "DELETE" }),
-  updateRole: ({ id, role }: { id: number; role: UpdateUserRoleInput["role"] }) =>
-    request<void>(`/api/users/${id}/role`, {
+  remove: (id: string) =>
+    request<void>(`/api/sa/users/${id}`, { authMode: "bearer", method: "DELETE" }),
+  updateRole: ({ id, role }: { id: string; role: UpdateUserRoleInput["role"] }) =>
+    request<void>(`/api/sa/users/${id}/role`, {
       authMode: "bearer",
       body: JSON.stringify({ role }),
       method: "PUT",

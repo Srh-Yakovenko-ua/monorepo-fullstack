@@ -17,6 +17,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import {
+  ApiBasicAuth,
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
@@ -27,7 +28,6 @@ import {
 } from "@nestjs/swagger";
 
 import { BadRequestError, UnauthorizedError } from "../../../../core/exceptions/errors.js";
-import { AdminGuard } from "../../../../core/guards/admin.guard.js";
 import { JwtAuthGuard } from "../../../../core/guards/jwt-auth.guard.js";
 import { SuperAdminGuard } from "../../../../core/guards/super-admin.guard.js";
 import { ZodBodyPipe } from "../../../../core/pipes/zod-body.pipe.js";
@@ -37,50 +37,47 @@ import { UsersService } from "../application/users.service.js";
 import { UpdateUserRoleInputDto } from "./input-dto/update-user-role-input.dto.js";
 import { UsersQueryDto } from "./input-dto/users-query.dto.js";
 
-@ApiTags("Users")
-@Controller("api/users")
+@ApiTags("SA Users")
+@Controller("api/sa/users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @ApiBearerAuth()
+  @ApiBasicAuth()
   @ApiBody({ type: CreateUserInputDto })
-  @ApiOperation({ summary: "Create a new user (admin)" })
+  @ApiOperation({ summary: "Create a new user (super-admin)" })
   @ApiResponse({ description: "User created", status: 201 })
   @ApiResponse({ description: "Validation failed", status: 400 })
   @ApiResponse({ description: "Unauthorized", status: 401 })
-  @ApiResponse({ description: "Forbidden — admin role required", status: 403 })
   @HttpCode(HttpStatus.CREATED)
   @Post()
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(SuperAdminGuard)
   createUser(
     @Body(new ZodBodyPipe(CreateUserInputSchema)) body: CreateUserInputDto,
   ): Promise<UserViewModel> {
     return this.usersService.createUser(body);
   }
 
-  @ApiBearerAuth()
-  @ApiOperation({ summary: "Delete a user by id (admin)" })
+  @ApiBasicAuth()
+  @ApiOperation({ summary: "Delete a user by id (super-admin)" })
   @ApiParam({ name: "id" })
   @ApiResponse({ description: "User deleted", status: 204 })
   @ApiResponse({ description: "Unauthorized", status: 401 })
-  @ApiResponse({ description: "Forbidden — admin role required", status: 403 })
   @ApiResponse({ description: "User not found", status: 404 })
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(SuperAdminGuard)
   deleteUser(@Param("id") rawId: string): Promise<void> {
     return this.usersService.deleteUser(parseUserId(rawId));
   }
 
-  @ApiBearerAuth()
-  @ApiOperation({ summary: "List all users (admin)" })
+  @ApiBasicAuth()
+  @ApiOperation({ summary: "List all users (super-admin)" })
   @ApiQuery({ type: UsersQueryDto })
   @ApiResponse({ description: "Paginated list of users", status: 200 })
   @ApiResponse({ description: "Invalid query parameters", status: 400 })
   @ApiResponse({ description: "Unauthorized", status: 401 })
-  @ApiResponse({ description: "Forbidden — admin role required", status: 403 })
   @Get()
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(SuperAdminGuard)
   listUsers(
     @Query(new ZodQueryPipe(UsersQuerySchema)) query: UsersQueryDto,
   ): Promise<Paginator<UserViewModel>> {

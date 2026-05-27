@@ -38,7 +38,7 @@ async function createConfirmedUser(
     login,
     password: "Pa55word!",
   });
-  return { id: user.id, login: user.login };
+  return { id: Number(user.id), login: user.login };
 }
 
 async function createSessionFor({

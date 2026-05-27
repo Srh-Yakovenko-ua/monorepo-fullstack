@@ -257,9 +257,11 @@ export type LikesInfoViewModel = {
   myStatus: LikeStatus;
 };
 
+export const LIST_PAGE_SIZE_MAX = 100;
+
 export const UsersQuerySchema = z.object({
   pageNumber: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).default(10),
+  pageSize: z.coerce.number().int().min(1).max(LIST_PAGE_SIZE_MAX).default(10),
   searchEmailTerm: z.string().max(100).optional(),
   searchLoginTerm: z.string().max(100).optional(),
   sortBy: z.enum(USER_SORT_FIELDS).default("createdAt"),
@@ -271,7 +273,7 @@ export type UsersQuery = z.infer<typeof UsersQuerySchema>;
 export type UserViewModel = {
   createdAt: string;
   email: string;
-  id: number;
+  id: string;
   login: string;
   role: UserRole;
 };
@@ -281,7 +283,7 @@ export type CommentSortField = (typeof COMMENT_SORT_FIELDS)[number];
 
 export const CommentsQuerySchema = z.object({
   pageNumber: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).default(10),
+  pageSize: z.coerce.number().int().min(1).max(LIST_PAGE_SIZE_MAX).default(10),
   sortBy: z.enum(COMMENT_SORT_FIELDS).default("createdAt"),
   sortDirection: z.enum(["asc", "desc"]).default("desc"),
 });
@@ -295,14 +297,14 @@ export type PostSortField = (typeof POST_SORT_FIELDS)[number];
 
 export const PaginationQuerySchema = z.object({
   pageNumber: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).default(10),
+  pageSize: z.coerce.number().int().min(1).max(LIST_PAGE_SIZE_MAX).default(10),
   sortBy: z.enum(POST_SORT_FIELDS).default("createdAt"),
   sortDirection: z.enum(["asc", "desc"]).default("desc"),
 });
 
 export const BlogsQuerySchema = z.object({
   pageNumber: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).default(10),
+  pageSize: z.coerce.number().int().min(1).max(LIST_PAGE_SIZE_MAX).default(10),
   searchNameTerm: z.string().max(100).optional(),
   sortBy: z.enum(BLOG_SORT_FIELDS).default("createdAt"),
   sortDirection: z.enum(["asc", "desc"]).default("desc"),
@@ -315,3 +317,182 @@ export type BlogLookupItem = {
 export type BlogsQuery = z.infer<typeof BlogsQuerySchema>;
 
 export type PaginationQuery = z.infer<typeof PaginationQuerySchema>;
+
+export const QUIZ_QUESTION_BODY_MIN = 10;
+export const QUIZ_QUESTION_BODY_MAX = 500;
+
+const trimmedQuizQuestionBodySchema = z
+  .string()
+  .trim()
+  .min(QUIZ_QUESTION_BODY_MIN, `body must be at least ${QUIZ_QUESTION_BODY_MIN} characters`)
+  .max(QUIZ_QUESTION_BODY_MAX, `body must be at most ${QUIZ_QUESTION_BODY_MAX} characters`);
+
+const quizCorrectAnswersSchema = z
+  .array(z.string().trim().min(1, "correctAnswers entries must be non-empty"))
+  .min(1, "correctAnswers must contain at least one answer");
+
+export const QuizQuestionInputSchema = z.object({
+  body: trimmedQuizQuestionBodySchema,
+  correctAnswers: quizCorrectAnswersSchema,
+});
+
+export type QuizQuestionInput = z.infer<typeof QuizQuestionInputSchema>;
+
+export const QuizQuestionPublishInputSchema = z.object({
+  published: z.boolean(),
+});
+
+export type QuizQuestionPublishInput = z.infer<typeof QuizQuestionPublishInputSchema>;
+
+export const QUIZ_QUESTION_SORT_FIELDS = ["createdAt", "body", "updatedAt", "published"] as const;
+export type QuizQuestionSortField = (typeof QUIZ_QUESTION_SORT_FIELDS)[number];
+
+export const QUIZ_QUESTION_PUBLISHED_STATUSES = ["all", "published", "notPublished"] as const;
+export type QuizQuestionPublishedStatus = (typeof QUIZ_QUESTION_PUBLISHED_STATUSES)[number];
+
+export const QUIZ_QUESTIONS_PAGE_SIZE_MAX = 100;
+
+const quizQuestionSortBySchema = z
+  .string()
+  .optional()
+  .transform((value) =>
+    value && (QUIZ_QUESTION_SORT_FIELDS as readonly string[]).includes(value)
+      ? (value as QuizQuestionSortField)
+      : ("createdAt" as QuizQuestionSortField),
+  );
+
+export const QuizQuestionsQuerySchema = z.object({
+  bodySearchTerm: z.string().max(500).optional(),
+  pageNumber: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(QUIZ_QUESTIONS_PAGE_SIZE_MAX).default(10),
+  publishedStatus: z.enum(QUIZ_QUESTION_PUBLISHED_STATUSES).default("all"),
+  sortBy: quizQuestionSortBySchema,
+  sortDirection: z.enum(["asc", "desc"]).default("desc"),
+});
+
+export type QuizQuestionsQuery = z.infer<typeof QuizQuestionsQuerySchema>;
+
+export type QuizQuestionViewModel = {
+  body: string;
+  correctAnswers: string[];
+  createdAt: string;
+  id: string;
+  published: boolean;
+  updatedAt: null | string;
+};
+
+export const QUIZ_GAME_STATUSES = ["PendingSecondPlayer", "Active", "Finished"] as const;
+export type QuizGameStatus = (typeof QUIZ_GAME_STATUSES)[number];
+
+export const QUIZ_GAME_ANSWER_STATUSES = ["Correct", "Incorrect"] as const;
+export type QuizGameAnswerStatus = (typeof QUIZ_GAME_ANSWER_STATUSES)[number];
+
+export const QUIZ_GAME_QUESTIONS_COUNT = 5;
+
+export const QuizGameAnswerInputSchema = z.object({
+  answer: z.string().trim().min(1, "answer must be non-empty"),
+});
+export type QuizGameAnswerInput = z.infer<typeof QuizGameAnswerInputSchema>;
+
+export type QuizGameAnswerViewModel = {
+  addedAt: string;
+  answerStatus: QuizGameAnswerStatus;
+  questionId: string;
+};
+
+export type QuizGamePairViewModel = {
+  finishGameDate: null | string;
+  firstPlayerProgress: QuizGamePlayerProgressViewModel;
+  id: string;
+  pairCreatedDate: string;
+  questions: null | QuizGameQuestionViewModel[];
+  secondPlayerProgress: null | QuizGamePlayerProgressViewModel;
+  startGameDate: null | string;
+  status: QuizGameStatus;
+};
+
+export type QuizGamePlayerProgressViewModel = {
+  answers: QuizGameAnswerViewModel[];
+  player: { id: string; login: string };
+  score: number;
+};
+
+export type QuizGameQuestionViewModel = {
+  body: string;
+  id: string;
+};
+
+export const QUIZ_GAME_SORT_FIELDS = [
+  "pairCreatedDate",
+  "status",
+  "startGameDate",
+  "finishGameDate",
+] as const;
+export type QuizGameSortField = (typeof QUIZ_GAME_SORT_FIELDS)[number];
+
+const quizGameSortBySchema = z
+  .string()
+  .optional()
+  .transform(
+    (value): QuizGameSortField =>
+      value && (QUIZ_GAME_SORT_FIELDS as readonly string[]).includes(value)
+        ? (value as QuizGameSortField)
+        : "pairCreatedDate",
+  );
+
+export const MyGamesQuerySchema = z.object({
+  pageNumber: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(LIST_PAGE_SIZE_MAX).default(10),
+  sortBy: quizGameSortBySchema,
+  sortDirection: z.enum(["asc", "desc"]).default("desc"),
+});
+
+export type MyGamesQuery = z.infer<typeof MyGamesQuerySchema>;
+
+export interface MyStatisticViewModel {
+  avgScores: number;
+  drawsCount: number;
+  gamesCount: number;
+  lossesCount: number;
+  sumScore: number;
+  winsCount: number;
+}
+
+export const TOP_USERS_SORT_FIELDS = [
+  "avgScores",
+  "sumScore",
+  "winsCount",
+  "lossesCount",
+  "drawsCount",
+  "gamesCount",
+] as const;
+export type TopUsersSortField = (typeof TOP_USERS_SORT_FIELDS)[number];
+
+export const TOP_USERS_SORT_DIRECTIONS = ["asc", "desc"] as const;
+export type TopUsersSortDirection = (typeof TOP_USERS_SORT_DIRECTIONS)[number];
+
+export const TOP_USERS_DEFAULT_SORT: readonly string[] = ["avgScores desc", "sumScore desc"];
+
+export const TopUsersQuerySchema = z.object({
+  pageNumber: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(LIST_PAGE_SIZE_MAX).default(10),
+  sort: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((value): string[] => {
+      if (value === undefined) return [...TOP_USERS_DEFAULT_SORT];
+      return Array.isArray(value) ? value : [value];
+    }),
+});
+
+export interface TopGamePlayerViewModel {
+  avgScores: number;
+  drawsCount: number;
+  gamesCount: number;
+  lossesCount: number;
+  player: { id: string; login: string };
+  sumScore: number;
+  winsCount: number;
+}
+
+export type TopUsersQuery = z.infer<typeof TopUsersQuerySchema>;

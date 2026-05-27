@@ -5,8 +5,14 @@ import { env } from "../../config/env.js";
 import { BlogEntity } from "../../modules/blogs/domain/blog.entity.js";
 import { CommentLikeEntity } from "../../modules/comments/domain/comment-like.entity.js";
 import { CommentEntity } from "../../modules/comments/domain/comment.entity.js";
+import { QuizGameAnswerEntity } from "../../modules/pair-quiz-game/domain/quiz-game-answer.entity.js";
+import { QuizGamePlayerEntity } from "../../modules/pair-quiz-game/domain/quiz-game-player.entity.js";
+import { QuizGameQuestionEntity } from "../../modules/pair-quiz-game/domain/quiz-game-question.entity.js";
+import { QuizGameEntity } from "../../modules/pair-quiz-game/domain/quiz-game.entity.js";
 import { PostLikeEntity } from "../../modules/posts/domain/post-like.entity.js";
 import { PostEntity } from "../../modules/posts/domain/post.entity.js";
+import { QuizQuestionCorrectAnswerEntity } from "../../modules/quiz-questions/domain/quiz-question-correct-answer.entity.js";
+import { QuizQuestionEntity } from "../../modules/quiz-questions/domain/quiz-question.entity.js";
 import { SessionEntity } from "../../modules/user-accounts/security/domain/session.entity.js";
 import { UserEntity } from "../../modules/user-accounts/users/domain/user.entity.js";
 import { VideoEntity } from "../../modules/videos/domain/video.entity.js";
@@ -17,6 +23,12 @@ export const databaseEntities = [
   CommentLikeEntity,
   PostEntity,
   PostLikeEntity,
+  QuizGameAnswerEntity,
+  QuizGameEntity,
+  QuizGamePlayerEntity,
+  QuizGameQuestionEntity,
+  QuizQuestionCorrectAnswerEntity,
+  QuizQuestionEntity,
   SessionEntity,
   UserEntity,
   VideoEntity,

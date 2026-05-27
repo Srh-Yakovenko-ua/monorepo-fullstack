@@ -58,10 +58,9 @@ export function UsersPage() {
   }
 
   function handleDeleteClick(e: React.MouseEvent<HTMLButtonElement>) {
-    const userIdRaw = e.currentTarget.dataset.userId;
+    const userId = e.currentTarget.dataset.userId;
     const userLogin = e.currentTarget.dataset.userLogin;
-    if (!userIdRaw) return;
-    const userId = Number(userIdRaw);
+    if (!userId) return;
 
     modalObserver.addModal(ModalId.Confirm, {
       confirmLabel: t("users.delete.confirmLabel"),
@@ -84,7 +83,7 @@ export function UsersPage() {
     userId,
   }: {
     role: UpdateUserRoleInput["role"];
-    userId: number;
+    userId: string;
   }) {
     try {
       await updateUserRole.mutateAsync({ id: userId, role });
@@ -109,7 +108,7 @@ export function UsersPage() {
 
       <section className="mt-5 flex min-h-0 flex-1 flex-col">
         <UsersTable
-          currentUserId={currentUser?.userId ?? null}
+          currentUserId={currentUser?.userId == null ? null : String(currentUser.userId)}
           error={error}
           hasSearchTerms={hasSearchTerms}
           isError={isError}

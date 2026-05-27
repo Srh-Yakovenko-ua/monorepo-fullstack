@@ -3,7 +3,9 @@ import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { BlogsService } from "../blogs/application/blogs.service.js";
 import { CommentsService } from "../comments/application/comments.service.js";
+import { PairQuizGameService } from "../pair-quiz-game/application/pair-quiz-game.service.js";
 import { PostsService } from "../posts/application/posts.service.js";
+import { QuizQuestionsService } from "../quiz-questions/application/quiz-questions.service.js";
 import { SecurityService } from "../user-accounts/security/application/security.service.js";
 import { UsersService } from "../user-accounts/users/application/users.service.js";
 import { VideosService } from "../videos/application/videos.service.js";
@@ -18,6 +20,8 @@ export class TestingController {
     private readonly usersService: UsersService,
     private readonly videosService: VideosService,
     private readonly securityService: SecurityService,
+    private readonly quizQuestionsService: QuizQuestionsService,
+    private readonly pairQuizGameService: PairQuizGameService,
   ) {}
 
   @ApiOperation({ summary: "Wipe all data (test environments only)" })
@@ -25,6 +29,7 @@ export class TestingController {
   @Delete("all-data")
   @HttpCode(HttpStatus.NO_CONTENT)
   async clearAllData(): Promise<void> {
+    await this.pairQuizGameService.clearAllGames();
     await Promise.all([
       this.blogsService.clearAllBlogs(),
       this.commentsService.clearAllComments(),
@@ -32,6 +37,7 @@ export class TestingController {
       this.usersService.clearAllUsers(),
       this.videosService.clearAllVideos(),
       this.securityService.clearAllSessions(),
+      this.quizQuestionsService.clearAllQuestions(),
     ]);
   }
 }

@@ -3,6 +3,8 @@ import { z } from "zod";
 
 const envSchema = z
   .object({
+    BASIC_AUTH_LOGIN: z.string().min(1).default("admin"),
+    BASIC_AUTH_PASSWORD: z.string().min(1).default("qwerty"),
     CORS_ORIGINS: z
       .string()
       .default("http://localhost:5173")
@@ -64,6 +66,8 @@ const envSchema = z
       .transform((value) => value === "true"),
   })
   .transform((raw) => ({
+    basicAuthLogin: raw.BASIC_AUTH_LOGIN,
+    basicAuthPassword: raw.BASIC_AUTH_PASSWORD,
     corsOrigins: raw.CORS_ORIGINS,
     databaseUrl: raw.DATABASE_URL,
     directUrl: raw.DIRECT_URL,

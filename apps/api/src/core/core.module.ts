@@ -10,6 +10,7 @@ import { AuthThrottlerGuard } from "./guards/auth-throttler.guard.js";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard.js";
 import { OptionalJwtAuthGuard } from "./guards/optional-jwt-auth.guard.js";
 import { RefreshSessionGuard } from "./guards/refresh-session.guard.js";
+import { SuperAdminGuard } from "./guards/super-admin.guard.js";
 
 const AUTH_THROTTLE_LIMIT = 5;
 const AUTH_THROTTLE_TTL_MS = 10_000;
@@ -20,6 +21,7 @@ const guardProviders = [
   JwtAuthGuard,
   OptionalJwtAuthGuard,
   RefreshSessionGuard,
+  SuperAdminGuard,
 ];
 
 @Global()

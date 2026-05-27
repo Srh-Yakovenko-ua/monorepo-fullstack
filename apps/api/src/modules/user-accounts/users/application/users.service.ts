@@ -135,7 +135,7 @@ export function toUserView(doc: UserDoc): UserViewModel {
   return {
     createdAt: doc.createdAt.toISOString(),
     email: doc.email,
-    id: doc.id,
+    id: String(doc.id),
     login: doc.login,
     role: doc.role,
   };

@@ -1,6 +1,7 @@
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 
 import { Module } from "@nestjs/common";
+import { ScheduleModule } from "@nestjs/schedule";
 
 import { env } from "./config/env.js";
 import { CoreModule } from "./core/core.module.js";
@@ -12,7 +13,9 @@ import { CommentsModule } from "./modules/comments/comments.module.js";
 import { HealthModule } from "./modules/health/health.module.js";
 import { MetricsMiddleware } from "./modules/observability/metrics.middleware.js";
 import { MetricsModule } from "./modules/observability/metrics.module.js";
+import { PairQuizGameModule } from "./modules/pair-quiz-game/pair-quiz-game.module.js";
 import { PostsModule } from "./modules/posts/posts.module.js";
+import { QuizQuestionsModule } from "./modules/quiz-questions/quiz-questions.module.js";
 import { TestingModule } from "./modules/testing/testing.module.js";
 import { UserAccountsModule } from "./modules/user-accounts/user-accounts.module.js";
 import { VideosModule } from "./modules/videos/videos.module.js";
@@ -22,7 +25,9 @@ const featureModules = [
   CommentsModule,
   HealthModule,
   MetricsModule,
+  PairQuizGameModule,
   PostsModule,
+  QuizQuestionsModule,
   UserAccountsModule,
   VideosModule,
 ];
@@ -32,7 +37,13 @@ const optionalModules = [
 ];
 
 @Module({
-  imports: [DatabaseModule, CoreModule, ...featureModules, ...optionalModules],
+  imports: [
+    ScheduleModule.forRoot(),
+    DatabaseModule,
+    CoreModule,
+    ...featureModules,
+    ...optionalModules,
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

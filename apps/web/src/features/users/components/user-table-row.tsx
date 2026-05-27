@@ -20,10 +20,10 @@ import { truncateUserId } from "@/features/users/lib/user-id";
 import { formatTimestamp } from "@/lib/format";
 
 type UserTableRowProps = {
-  currentUserId: null | number;
+  currentUserId: null | string;
   isSuperAdmin: boolean;
   onDeleteClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  onRoleChange: (params: { role: UpdateUserRoleInput["role"]; userId: number }) => void;
+  onRoleChange: (params: { role: UpdateUserRoleInput["role"]; userId: string }) => void;
   roleChangePending: boolean;
   user: UserViewModel;
 };
